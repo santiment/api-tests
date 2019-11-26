@@ -1,0 +1,2 @@
+sanpy=0.7.5
+requests==2.22.0
