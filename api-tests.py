@@ -75,7 +75,7 @@ def test_token_metrics(slugs, last_days, interval):
                 number_of_errors += 1
                 error = {'metric': metric, 'reason': reason}
                 errors.append(error)
-        print(f'{slug}: {slugs.index(slug)}/{len(slugs)}')
+        print(f'{slug}: {slugs.index(slug) + 1}/{len(slugs)}')
         output.append({'slug': slug, 'number_of_errors': number_of_errors,
         'number_of_metrics': len(slug_metrics), 'errors': errors})
     return output
