@@ -2,12 +2,15 @@ import sys
 import os
 import san
 import json
+import logging
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
 from datastorage import common_metrics, extended_metrics, eth_only_metrics, slugs_with_more_metrics
 from constants import API_KEY, DT_FORMAT
 
+DAYS_BACK_TEST = 10
+TOP_PROJECTS_BY_MARKETCAP = 100
 
 def exclude_metrics(metrics, metrics_to_exclude):
     result = list(metrics)
@@ -50,6 +53,7 @@ def test_token_metrics(slugs, last_days, interval):
     metrics = common_metrics 
     output = []
     for slug in slugs:
+        logging.info("Testing slug: %s", slug)
         slug_metrics = metrics
         if slug in slugs_with_more_metrics:
             slug_metrics = metrics + extended_metrics
@@ -58,6 +62,7 @@ def test_token_metrics(slugs, last_days, interval):
         number_of_errors = 0
         errors = []
         for metric in slug_metrics:
+            logging.info("Testing metric: %s", metric)
             reason = None
             try:
                 result = san.get(
@@ -66,7 +71,8 @@ def test_token_metrics(slugs, last_days, interval):
                     to_date = dt.strftime(dt.today(), DT_FORMAT),
                     interval = interval
                 )
-            except SanError:
+            except SanError as e:
+                logging.info(str(e))
                 reason = 'GraphQL error'
             else:
                 if result.empty:
@@ -90,6 +96,14 @@ def save_output_to_file(output):
 if __name__ == '__main__':
     if API_KEY:
         san.ApiConfig.api_key = API_KEY
-    slugs = filter_projects_by_marketcap(100)
-    output = test_token_metrics(slugs, 10, '1d')
+    slugs = []
+    # TODO set the logging level through a config file
+    logging.basicConfig(level=logging.INFO)
+    # Optionally provide slugs arguments
+    if(len(sys.argv) > 1):
+       for i in range(1, len(sys.argv)):
+         slugs.append(sys.argv[i])
+    else:
+      slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
+    output = test_token_metrics(slugs, DAYS_BACK_TEST, '1d')
     save_output_to_file(output)
