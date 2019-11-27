@@ -6,18 +6,11 @@ import logging
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from datastorage import common_metrics, extended_metrics, eth_only_metrics, slugs_with_more_metrics
-from constants import API_KEY, DT_FORMAT
+from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
+from api_helper import get_available_metrics_and_queries, get_metric_data
 
 DAYS_BACK_TEST = 10
 TOP_PROJECTS_BY_MARKETCAP = 100
-
-def exclude_metrics(metrics, metrics_to_exclude):
-    result = list(metrics)
-    for metric in metrics_to_exclude:
-        if metric in result:
-            result.remove(metric)
-    return result
 
 def test():
     result = san.get(
@@ -48,42 +41,31 @@ def filter_projects_by_marketcap(number):
         results.append((slug, marketcap))
     return [x[0] for x in sorted(results, key=lambda k: k[1], reverse=True)[:number]]
     
-
+#for now only metrics are tested, as get_query_data() is not completed yet
 def test_token_metrics(slugs, last_days, interval):
-    metrics = common_metrics 
     output = []
     for slug in slugs:
+        (metrics, queries) = get_available_metrics_and_queries(slug) 
         logging.info("Testing slug: %s", slug)
-        slug_metrics = metrics
-        if slug in slugs_with_more_metrics:
-            slug_metrics = metrics + extended_metrics
-        if slug == 'ethereum':
-            slug_metrics = metrics + extended_metrics + eth_only_metrics 
         number_of_errors = 0
         errors = []
-        for metric in slug_metrics:
+        for metric in metrics:
             logging.info("Testing metric: %s", metric)
             reason = None
             try:
-                result = san.get(
-                    f"{metric}/{slug}",
-                    from_date = dt.strftime(dt.today() - td(days=last_days), DT_FORMAT),
-                    to_date = dt.strftime(dt.today(), DT_FORMAT),
-                    interval = interval
-                )
+                result = get_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval)
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
             else:
-                if result.empty:
+                if not result:
                     reason = 'empty'
             if reason:
                 number_of_errors += 1
                 error = {'metric': metric, 'reason': reason}
                 errors.append(error)
-        print(f'{slug}: {slugs.index(slug) + 1}/{len(slugs)}')
         output.append({'slug': slug, 'number_of_errors': number_of_errors,
-        'number_of_metrics': len(slug_metrics), 'errors': errors})
+        'number_of_metrics': len(metrics), 'errors': errors})
     return output
 
 def save_output_to_file(output):
