@@ -1,3 +1,5 @@
 import os
 API_KEY = os.getenv('API_KEY')
-DT_FORMAT = os.getenv('DT_FORMAT', '%Y-%m-%d')
+DT_FORMAT = os.getenv("DT_FORMAT", "%Y-%m-%d")
+DATETIME_PATTERN_METRIC = os.getenv("DATETIME_PATTERN_METRIC", "%Y-%m-%dT00:00:00Z")
+DATETIME_PATTERN_QUERY = os.getenv("DATETIME_PATTERN_QUERY", "%Y-%m-%dT00:00:00.000000+00:00")
