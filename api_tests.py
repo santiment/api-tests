@@ -7,7 +7,7 @@ from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
 from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
-from api_helper import get_available_metrics_and_queries, get_metric_data
+from api_helper import get_available_metrics_and_queries, get_metric_data, get_query_data
 
 DAYS_BACK_TEST = 10
 TOP_PROJECTS_BY_MARKETCAP = 100
@@ -41,16 +41,20 @@ def filter_projects_by_marketcap(number):
         results.append((slug, marketcap))
     return [x[0] for x in sorted(results, key=lambda k: k[1], reverse=True)[:number]]
     
-#for now only metrics are tested, as get_query_data() is not completed yet
+
 def test_token_metrics(slugs, last_days, interval):
     output = []
+    n = len(slugs)
     for slug in slugs:
         (metrics, queries) = get_available_metrics_and_queries(slug) 
         logging.info("Testing slug: %s", slug)
-        number_of_errors = 0
-        errors = []
+        number_of_errors_metrics = 0
+        number_of_errors_queries = 0
+        i = slugs.index(slug)
+        errors_metrics = []
+        errors_queries = []
         for metric in metrics:
-            logging.info("Testing metric: %s", metric)
+            logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
             reason = None
             try:
                 result = get_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval)
@@ -61,11 +65,28 @@ def test_token_metrics(slugs, last_days, interval):
                 if not result:
                     reason = 'empty'
             if reason:
-                number_of_errors += 1
+                number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
-                errors.append(error)
-        output.append({'slug': slug, 'number_of_errors': number_of_errors,
-        'number_of_metrics': len(metrics), 'errors': errors})
+                errors_metrics.append(error)
+        for query in queries:
+            logging.info(f"[Slug {i + 1}/{n}] Testing query: {query}")
+            reason = None
+            try:
+                result = get_query_data(query, slug, dt.now() - td(days=last_days), dt.now(), interval)
+            except SanError as e:
+                logging.info(str(e))
+                reason = 'GraphQL error'
+            else:
+                if not result:
+                    reason = 'empty'
+            if reason:
+                number_of_errors_queries += 1
+                error = {'query': query, 'reason': reason}
+                errors_queries.append(error)
+        output.append({'slug': slug, 'number_of_errors_metrics': number_of_errors_metrics,
+        'number_of_metrics': len(metrics), 'errors_metrics': errors_metrics,
+        'number_of_errors_queries': number_of_errors_queries, 'number_of_queries': len(queries),
+        'errors_queries': errors_queries})
     return output
 
 def save_output_to_file(output):
