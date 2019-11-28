@@ -5,6 +5,8 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 from constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
 from queries import queries, api_error_queries
+#TODO separate gql string building into another methods
+
 
 def get_available_metrics_and_queries(slug):
     gql_query = '''

@@ -6,11 +6,9 @@ import logging
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
+from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP
 from api_helper import get_available_metrics_and_queries, get_metric_data, get_query_data
 
-DAYS_BACK_TEST = 10
-TOP_PROJECTS_BY_MARKETCAP = 100
 
 def test():
     result = san.get(
