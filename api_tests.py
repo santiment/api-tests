@@ -6,7 +6,7 @@ import logging
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP
+from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT
 from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data, get_histogram_metric_data, get_query_data
 
 
@@ -74,7 +74,7 @@ def test_token_metrics(slugs, last_days, interval):
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
             reason = None
             try:
-                result = get_histogram_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval, 10)
+                result = get_histogram_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval, HISTOGRAM_METRICS_LIMIT)
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'

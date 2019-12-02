@@ -83,7 +83,7 @@ def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
           from: "''' + str_from + '''"
           to: "''' + str_to + '''"
           interval: "''' + interval + '''",
-          limit: "''' + limit + '''"){
+          limit: ''' + str(limit) + '''){
             labels
             values {
               ... on FloatList{ data }
