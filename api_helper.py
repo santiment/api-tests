@@ -12,17 +12,19 @@ def get_available_metrics_and_queries(slug):
     gql_query = '''
     {
         projectBySlug(slug: "''' + slug + '''"){
-            availableMetrics
+            availableTimeseriesMetrics
+            availableHistogramMetrics
             availableQueries
         }
     }
     '''
     response = execute_gql(gql_query)
-    metrics = response['projectBySlug']['availableMetrics']
+    timeseries_metrics = response['projectBySlug']['availableTimeseriesMetrics']
+    histogram_metrics = response['projectBySlug']['availableHistogramMetrics']
     queries = response['projectBySlug']['availableQueries']
     if 'getMetric' in queries:
         queries.remove('getMetric')
-    return (metrics, queries)
+    return (timeseries_metrics, histogram_metrics, queries)
 
 def get_query_data(query, slug, dt_from, dt_to, interval):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_QUERY)
@@ -47,27 +49,52 @@ def get_query_data(query, slug, dt_from, dt_to, interval):
     else:
         print(f"Unknown query: {query}")
         return
-    
 
-def get_metric_data(metric, slug, dt_from, dt_to, interval):
+
+def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_METRIC)
     str_to = dt.strftime(dt_to, DATETIME_PATTERN_METRIC)
     gql_query = '''
     {
-        getMetric(metric: "''' + metric + '''"){
-            timeseriesData(
-            slug: "''' + slug + '''"
-            from: "''' + str_from + '''"
-            to: "''' + str_to + '''"
-            interval: "''' + interval + '''"){
-                datetime
-                value
-            }
-        }
+      getMetric(metric: "''' + metric + '''"){
+        timeseriesData(
+          slug: "''' + slug + '''"
+          from: "''' + str_from + '''"
+          to: "''' + str_to + '''"
+          interval: "''' + interval + '''"){
+            datetime
+            value
+          }
+      }
     }
     '''
     response = execute_gql(gql_query)
     return response['getMetric']['timeseriesData']
+
+
+def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
+    str_from = dt.strftime(dt_from, DATETIME_PATTERN_METRIC)
+    str_to = dt.strftime(dt_to, DATETIME_PATTERN_METRIC)
+    gql_query = '''
+    {
+      getMetric(metric: "''' + metric + '''"){
+        histogramData(
+          slug: "''' + slug + '''"
+          from: "''' + str_from + '''"
+          to: "''' + str_to + '''"
+          interval: "''' + interval + '''",
+          limit: "''' + limit + '''"){
+            labels
+            values {
+              ... on FloatList{ data }
+              ... on StringList{ data }
+            }
+        }
+      }
+    }
+    '''
+    response = execute_gql(gql_query)
+    return response['getMetric']['histogramData']
 
 
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
 from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP
-from api_helper import get_available_metrics_and_queries, get_metric_data, get_query_data
+from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data, get_histogram_metric_data, get_query_data
 
 
 def test():
@@ -38,24 +38,26 @@ def filter_projects_by_marketcap(number):
         marketcap = price['marketcap'].values[0] if not price.empty else 0
         results.append((slug, marketcap))
     return [x[0] for x in sorted(results, key=lambda k: k[1], reverse=True)[:number]]
-    
+
 
 def test_token_metrics(slugs, last_days, interval):
     output = []
     n = len(slugs)
     for slug in slugs:
-        (metrics, queries) = get_available_metrics_and_queries(slug) 
+        (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
         logging.info("Testing slug: %s", slug)
         number_of_errors_metrics = 0
         number_of_errors_queries = 0
         i = slugs.index(slug)
-        errors_metrics = []
+        errors_timeseries_metrics = []
+        errors_histogram_metrics = []
         errors_queries = []
-        for metric in metrics:
+
+        for metric in timeseries_metrics:
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
             reason = None
             try:
-                result = get_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval)
+                result = get_timeseries_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval)
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
@@ -65,7 +67,25 @@ def test_token_metrics(slugs, last_days, interval):
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
-                errors_metrics.append(error)
+                errors_timeseries_metrics.append(error)
+
+
+        for metric in histogram_metrics:
+            logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
+            reason = None
+            try:
+                result = get_histogram_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval, 10)
+            except SanError as e:
+                logging.info(str(e))
+                reason = 'GraphQL error'
+            else:
+                if not result:
+                    reason = 'empty'
+            if reason:
+                number_of_errors_metrics += 1
+                error = {'metric': metric, 'reason': reason}
+                errors_histogram_metrics.append(error)
+
         for query in queries:
             logging.info(f"[Slug {i + 1}/{n}] Testing query: {query}")
             reason = None
@@ -81,9 +101,15 @@ def test_token_metrics(slugs, last_days, interval):
                 number_of_errors_queries += 1
                 error = {'query': query, 'reason': reason}
                 errors_queries.append(error)
-        output.append({'slug': slug, 'number_of_errors_metrics': number_of_errors_metrics,
-        'number_of_metrics': len(metrics), 'errors_metrics': errors_metrics,
-        'number_of_errors_queries': number_of_errors_queries, 'number_of_queries': len(queries),
+        output.append({
+        'slug': slug,
+        'number_of_errors_metrics': number_of_errors_metrics,
+        'number_of_timeseries_metrics': len(timeseries_metrics),
+        'errors_timeseries_metrics': errors_timeseries_metrics,
+        'number_of_histogram_metrics': len(histogram_metrics),
+        'errors_histogram_metrics': errors_histogram_metrics,
+        'number_of_errors_queries': number_of_errors_queries,
+        'number_of_queries': len(queries),
         'errors_queries': errors_queries})
     return output
 
