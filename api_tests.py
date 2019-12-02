@@ -81,6 +81,9 @@ def test_token_metrics(slugs, last_days, interval):
             else:
                 if not result:
                     reason = 'empty'
+                else:
+                    if not result['labels'] and not result['values'] and not result['values']['data']:
+                        reason = 'empty'
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
