@@ -8,7 +8,7 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT
 from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data, get_histogram_metric_data, get_query_data
-
+from html_reporter import generate_html_from_json
 
 def test():
     result = san.get(
@@ -39,12 +39,24 @@ def filter_projects_by_marketcap(number):
         results.append((slug, marketcap))
     return [x[0] for x in sorted(results, key=lambda k: k[1], reverse=True)[:number]]
 
+def exclude_metrics(metrics, metrics_to_exclude):
+    result = list(metrics)
+    for metric in metrics_to_exclude:
+        if metric in result:
+            result.remove(metric)
+    return result
 
-def test_token_metrics(slugs, last_days, interval):
+def test_token_metrics(slugs, ignored_metrics, last_days, interval):
     output = []
+    output_for_html = []
     n = len(slugs)
     for slug in slugs:
         (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
+        if ignored_metrics:
+            if slug in ignored_metrics:
+                exclude_metrics(timeseries_metrics, ignored_metrics[slug]['ignored_timeseries_metrics'])
+                exclude_metrics(histogram_metrics, ignored_metrics[slug]['ignored_histogram_metrics'])
+                exclude_metrics(queries, ignored_metrics[slug]['ignored_queries'])
         logging.info("Testing slug: %s", slug)
         number_of_errors_metrics = 0
         number_of_errors_queries = 0
@@ -52,6 +64,7 @@ def test_token_metrics(slugs, last_days, interval):
         errors_timeseries_metrics = []
         errors_histogram_metrics = []
         errors_queries = []
+        data_for_html = []
 
         for metric in timeseries_metrics:
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
@@ -68,7 +81,12 @@ def test_token_metrics(slugs, last_days, interval):
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
                 errors_timeseries_metrics.append(error)
-
+                piece_for_html = {'name': metric, 'status': 'failed'}
+            else:
+                piece_for_html = {'name': metric, 'status': 'passed'}
+            if ignored_metrics and slug in ignored_metrics and metric in ignored_metrics[slug]['ignored_timeseries_metrics']:
+                piece_for_html = {'name': metric, 'status': 'ignored'}
+            data_for_html.append(piece_for_html)
 
         for metric in histogram_metrics:
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
@@ -88,6 +106,12 @@ def test_token_metrics(slugs, last_days, interval):
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
                 errors_histogram_metrics.append(error)
+                piece_for_html = {'name': metric, 'status': 'failed'}
+            else:
+                piece_for_html = {'name': metric, 'status': 'passed'}
+            if ignored_metrics and slug in ignored_metrics and metric in ignored_metrics[slug]['ignored_histogram_metrics']:
+                piece_for_html = {'name': metric, 'status': 'ignored'}
+            data_for_html.append(piece_for_html)
 
         for query in queries:
             logging.info(f"[Slug {i + 1}/{n}] Testing query: {query}")
@@ -104,6 +128,12 @@ def test_token_metrics(slugs, last_days, interval):
                 number_of_errors_queries += 1
                 error = {'query': query, 'reason': reason}
                 errors_queries.append(error)
+                piece_for_html = {'name': query, 'status': 'failed'}
+            else:
+                piece_for_html = {'name': query, 'status': 'passed'}
+            if ignored_metrics and slug in ignored_metrics and query in ignored_metrics[slug]['ignored_queries']:
+                piece_for_html = {'name': query, 'status': 'ignored'}
+            data_for_html.append(piece_for_html)
         output.append({
         'slug': slug,
         'number_of_errors_metrics': number_of_errors_metrics,
@@ -114,12 +144,16 @@ def test_token_metrics(slugs, last_days, interval):
         'number_of_errors_queries': number_of_errors_queries,
         'number_of_queries': len(queries),
         'errors_queries': errors_queries})
-    return output
+        output_for_html.append({
+        'slug': slug,
+        'data': data_for_html
+        })
+    return output, output_for_html
 
-def save_output_to_file(output):
+def save_output_to_file(output, filename='output'):
     if not os.path.isdir('./output'):
         os.mkdir('./output')
-    with open(f'./output/output.json', 'w+') as file:
+    with open(f'./output/{filename}.json', 'w+') as file:
         json.dump(output, file, indent=4)
 
 
@@ -136,5 +170,14 @@ if __name__ == '__main__':
          slugs.append(sys.argv[i])
     else:
       slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
-    output = test_token_metrics(slugs, DAYS_BACK_TEST, '1d')
+    ignored_metrics = {
+        'bitcoin': {
+            'ignored_timeseries_metrics': ['reddit_social_dominance'],
+            'ignored_histogram_metrics': [],
+            'ignored_queries': ['tokenVelocity', 'icos'],
+        }
+    }
+    (output, output_for_html) = test_token_metrics(slugs, ignored_metrics, DAYS_BACK_TEST, '1d')
     save_output_to_file(output)
+    save_output_to_file(output_for_html, 'output_for_html')
+    generate_html_from_json('output_for_html')
