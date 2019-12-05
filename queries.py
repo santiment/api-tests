@@ -349,7 +349,7 @@ queries = {
     },
 }
 
-api_error_queries = [
+special_queries = [
     "aveargeDevActivity", 
     "averageGithubActivity",
     "tokenTopTransactions",

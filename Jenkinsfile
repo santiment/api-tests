@@ -1,6 +1,14 @@
+properties([
+  pipelineTriggers([cron('H 00 * * *')]),
+  disableConcurrentBuilds(),
+  buildDiscarder(logRotator(numToKeepStr: '10'))
+])
 podTemplate(label: 'api-tests', containers: [
   containerTemplate(name: 'docker', image: 'docker', ttyEnabled: true, command: 'cat', envVars: [
     envVar(key: 'DOCKER_HOST', value: 'tcp://docker-host-docker-host:2375')
+  ]),
+  containerTemplate(name: 'api-tests', image: '913750763724.dkr.ecr.eu-central-1.amazonaws.com/api-tests:master', ttyEnabled: true, command: 'cat', envVars: [
+    envVar(key: 'TOP_PROJECTS_BY_MARKETCAP', value: '100')
   ])
 ]) {
   node('api-tests') {
@@ -21,6 +29,17 @@ podTemplate(label: 'api-tests', containers: [
             sh "docker push ${awsRegistry}/api-tests:${scmVars.GIT_COMMIT}"
           }
         }
+      }
+      container('api-tests') {
+        sh "python api_tests.py"
+        publishHTML (target: [
+          allowMissing: false,
+          alwaysLinkToLastBuild: false,
+          keepAll: true,
+          reportDir: 'output',
+          reportFiles: 'index.html, output.json',
+          reportName: "Test Report"
+       ])
       }
     }
   }
