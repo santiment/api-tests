@@ -166,18 +166,11 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     # Optionally provide slugs arguments
     if(len(sys.argv) > 1):
-       for i in range(1, len(sys.argv)):
-         slugs.append(sys.argv[i])
+        for i in range(1, len(sys.argv)):
+            slugs.append(sys.argv[i])
     else:
-      slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
-    ignored_metrics = {
-        'bitcoin': {
-            'ignored_timeseries_metrics': ['reddit_social_dominance'],
-            'ignored_histogram_metrics': [],
-            'ignored_queries': ['tokenVelocity', 'icos'],
-        }
-    }
-    (output, output_for_html) = test_token_metrics(slugs, ignored_metrics, DAYS_BACK_TEST, '1d')
+        slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
+    (output, output_for_html) = test_token_metrics(slugs, None, DAYS_BACK_TEST, '1d')
     save_output_to_file(output)
     save_output_to_file(output_for_html, 'output_for_html')
     generate_html_from_json('output_for_html', 'index')

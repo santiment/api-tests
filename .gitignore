@@ -105,3 +105,6 @@ venv.bak/
 
 #output
 output/
+
+#macos
+.DS_Store
