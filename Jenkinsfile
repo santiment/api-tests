@@ -29,6 +29,7 @@ podTemplate(label: 'api-tests', containers: [
             sh "docker push ${awsRegistry}/api-tests:${scmVars.GIT_COMMIT}"
           }
         }
+      }
       container('api-tests') {
         sh "python api_tests.py"
       }
@@ -40,7 +41,6 @@ podTemplate(label: 'api-tests', containers: [
           reportFiles: 'index.html',
           reportName: "Test Report"
        ])
-      }
     }
   }
 }
