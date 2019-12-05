@@ -81,7 +81,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
                 errors_timeseries_metrics.append(error)
-                piece_for_html = {'name': metric, 'status': 'failed'}
+                piece_for_html = {'name': metric, 'status': reason}
             else:
                 piece_for_html = {'name': metric, 'status': 'passed'}
             if ignored_metrics and slug in ignored_metrics and metric in ignored_metrics[slug]['ignored_timeseries_metrics']:
@@ -106,7 +106,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
                 errors_histogram_metrics.append(error)
-                piece_for_html = {'name': metric, 'status': 'failed'}
+                piece_for_html = {'name': metric, 'status': reason}
             else:
                 piece_for_html = {'name': metric, 'status': 'passed'}
             if ignored_metrics and slug in ignored_metrics and metric in ignored_metrics[slug]['ignored_histogram_metrics']:
@@ -128,7 +128,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                 number_of_errors_queries += 1
                 error = {'query': query, 'reason': reason}
                 errors_queries.append(error)
-                piece_for_html = {'name': query, 'status': 'failed'}
+                piece_for_html = {'name': query, 'status': reason}
             else:
                 piece_for_html = {'name': query, 'status': 'passed'}
             if ignored_metrics and slug in ignored_metrics and query in ignored_metrics[slug]['ignored_queries']:

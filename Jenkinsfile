@@ -8,7 +8,7 @@ podTemplate(label: 'api-tests', containers: [
     envVar(key: 'DOCKER_HOST', value: 'tcp://docker-host-docker-host:2375')
   ]),
   containerTemplate(name: 'api-tests', image: '913750763724.dkr.ecr.eu-central-1.amazonaws.com/api-tests:master', ttyEnabled: true, command: 'cat', envVars: [
-    envVar(key: 'TOP_PROJECTS_BY_MARKETCAP', value: '50')
+    envVar(key: 'TOP_PROJECTS_BY_MARKETCAP', value: '100')
   ])
 ]) {
   node('api-tests') {
@@ -37,7 +37,7 @@ podTemplate(label: 'api-tests', containers: [
           alwaysLinkToLastBuild: false,
           keepAll: true,
           reportDir: 'output',
-          reportFiles: 'index.html',
+          reportFiles: 'index.html, output.json',
           reportName: "Test Report"
        ])
       }

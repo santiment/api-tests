@@ -3,7 +3,8 @@ import json
 
 color_mapping = {
     "passed": "PaleGreen",
-    "failed": "LightCoral",
+    "empty": "LightCoral",
+    "GraphQL error": "Crimson",
     "ignored": "LemonChiffon",
     "N/A": "LightGray"
 }
