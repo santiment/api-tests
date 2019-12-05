@@ -6,9 +6,10 @@ import logging
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT
+from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT, INTERVAL
 from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data, get_histogram_metric_data, get_query_data
 from html_reporter import generate_html_from_json
+from queries import special_queries
 
 def test():
     result = san.get(
@@ -52,6 +53,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
     n = len(slugs)
     for slug in slugs:
         (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
+        exclude_metrics(queries, special_queries)
         if ignored_metrics:
             if slug in ignored_metrics:
                 exclude_metrics(timeseries_metrics, ignored_metrics[slug]['ignored_timeseries_metrics'])
@@ -170,7 +172,7 @@ if __name__ == '__main__':
             slugs.append(sys.argv[i])
     else:
         slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
-    (output, output_for_html) = test_token_metrics(slugs, None, DAYS_BACK_TEST, '1d')
+    (output, output_for_html) = test_token_metrics(slugs, None, DAYS_BACK_TEST, INTERVAL)
     save_output_to_file(output)
     save_output_to_file(output_for_html, 'output_for_html')
     generate_html_from_json('output_for_html', 'index')
