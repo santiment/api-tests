@@ -32,7 +32,6 @@ podTemplate(label: 'api-tests', containers: [
       }
       container('api-tests') {
         sh "python api_tests.py"
-      }
         publishHTML (target: [
           allowMissing: false,
           alwaysLinkToLastBuild: false,
@@ -41,6 +40,7 @@ podTemplate(label: 'api-tests', containers: [
           reportFiles: 'index.html',
           reportName: "Test Report"
        ])
+      }
     }
   }
 }
