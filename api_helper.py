@@ -4,7 +4,7 @@ from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
 from constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
-from queries import queries, api_error_queries
+from queries import queries, special_queries
 #TODO separate gql string building into another methods
 
 
@@ -43,9 +43,9 @@ def get_query_data(query, slug, dt_from, dt_to, interval):
         gql_query = '{' + query + '(' + query_args_str + ')' + query_fields_str + '}'
         response = execute_gql(gql_query)
         return response[query]
-    elif query in api_error_queries:
-        print(f"API returns error for {query} query. To be investigated.")
-        raise SanError
+    elif query in special_queries:
+        print(f"Query {query} is used in other format.")
+        return
     else:
         print(f"Unknown query: {query}")
         return
@@ -98,6 +98,4 @@ def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
 
 
 if __name__ == '__main__':
-    #print(get_available_metrics_and_queries('bitcoin'))
     print(get_query_data('priceVolumeDiff', 'ethereum', dt.now() - td(days=1), dt.now(), '1d'))
-    #print(get_metric_data('nvt', 'bitcoin-cash', dt.now() - td(days=1), dt.now(), '1d'))
