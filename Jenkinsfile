@@ -7,7 +7,7 @@ podTemplate(label: 'api-tests', containers: [
   containerTemplate(name: 'docker', image: 'docker', ttyEnabled: true, command: 'cat', envVars: [
     envVar(key: 'DOCKER_HOST', value: 'tcp://docker-host-docker-host:2375')
   ]),
-  containerTemplate(name: 'api-tests', image: '913750763724.dkr.ecr.eu-central-1.amazonaws.com/ui-tests:master', ttyEnabled: true, command: 'cat', envVars: [
+  containerTemplate(name: 'api-tests', image: '913750763724.dkr.ecr.eu-central-1.amazonaws.com/api-tests:master', ttyEnabled: true, command: 'cat', envVars: [
     envVar(key: 'TOP_PROJECTS_BY_MARKETCAP', value: '50')
   ])
 ]) {
