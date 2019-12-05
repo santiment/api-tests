@@ -53,12 +53,12 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
     n = len(slugs)
     for slug in slugs:
         (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
-        exclude_metrics(queries, special_queries)
+        queries = exclude_metrics(queries, special_queries)
         if ignored_metrics:
             if slug in ignored_metrics:
-                exclude_metrics(timeseries_metrics, ignored_metrics[slug]['ignored_timeseries_metrics'])
-                exclude_metrics(histogram_metrics, ignored_metrics[slug]['ignored_histogram_metrics'])
-                exclude_metrics(queries, ignored_metrics[slug]['ignored_queries'])
+                timeseries_metrics = exclude_metrics(timeseries_metrics, ignored_metrics[slug]['ignored_timeseries_metrics'])
+                histogram_metrics = exclude_metrics(histogram_metrics, ignored_metrics[slug]['ignored_histogram_metrics'])
+                queries = exclude_metrics(queries, ignored_metrics[slug]['ignored_queries'])
         logging.info("Testing slug: %s", slug)
         number_of_errors_metrics = 0
         number_of_errors_queries = 0
