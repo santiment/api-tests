@@ -180,4 +180,4 @@ if __name__ == '__main__':
     (output, output_for_html) = test_token_metrics(slugs, ignored_metrics, DAYS_BACK_TEST, '1d')
     save_output_to_file(output)
     save_output_to_file(output_for_html, 'output_for_html')
-    generate_html_from_json('output_for_html')
+    generate_html_from_json('output_for_html', 'index')

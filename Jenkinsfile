@@ -20,7 +20,14 @@ podTemplate(label: 'api-tests', containers: [
             sh "docker push ${awsRegistry}/api-tests:${env.BRANCH_NAME}"
             sh "docker push ${awsRegistry}/api-tests:${scmVars.GIT_COMMIT}"
           }
-        }
+        publishHTML (target: [
+          allowMissing: false,
+          alwaysLinkToLastBuild: false,
+          keepAll: true,
+          reportDir: 'output',
+          reportFiles: 'index.html',
+          reportName: "RCov Report"
+       ])}
       }
     }
   }
