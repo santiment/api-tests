@@ -85,9 +85,9 @@ def generate_html_table_sorted(data):
     html = '<div class="content">'
     for item in data:
         html += f'''
+        <div style="text-align:left;">{item['slug'].upper()}</div>
         <div class="scrolly">
         <table>
-        <caption style="text-align:left;">{item['slug'].upper()}</caption>
         <tr>'''
         values = sorted([(x['name'], x['status']) for x in item['data']], key=lambda k: k[1])
         (names, statuses) = zip(*values)
