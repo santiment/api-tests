@@ -140,7 +140,7 @@ def generate_html_table_merged(data):
                 status = 'N/A'
             color = color_mapping[status]
             html += f'''
-            <td style="background-color:{color};text-align:center;">{status}</td>
+            <td title="{item['slug'].upper()} {name}" style="background-color:{color};text-align:center;">{status}</td>
             '''
         html += '''
         </tr>'''
@@ -148,4 +148,4 @@ def generate_html_table_merged(data):
     return html
 
 if __name__ == '__main__':
-    generate_html_from_json('output_for_html')
+    generate_html_from_json('output_for_html', 'index')
