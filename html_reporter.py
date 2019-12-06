@@ -82,10 +82,10 @@ def generate_html_from_json(input_file, output_file=None):
         file.write(html)
 
 def generate_html_table_sorted(data):
-    html = ''
+    html = '<div class="content">'
     for item in data:
         html += f'''
-        <div class="content scrolly">
+        <div class="scrolly">
         <table>
         <caption style="text-align:left;">{item['slug'].upper()}</caption>
         <tr>'''
@@ -109,6 +109,7 @@ def generate_html_table_sorted(data):
         </div>
         <br/>
         '''
+    html += '</div>'
     return html
 
 def generate_html_table_merged(data):
