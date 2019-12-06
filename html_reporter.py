@@ -51,14 +51,10 @@ def generate_html_from_json(input_file, output_file=None):
     	</head>
     	<body>
         <button type="button" class="collapsible">Merged view</button>
-        <div class="content scrolly">
-
     '''
     html += generate_html_table_merged(data)
     html += '''
-    </div>
     <button type="button" class="collapsible">Sorted view</button>
-    <div class="content scrolly">
     '''
     html += generate_html_table_sorted(data)
     html += '''
@@ -89,6 +85,7 @@ def generate_html_table_sorted(data):
     html = ''
     for item in data:
         html += f'''
+        <div class="content scrolly">
         <table>
         <caption style="text-align:left;">{item['slug'].upper()}</caption>
         <tr>'''
@@ -109,6 +106,7 @@ def generate_html_table_sorted(data):
         html += '''
         </tr>
         </table>
+        </div>
         <br/>
         '''
     return html
@@ -119,6 +117,7 @@ def generate_html_table_merged(data):
         all_names += [x['name'] for x in item['data']]
     all_names = sorted(list(set(all_names)))
     html = f'''
+    <div class="content scrolly">
     <table>
     <tr>
     <th></th>'''
@@ -145,7 +144,7 @@ def generate_html_table_merged(data):
             '''
         html += '''
         </tr>'''
-    html += '</table>'
+    html += '</table></div>'
     return html
 
 if __name__ == '__main__':
