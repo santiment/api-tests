@@ -39,6 +39,9 @@ def generate_html_from_json(input_file, output_file=None):
       overflow: hidden;
       background-color: #f1f1f1;
     }
+    .limited-height {
+      max-height: 82vh;
+    }
     .active, .collapsible:hover {
       background-color: #ccc;
     }
@@ -118,7 +121,7 @@ def generate_html_table_merged(data):
         all_names += [x['name'] for x in item['data']]
     all_names = sorted(list(set(all_names)))
     html = f'''
-    <div class="content scrolly">
+    <div class="content scrolly limited-height">
     <table>
     <tr>
     <th></th>'''
