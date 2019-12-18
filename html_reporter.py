@@ -39,6 +39,9 @@ def generate_html_from_json(input_file, output_file=None):
       overflow: hidden;
       background-color: #f1f1f1;
     }
+    .limited-height {
+      max-height: 82vh;
+    }
     .active, .collapsible:hover {
       background-color: #ccc;
     }
@@ -51,14 +54,10 @@ def generate_html_from_json(input_file, output_file=None):
     	</head>
     	<body>
         <button type="button" class="collapsible">Merged view</button>
-        <div class="content scrolly">
-
     '''
     html += generate_html_table_merged(data)
     html += '''
-    </div>
     <button type="button" class="collapsible">Sorted view</button>
-    <div class="content scrolly">
     '''
     html += generate_html_table_sorted(data)
     html += '''
@@ -86,11 +85,12 @@ def generate_html_from_json(input_file, output_file=None):
         file.write(html)
 
 def generate_html_table_sorted(data):
-    html = ''
+    html = '<div class="content">'
     for item in data:
         html += f'''
+        <div style="text-align:left;">{item['slug'].upper()}</div>
+        <div class="scrolly">
         <table>
-        <caption style="text-align:left;">{item['slug'].upper()}</caption>
         <tr>'''
         values = sorted([(x['name'], x['status']) for x in item['data']], key=lambda k: k[1])
         (names, statuses) = zip(*values)
@@ -109,8 +109,10 @@ def generate_html_table_sorted(data):
         html += '''
         </tr>
         </table>
+        </div>
         <br/>
         '''
+    html += '</div>'
     return html
 
 def generate_html_table_merged(data):
@@ -119,6 +121,7 @@ def generate_html_table_merged(data):
         all_names += [x['name'] for x in item['data']]
     all_names = sorted(list(set(all_names)))
     html = f'''
+    <div class="content scrolly limited-height">
     <table>
     <tr>
     <th></th>'''
@@ -141,12 +144,12 @@ def generate_html_table_merged(data):
                 status = 'N/A'
             color = color_mapping[status]
             html += f'''
-            <td style="background-color:{color};text-align:center;">{status}</td>
+            <td title="{item['slug'].upper()} {name}" style="background-color:{color};text-align:center;">{status}</td>
             '''
         html += '''
         </tr>'''
-    html += '</table>'
+    html += '</table></div>'
     return html
 
 if __name__ == '__main__':
-    generate_html_from_json('output_for_html')
+    generate_html_from_json('output_for_html', 'index')
