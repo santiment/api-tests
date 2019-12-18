@@ -1,2 +1,2 @@
-sanpy==0.7.5
+sanpy==0.7.9
 requests==2.22.0
