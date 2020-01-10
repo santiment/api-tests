@@ -92,7 +92,7 @@ def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
     }
     '''
     response = execute_gql(gql_query)
-    return response['getMetric']['histogramData']['values']['data']
+    return response['getMetric']['histogramData']
 
 
 if __name__ == '__main__':
