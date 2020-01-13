@@ -44,11 +44,9 @@ def get_query_data(query, slug, dt_from, dt_to, interval):
         response = execute_gql(gql_query)
         return response[query]
     elif query in special_queries:
-        print(f"Query {query} is used in other format.")
-        return
+        raise SanError(f"Query {query} is used in other format.")
     else:
-        print(f"Unknown query: {query}")
-        return
+        raise SanError(f"Unknown query: {query}")
 
 
 def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
