@@ -350,7 +350,7 @@ queries = {
 }
 
 special_queries = [
-    "aveargeDevActivity", 
+    "averageDevActivity",
     "averageGithubActivity",
     "tokenTopTransactions",
     "ethSpentOverTime",
