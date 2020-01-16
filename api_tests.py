@@ -6,8 +6,8 @@ import logging
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT, INTERVAL
-from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data, get_histogram_metric_data, get_query_data
+from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT, INTERVAL, BATCH_SIZE
+from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data, get_histogram_metric_data, get_query_data, get_marketcap_batch
 from html_reporter import generate_html_from_json
 from queries import special_queries
 
@@ -22,22 +22,13 @@ def test():
 
 def filter_projects_by_marketcap(number):
     projects = san.get('projects/all')
-    results = []
-    batch = san.Batch()
     slugs = projects['slug'].values
-    for slug in slugs:
-        batch.get(
-            f"prices/{slug}",
-            from_date=dt.strftime(dt.today(), DT_FORMAT),
-            to_date=dt.strftime(dt.today(), DT_FORMAT),
-            interval="1d"
-        )
-    prices = batch.execute()
-    for i in range(len(prices)):
-        price = prices[i]
-        slug = slugs[i]
-        marketcap = price['marketcap'].values[0] if not price.empty else 0
-        results.append((slug, marketcap))
+    caps = []
+    for i in range(len(slugs)//BATCH_SIZE):
+        slugs_sub = slugs[BATCH_SIZE*i:BATCH_SIZE*(i+1)]
+        caps += get_marketcap_batch(slugs_sub)
+        print(f"Batch {i} executed")
+    results = zip(slugs, caps)
     return [x[0] for x in sorted(results, key=lambda k: k[1], reverse=True)[:number]]
 
 def exclude_metrics(metrics, metrics_to_exclude):

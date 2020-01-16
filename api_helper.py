@@ -69,6 +69,26 @@ def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
     response = execute_gql(gql_query)
     return response['getMetric']['timeseriesData']
 
+def get_marketcap_batch(slugs):
+    to_str = dt.strftime(dt.now(), DATETIME_PATTERN_QUERY)
+    from_str = dt.strftime(dt.now() - td(days=1), DATETIME_PATTERN_QUERY)
+    gql_query = '{'
+    i = 0
+    for slug in slugs:
+        gql_query += '''
+        query_''' + str(i) + ''': historyPrice(
+            slug: "''' + slug + '''",
+            from: "''' + from_str + '''",
+            to: "''' + to_str + '''",
+            interval: "1d"
+        ) {marketcap}
+        '''
+        i += 1
+    gql_query += '}'
+    response = execute_gql(gql_query)
+    result = [response[f"query_{x}"][0]['marketcap'] if response[f"query_{x}"] else 0 for x in range(len(slugs))]
+    return result
+
 
 def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_METRIC)
