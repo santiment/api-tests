@@ -62,17 +62,21 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         for metric in timeseries_metrics:
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
             reason = None
+            message = None
             try:
                 result = get_timeseries_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval)
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
+                message = str(e)
             else:
                 if not result:
                     reason = 'empty'
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
+                if message:
+                    error['message'] = message
                 errors_timeseries_metrics.append(error)
                 piece_for_html = {'name': metric, 'status': reason}
             else:
@@ -84,17 +88,21 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         for metric in histogram_metrics:
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
             reason = None
+            message = None
             try:
                 result = get_histogram_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval, HISTOGRAM_METRICS_LIMIT)
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
+                message = str(e)
             else:
                 if not result or not result['labels'] or not result['values'] or not result['values']['data']:
                     reason = 'empty'
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
+                if message:
+                    error['message'] = message
                 errors_histogram_metrics.append(error)
                 piece_for_html = {'name': metric, 'status': reason}
             else:
@@ -106,17 +114,21 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         for query in queries:
             logging.info(f"[Slug {i + 1}/{n}] Testing query: {query}")
             reason = None
+            message = None
             try:
                 result = get_query_data(query, slug, dt.now() - td(days=last_days), dt.now(), interval)
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
+                message = str(e)
             else:
                 if not result:
                     reason = 'empty'
             if reason:
                 number_of_errors_queries += 1
                 error = {'query': query, 'reason': reason}
+                if message:
+                    error['message'] = message
                 errors_queries.append(error)
                 piece_for_html = {'name': query, 'status': reason}
             else:
