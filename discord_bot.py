@@ -3,7 +3,7 @@ import json
 import glob
 import sys, os
 import datetime
-from discord import Webhook, RequestsWebhookAdapter, File
+from discord import Webhook, RequestsWebhookAdapter
 from constants import DISCORD_WEBHOOK, DISCORD_USER_ID
 
 def send_alert(error_message):

@@ -163,7 +163,6 @@ def save_output_to_file(output, filename='output'):
         json.dump(output, file, indent=4)
 
 def test_frontend_api(last_days, interval):
-    queries = ["timelineEvents", "getTrendingWords"]
     events = get_query_data("timelineEvents", None, dt.now() - td(days=last_days), dt.now(), interval)[0]["events"]
     for event in events:
         if not event["id"]:
@@ -179,7 +178,6 @@ if __name__ == '__main__':
     slugs = []
     # TODO set the logging level through a config file
     logging.basicConfig(level=logging.INFO)
-    # Optionally provide slugs arguments
     if len(sys.argv) == 2 and sys.argv[1] == "--frontend":
         message = ""
         try:
@@ -190,6 +188,7 @@ if __name__ == '__main__':
         else:
             send_alert(None)
     else:
+        # Optionally provide slugs arguments
         if(len(sys.argv) > 1):
             for i in range(1, len(sys.argv)):
                 slugs.append(sys.argv[i])
