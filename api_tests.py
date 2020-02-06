@@ -182,7 +182,7 @@ if __name__ == '__main__':
         message = ""
         try:
             test_frontend_api(DAYS_BACK_TEST, INTERVAL)
-        except (SanError, APIError) as e:
+        except (SanError, APIError, KeyError) as e:
             message = str(e)
             send_alert(message)
         else:
