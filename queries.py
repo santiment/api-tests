@@ -347,6 +347,26 @@ queries = {
             "tokenCirculation"
         ]
     },
+    "getTrendingWords": {
+        "arguments": {
+            "size": "10",
+            "from": '"%s"',
+            "to": '"%s"',
+            "interval": '"%s"'
+        },
+        "fields": [
+            "topWords {score word}"
+        ]
+    },
+    "timelineEvents": {
+        "arguments": {
+            "limit": "10",
+        },
+        "fields": [
+            "events {id}"
+        ]
+    },
+
 }
 
 special_queries = [

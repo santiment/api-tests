@@ -10,6 +10,10 @@ from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, 
 from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data, get_histogram_metric_data, get_query_data, get_marketcap_batch
 from html_reporter import generate_html_from_json
 from queries import special_queries
+from discord_bot import send_alert
+
+class APIError(Exception):
+    pass
 
 def test():
     result = san.get(
@@ -158,7 +162,16 @@ def save_output_to_file(output, filename='output'):
     with open(f'./output/{filename}.json', 'w+') as file:
         json.dump(output, file, indent=4)
 
-
+def test_frontend_api(last_days, interval):
+    queries = ["timelineEvents", "getTrendingWords"]
+    events = get_query_data("timelineEvents", None, dt.now() - td(days=last_days), dt.now(), interval)[0]["events"]
+    for event in events:
+        if not event["id"]:
+            raise APIError("Empty result in timelineEvents")
+    words = get_query_data("getTrendingWords", None, dt.now() - td(days=last_days), dt.now(), interval)[0]["topWords"]
+    for word in words:
+        if not word["word"] or not word["score"]:
+            raise APIError("Empty result in getTrendingWords")
 
 if __name__ == '__main__':
     if API_KEY:
@@ -167,12 +180,22 @@ if __name__ == '__main__':
     # TODO set the logging level through a config file
     logging.basicConfig(level=logging.INFO)
     # Optionally provide slugs arguments
-    if(len(sys.argv) > 1):
-        for i in range(1, len(sys.argv)):
-            slugs.append(sys.argv[i])
+    if len(sys.argv) == 2 and sys.argv[1] == "--frontend":
+        message = ""
+        try:
+            test_frontend_api(DAYS_BACK_TEST, INTERVAL)
+        except (SanError, APIError) as e:
+            message = str(e)
+            send_alert(message)
+        else:
+            send_alert(None)
     else:
-        slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
-    (output, output_for_html) = test_token_metrics(slugs, None, DAYS_BACK_TEST, INTERVAL)
-    save_output_to_file(output)
-    save_output_to_file(output_for_html, 'output_for_html')
-    generate_html_from_json('output_for_html', 'index')
+        if(len(sys.argv) > 1):
+            for i in range(1, len(sys.argv)):
+                slugs.append(sys.argv[i])
+        else:
+            slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
+        (output, output_for_html) = test_token_metrics(slugs, None, DAYS_BACK_TEST, INTERVAL)
+        save_output_to_file(output)
+        save_output_to_file(output_for_html, 'output_for_html')
+        generate_html_from_json('output_for_html', 'index')
