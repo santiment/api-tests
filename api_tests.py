@@ -163,14 +163,31 @@ def save_output_to_file(output, filename='output'):
         json.dump(output, file, indent=4)
 
 def test_frontend_api(last_days, interval):
-    events = get_query_data("timelineEvents", None, dt.now() - td(days=last_days), dt.now(), interval)[0]["events"]
-    for event in events:
-        if not event["id"]:
-            raise APIError("Empty result in timelineEvents")
-    words = get_query_data("getTrendingWords", None, dt.now() - td(days=last_days), dt.now(), interval)[0]["topWords"]
-    for word in words:
-        if not word["word"] or not word["score"]:
-            raise APIError("Empty result in getTrendingWords")
+    events = get_query_data("timelineEvents", None, dt.now() - td(days=last_days), dt.now(), interval)
+    if not events:
+        raise APIError("timelineEvents returns empty array")
+    else:
+        events = events[0]["events"]
+        for event in events:
+            if not event["id"]:
+                raise APIError("Empty result in timelineEvents")
+    words = get_query_data("getTrendingWords", None, dt.now() - td(days=last_days), dt.now(), interval)
+    if not words:
+        raise APIError("getTrendingWords returns empty array")
+    else:
+        words = words[0]["topWords"]
+        for word in words:
+            if not word["word"] or not word["score"]:
+                raise APIError("Empty result in getTrendingWords")
+    gainers_losers = get_query_data("topSocialGainersLosers", None, dt.now() - td(days=last_days), dt.now(), None)
+    if not gainers_losers:
+        raise APIError("topSocialGainersLosers returns empty array")
+    else:
+        gainers_losers = gainers_losers[0]["projects"]
+        for gl in gainers_losers:
+            if not gl["change"] or not gl["slug"] or not gl["status"]:
+                raise APIError("Empty result in topSocialGainersLosers")
+
 
 if __name__ == '__main__':
     if API_KEY:

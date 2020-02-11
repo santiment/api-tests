@@ -366,7 +366,18 @@ queries = {
             "events {id}"
         ]
     },
-
+    "topSocialGainersLosers": {
+        "arguments": {
+            "size": "1",
+            "status": "ALL",
+            "from": '"%s"',
+            "to": '"%s"',
+            "timeWindow": '"2d"'
+        },
+        "fields": [
+            " projects {change slug status}"
+        ]
+    },
 }
 
 special_queries = [
