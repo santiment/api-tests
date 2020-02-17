@@ -1,17 +1,24 @@
 import sys, os
 import json
+from constants import DO_COMPARE
 
 color_mapping = {
     "passed": "PaleGreen",
+    "fixed": "PaleGreen",
     "empty": "LightCoral",
     "GraphQL error": "Crimson",
+    "emerged": "Crimson",
     "ignored": "LemonChiffon",
+    "changed": "LemonChiffon",
     "N/A": "LightGray"
 }
 
 def generate_html_from_json(input_file, output_file=None):
     with open(f'./output/{input_file}.json', 'r') as file:
         data = json.load(file)
+    if DO_COMPARE:
+        with open(f'./output/comparison.json', 'r') as file:
+            comparison = json.load(file)
     html = '''
     <!DOCTYPE html>
     <html>
@@ -60,6 +67,11 @@ def generate_html_from_json(input_file, output_file=None):
     <button type="button" class="collapsible">Sorted view</button>
     '''
     html += generate_html_table_sorted(data)
+    if DO_COMPARE:
+        html += '''
+        <button type="button" class="collapsible">Comparison</button>
+        '''
+        html += generate_html_comparison_results(comparison)
     html += '''
     <script>
     var coll = document.getElementsByClassName("collapsible");
@@ -150,6 +162,36 @@ def generate_html_table_merged(data):
         </tr>'''
     html += '</table></div>'
     return html
+
+def generate_html_comparison_results(data):
+    html = f'''
+    <div class="content">
+    <div style="text-align:left;">Slugs present in old data, but not in new:</div>
+    <div style="text-align:left;">{data["slugs_not_in_old"]}</div>
+    <div style="text-align:left;">Slugs present in new data, but not in old:</div>
+    <div style="text-align:left;">{data["slugs_not_in_new"]}</div>
+    <div class="scrolly">
+    <table>'''
+    changes = data["changes"]
+    for slug in changes:
+        html += f'''<tr>
+        <td>{slug.upper()}</td>'''
+        for fixed in changes[slug]["fixed"]:
+            key = "metric" if "metric" in fixed else "query"
+            html += f'''
+            <td style="background-color:{color_mapping["fixed"]};text-align:center;">{fixed[key]}</td>
+            '''
+        for emerged in changes[slug]["emerged"]:
+            key = "metric" if "metric" in emerged else "query"
+            html += f'''
+            <td style="background-color:{color_mapping["emerged"]};text-align:center;">{emerged[key]}</td>
+            '''
+        html += '</tr>'
+    html += '</table></div>'
+    return html
+
+
+
 
 if __name__ == '__main__':
     generate_html_from_json('output_for_html', 'index')

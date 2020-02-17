@@ -6,11 +6,14 @@ import logging
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT, INTERVAL, BATCH_SIZE
+from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
+from constants import DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT
+from constants import INTERVAL, BATCH_SIZE, ACCESS_KEY, ACCESS_SECRET, BUCKET_NAME, S3_KEY, DO_COMPARE, REWRITE_OLD_DATA
 from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data, get_histogram_metric_data, get_query_data, get_marketcap_batch
 from html_reporter import generate_html_from_json
 from queries import special_queries
-from discord_bot import send_alert
+from discord_bot import send_frontend_alert, send_metric_alert
+from discord import File
 
 class APIError(Exception):
     pass
@@ -43,7 +46,7 @@ def exclude_metrics(metrics, metrics_to_exclude):
     return result
 
 def test_token_metrics(slugs, ignored_metrics, last_days, interval):
-    output = []
+    output = {}
     output_for_html = []
     n = len(slugs)
     for slug in slugs:
@@ -72,15 +75,12 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
-                message = str(e)
             else:
                 if not result:
                     reason = 'empty'
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
-                if message:
-                    error['message'] = message
                 errors_timeseries_metrics.append(error)
                 piece_for_html = {'name': metric, 'status': reason}
             else:
@@ -98,15 +98,13 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
-                message = str(e)
             else:
                 if not result or not result['labels'] or not result['values'] or not result['values']['data']:
                     reason = 'empty'
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
-                if message:
-                    error['message'] = message
+
                 errors_histogram_metrics.append(error)
                 piece_for_html = {'name': metric, 'status': reason}
             else:
@@ -118,21 +116,17 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         for query in queries:
             logging.info(f"[Slug {i + 1}/{n}] Testing query: {query}")
             reason = None
-            message = None
             try:
                 result = get_query_data(query, slug, dt.now() - td(days=last_days), dt.now(), interval)
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
-                message = str(e)
             else:
                 if not result:
                     reason = 'empty'
             if reason:
                 number_of_errors_queries += 1
                 error = {'query': query, 'reason': reason}
-                if message:
-                    error['message'] = message
                 errors_queries.append(error)
                 piece_for_html = {'name': query, 'status': reason}
             else:
@@ -140,8 +134,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             if ignored_metrics and slug in ignored_metrics and query in ignored_metrics[slug]['ignored_queries']:
                 piece_for_html = {'name': query, 'status': 'ignored'}
             data_for_html.append(piece_for_html)
-        output.append({
-        'slug': slug,
+        output[slug] = {
         'number_of_errors_metrics': number_of_errors_metrics,
         'number_of_timeseries_metrics': len(timeseries_metrics),
         'errors_timeseries_metrics': errors_timeseries_metrics,
@@ -149,7 +142,8 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         'errors_histogram_metrics': errors_histogram_metrics,
         'number_of_errors_queries': number_of_errors_queries,
         'number_of_queries': len(queries),
-        'errors_queries': errors_queries})
+        'errors_queries': errors_queries
+        }
         output_for_html.append({
         'slug': slug,
         'data': data_for_html
@@ -161,6 +155,14 @@ def save_output_to_file(output, filename='output'):
         os.mkdir('./output')
     with open(f'./output/{filename}.json', 'w+') as file:
         json.dump(output, file, indent=4)
+
+def download_data_from_s3(key):
+    bucket = s3_bucket()
+    bucket.download_file(Filename='./output/old_data.json', Key=key)
+
+def upload_data_to_s3(key):
+    bucket = s3_bucket()
+    bucket.upload_file(Filename='./output.json', Key=key)
 
 def test_frontend_api(last_days, interval):
     events = get_query_data("timelineEvents", None, dt.now() - td(days=last_days), dt.now(), interval)
@@ -188,6 +190,43 @@ def test_frontend_api(last_days, interval):
             if not gl["change"] or not gl["slug"] or not gl["status"]:
                 raise APIError("Empty result in topSocialGainersLosers")
 
+def compare_data():
+    with open('./output/output.json', 'r') as file:
+        new_data = json.load(file)
+    with open('./output/old_data.json', 'r') as file:
+        old_data = json.load(file)
+    slugs_common = set(list(new_data) + list(old_data))
+    slugs_not_in_old = [x for x in new_data if x not in slugs_common]
+    slugs_not_in_new = [x for x in old_data if x not in slugs_common]
+    slug_errors = {}
+    error_flag = False
+    for slug in slugs_common:
+        new = new_data[slug]
+        old = old_data[slug]
+        errors_new = new["errors_timeseries_metrics"] + new["errors_histogram_metrics"] + new["errors_queries"]
+        errors_old = old["errors_timeseries_metrics"] + old["errors_histogram_metrics"] + old["errors_queries"]
+        errors_fixed = []
+        errors_emerged = []
+        for error in errors_new:
+            if error not in errors_old:
+                errors_emerged.append(error)
+        for error in errors_old:
+            if error not in errors_new:
+                errors_fixed.append(error)
+        if errors_fixed or errors_emerged:
+            slug_errors[slug] = {
+            "fixed": errors_fixed,
+            "emerged": errors_emerged,
+            }
+        if errors_emerged:
+            error_flag = True
+    result = {
+    "slugs_not_in_old": slugs_not_in_old,
+    "slugs_not_in_new": slugs_not_in_old,
+    "changes": slug_errors
+    }
+    return result, error_flag
+
 
 if __name__ == '__main__':
     if API_KEY:
@@ -201,9 +240,9 @@ if __name__ == '__main__':
             test_frontend_api(DAYS_BACK_TEST, INTERVAL)
         except (SanError, APIError, KeyError) as e:
             message = str(e)
-            send_alert(message)
+            send_frontend_alert(message)
         else:
-            send_alert(None)
+            send_frontend_alert(None)
     else:
         # Optionally provide slugs arguments
         if(len(sys.argv) > 1):
@@ -214,4 +253,17 @@ if __name__ == '__main__':
         (output, output_for_html) = test_token_metrics(slugs, None, DAYS_BACK_TEST, INTERVAL)
         save_output_to_file(output)
         save_output_to_file(output_for_html, 'output_for_html')
+        if ACCESS_KEY and ACCESS_SECRET and BUCKET_NAME and S3_KEY:
+            download_data_from_s3(S3_KEY)
+        if DO_COMPARE:
+            (comparison, error_flag) = compare_data()
+            save_output_to_file(comparison, 'comparison')
+        if REWRITE_OLD_DATA:
+            upload_data_to_s3(S3_KEY)
         generate_html_from_json('output_for_html', 'index')
+        if DO_COMPARE:
+            if error_flag:
+                files = [File(open("./output/index.html"), "index.html")]
+                send_metric_alert(files)
+            else:
+                send_metric_alert(None)
