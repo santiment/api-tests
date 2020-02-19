@@ -1,6 +1,5 @@
 import sys, os
 import json
-from constants import DO_COMPARE
 
 color_mapping = {
     "passed": "PaleGreen",
@@ -16,9 +15,6 @@ color_mapping = {
 def generate_html_from_json(input_file, output_file=None):
     with open(f'./output/{input_file}.json', 'r') as file:
         data = json.load(file)
-    if DO_COMPARE:
-        with open(f'./output/comparison.json', 'r') as file:
-            comparison = json.load(file)
     html = '''
     <!DOCTYPE html>
     <html>
@@ -67,11 +63,6 @@ def generate_html_from_json(input_file, output_file=None):
     <button type="button" class="collapsible">Sorted view</button>
     '''
     html += generate_html_table_sorted(data)
-    if DO_COMPARE:
-        html += '''
-        <button type="button" class="collapsible">Comparison</button>
-        '''
-        html += generate_html_comparison_results(comparison)
     html += '''
     <script>
     var coll = document.getElementsByClassName("collapsible");
@@ -99,31 +90,34 @@ def generate_html_from_json(input_file, output_file=None):
 def generate_html_table_sorted(data):
     html = '<div class="content">'
     for item in data:
-        html += f'''
-        <div style="text-align:left;">{item['slug'].upper()}</div>
-        <div class="scrolly">
-        <table>
-        <tr>'''
+        html += f'''<div style="text-align:left;">{item['slug'].upper()}</div>'''
         values = sorted([(x['name'], x['status']) for x in item['data']], key=lambda k: k[1])
-        (names, statuses) = zip(*values)
-        for name in names:
+        if values:
             html += f'''
-            <th>{name}</th>
+            <div class="scrolly">
+            <table>
+            <tr>'''
+            (names, statuses) = zip(*values)
+            for name in names:
+                html += f'''
+                <th>{name}</th>
+                '''
+            html += '''
+            </tr>
+            <tr>'''
+            for status in statuses:
+                color = color_mapping[status]
+                html += f'''
+                <td style="background-color:{color};text-align:center;">{status}</td>
+                '''
+            html += '''
+            </tr>
+            </table>
+            </div>
+            <br/>
             '''
-        html += '''
-        </tr>
-        <tr>'''
-        for status in statuses:
-            color = color_mapping[status]
-            html += f'''
-            <td style="background-color:{color};text-align:center;">{status}</td>
-            '''
-        html += '''
-        </tr>
-        </table>
-        </div>
-        <br/>
-        '''
+        else:
+            html += '<div><b>EMPTY</b></div><br/>'
     html += '</div>'
     return html
 
@@ -162,34 +156,6 @@ def generate_html_table_merged(data):
         </tr>'''
     html += '</table></div>'
     return html
-
-def generate_html_comparison_results(data):
-    html = f'''
-    <div class="content">
-    <div style="text-align:left;">Slugs present in old data, but not in new:</div>
-    <div style="text-align:left;">{data["slugs_not_in_old"]}</div>
-    <div style="text-align:left;">Slugs present in new data, but not in old:</div>
-    <div style="text-align:left;">{data["slugs_not_in_new"]}</div>
-    <div class="scrolly">
-    <table>'''
-    changes = data["changes"]
-    for slug in changes:
-        html += f'''<tr>
-        <td>{slug.upper()}</td>'''
-        for fixed in changes[slug]["fixed"]:
-            key = "metric" if "metric" in fixed else "query"
-            html += f'''
-            <td style="background-color:{color_mapping["fixed"]};text-align:center;">{fixed[key]}</td>
-            '''
-        for emerged in changes[slug]["emerged"]:
-            key = "metric" if "metric" in emerged else "query"
-            html += f'''
-            <td style="background-color:{color_mapping["emerged"]};text-align:center;">{emerged[key]}</td>
-            '''
-        html += '</tr>'
-    html += '</table></div>'
-    return html
-
 
 
 

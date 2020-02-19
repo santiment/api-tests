@@ -18,13 +18,19 @@ def get_available_metrics_and_queries(slug):
         }
     }
     '''
-    response = execute_gql(gql_query)
-    timeseries_metrics = response['projectBySlug']['availableTimeseriesMetrics']
-    histogram_metrics = response['projectBySlug']['availableHistogramMetrics']
-    queries = response['projectBySlug']['availableQueries']
-    if 'getMetric' in queries:
-        queries.remove('getMetric')
-    return (timeseries_metrics, histogram_metrics, queries)
+    attempts = 0
+    while attempts < 3:
+        try:
+            response = execute_gql(gql_query)
+            timeseries_metrics = response['projectBySlug']['availableTimeseriesMetrics']
+            histogram_metrics = response['projectBySlug']['availableHistogramMetrics']
+            queries = response['projectBySlug']['availableQueries']
+            if 'getMetric' in queries:
+                queries.remove('getMetric')
+            return (timeseries_metrics, histogram_metrics, queries)
+        except SanError:
+            attempts += 1
+    raise SanError(f"Not able to get availableMetrics for {slug} after multiple attempts.")
 
 def get_query_data(query, slug, dt_from, dt_to, interval):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_QUERY)
@@ -41,8 +47,14 @@ def get_query_data(query, slug, dt_from, dt_to, interval):
                 query_args_str += f"{arg}: {args_template[arg]},\n"
         query_fields_str = '{' + ' '.join(query_template['fields']) + '}' if query_template['fields'] else ''
         gql_query = '{' + query + '(' + query_args_str + ')' + query_fields_str + '}'
-        response = execute_gql(gql_query)
-        return response[query]
+        attempts = 0
+        while attempts < 3:
+            try:
+                response = execute_gql(gql_query)
+                return response[query]
+            except SanError:
+                attempts += 1
+        raise SanError(f"Not able to fetch {query} query for {slug} after 3 attempts")
     elif query in special_queries:
         raise SanError(f"Query {query} is used in other format.")
     else:
@@ -66,8 +78,14 @@ def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
       }
     }
     '''
-    response = execute_gql(gql_query)
-    return response['getMetric']['timeseriesData']
+    attempts = 0
+    while attempts < 3:
+        try:
+            response = execute_gql(gql_query)
+            return response['getMetric']['timeseriesData']
+        except SanError:
+            attempts += 1
+    raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts")
 
 def get_marketcap_batch(slugs):
     to_str = dt.strftime(dt.now(), DATETIME_PATTERN_QUERY)
@@ -85,9 +103,14 @@ def get_marketcap_batch(slugs):
         '''
         i += 1
     gql_query += '}'
-    response = execute_gql(gql_query)
-    result = [response[f"query_{x}"][0]['marketcap'] if response[f"query_{x}"] else 0 for x in range(len(slugs))]
-    return result
+    attempts = 0
+    while attempts < 3:
+        try:
+            response = execute_gql(gql_query)
+            return [response[f"query_{x}"][0]['marketcap'] if response[f"query_{x}"] else 0 for x in range(len(slugs))]
+        except SanError:
+            attempts += 1
+    raise SanError(f"Not able to fetcha batch of marketcaps after 3 attempts")
 
 
 def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
@@ -111,8 +134,14 @@ def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
       }
     }
     '''
-    response = execute_gql(gql_query)
-    return response['getMetric']['histogramData']
+    attempts = 0
+    while attempts < 3:
+        try:
+            response = execute_gql(gql_query)
+            return response['getMetric']['histogramData']
+        except SanError:
+            attempts += 1
+    raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts")
 
 
 if __name__ == '__main__':

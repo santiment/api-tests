@@ -1,4 +1,3 @@
 sanpy==0.7.9
 requests==2.22.0
 discord.py==1.2.3
-boto3==1.9.158
