@@ -66,6 +66,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         for metric in timeseries_metrics:
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
             reason = None
+            last_date = ''
             try:
                 result = get_timeseries_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval)
             except SanError as e:
@@ -77,7 +78,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                 else:
                     dates = sorted([dt.strptime(x['datetime'], DATETIME_PATTERN_METRIC) for x in result])
                     if dt.now() - dates[-1] > td(days=3):
-                        reason = 'delayed'
+                        reason = f'delayed {dt.strftime(dates[-1], DATETIME_PATTERN_METRIC)}'
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
