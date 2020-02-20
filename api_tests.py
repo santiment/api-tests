@@ -13,7 +13,6 @@ from api_helper import get_available_metrics_and_queries, get_timeseries_metric_
 from html_reporter import generate_html_from_json
 from queries import special_queries
 from discord_bot import send_frontend_alert, send_metric_alert
-from discord import File
 from slugs import slugs_sanity
 from ignored_metrics import ignored_metrics
 
