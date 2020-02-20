@@ -9,7 +9,7 @@ color_mapping = {
     "emerged": "Crimson",
     "ignored": "LemonChiffon",
     "changed": "LemonChiffon",
-    "delayed": "OrangeRed",
+    "delayed": "LightSalmon",
     "N/A": "LightGray"
 }
 
