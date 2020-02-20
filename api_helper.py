@@ -64,6 +64,7 @@ def get_query_data(query, slug, dt_from, dt_to, interval):
 def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_METRIC)
     str_to = dt.strftime(dt_to, DATETIME_PATTERN_METRIC)
+    error = None
     gql_query = '''
     {
       getMetric(metric: "''' + metric + '''"){
@@ -83,13 +84,15 @@ def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
         try:
             response = execute_gql(gql_query)
             return response['getMetric']['timeseriesData']
-        except SanError:
+        except SanError as e:
             attempts += 1
-    raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts")
+            error = e
+    raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts. Reason: {str(e)}")
 
 def get_marketcap_batch(slugs):
     to_str = dt.strftime(dt.now(), DATETIME_PATTERN_QUERY)
     from_str = dt.strftime(dt.now() - td(days=1), DATETIME_PATTERN_QUERY)
+    error = None
     gql_query = '{'
     i = 0
     for slug in slugs:
@@ -108,14 +111,16 @@ def get_marketcap_batch(slugs):
         try:
             response = execute_gql(gql_query)
             return [response[f"query_{x}"][0]['marketcap'] if response[f"query_{x}"] else 0 for x in range(len(slugs))]
-        except SanError:
+        except SanError as e:
             attempts += 1
-    raise SanError(f"Not able to fetcha batch of marketcaps after 3 attempts")
+            error = e
+    raise SanError(f"Not able to fetcha batch of marketcaps after 3 attempts. Reason: {str(error)}")
 
 
 def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_METRIC)
     str_to = dt.strftime(dt_to, DATETIME_PATTERN_METRIC)
+    error = None
     gql_query = '''
     {
       getMetric(metric: "''' + metric + '''"){
@@ -139,9 +144,10 @@ def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
         try:
             response = execute_gql(gql_query)
             return response['getMetric']['histogramData']
-        except SanError:
+        except SanError as e:
             attempts += 1
-    raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts")
+            error = e
+    raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts. Reason: {str(error)}")
 
 
 if __name__ == '__main__':
