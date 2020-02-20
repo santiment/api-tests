@@ -107,7 +107,7 @@ def generate_html_table_sorted(data):
             </tr>
             <tr>'''
             for status in statuses:
-                color = color_mapping[status.split(' ')[0]]
+                color = color_mapping[status.split(':')[0]]
                 html += f'''
                 <td style="background-color:{color};text-align:center;">{status}</td>
                 '''
@@ -149,7 +149,7 @@ def generate_html_table_merged(data):
                 status = values[name]
             else:
                 status = 'N/A'
-            color = color_mapping[status.split(' ')[0]]
+            color = color_mapping[status.split(':')[0]]
             html += f'''
             <td title="{item['slug'].upper()} {name}" style="background-color:{color};text-align:center;">{status}</td>
             '''
