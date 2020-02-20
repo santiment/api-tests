@@ -209,8 +209,4 @@ if __name__ == '__main__':
         save_output_to_file(output)
         save_output_to_file(output_for_html, 'output_for_html')
         generate_html_from_json('output_for_html', 'index')
-        if error_flag:
-                files = [File(open("./output/index.html"), "index.html")]
-                send_metric_alert(files)
-        else:
-            send_metric_alert(None)
+        send_metric_alert(error_flag)

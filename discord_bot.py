@@ -13,6 +13,7 @@ if DISCORD_USER_ID:
     mention = f"<@{DISCORD_USER_ID}>"
 else:
     mention = ""
+report_url = "https://jenkins.internal.santiment.net/job/Santiment/job/api-tests/job/master/Test_20Report/"
 
 def send_frontend_alert(error_message):
     if error_message:
@@ -29,16 +30,17 @@ Caused by: {error_message}
     if DISCORD_WEBHOOK:
         webhook.send(message, username='API Alert Bot')
 
-def send_metric_alert(files=None):
-    if files:
+def send_metric_alert(error=False):
+    if error:
         message = f"""
 ++++++++++++++++++++++++++++++++++++++++++++++++
 {mention}
 Something broke in metrics
 Triggered at {datetime.datetime.now()}
+See report at {report_url}
 ===============================================
 """
     else:
         message = f"{datetime.datetime.now()} Metric API check success!"
     if DISCORD_WEBHOOK:
-        webhook.send(message, username='API Alert Bot', files=files)
+        webhook.send(message, username='API Alert Bot')
