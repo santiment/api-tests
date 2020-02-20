@@ -74,6 +74,10 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             else:
                 if not result:
                     reason = 'empty'
+                else:
+                    dates = sorted([dt.strptime(x['datetime'], DATETIME_PATTERN_METRIC) for x in result])
+                    if dt.now() - dates[-1] > td(days=2):
+                        reason = 'delayed'
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}

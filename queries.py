@@ -398,5 +398,6 @@ special_queries = [
     "ethSpent",
     "socialGainersLosersStatus",
     "exchangeWallets",
-    "allExchanges"
+    "allExchanges",
+    "percentOfTokenSupplyOnExchanges"
 ]
