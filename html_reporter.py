@@ -3,9 +3,13 @@ import json
 
 color_mapping = {
     "passed": "PaleGreen",
+    "fixed": "PaleGreen",
     "empty": "LightCoral",
     "GraphQL error": "Crimson",
+    "emerged": "Crimson",
     "ignored": "LemonChiffon",
+    "changed": "LemonChiffon",
+    "delayed": "LightSalmon",
     "N/A": "LightGray"
 }
 
@@ -87,31 +91,34 @@ def generate_html_from_json(input_file, output_file=None):
 def generate_html_table_sorted(data):
     html = '<div class="content">'
     for item in data:
-        html += f'''
-        <div style="text-align:left;">{item['slug'].upper()}</div>
-        <div class="scrolly">
-        <table>
-        <tr>'''
+        html += f'''<div style="text-align:left;">{item['slug'].upper()}</div>'''
         values = sorted([(x['name'], x['status']) for x in item['data']], key=lambda k: k[1])
-        (names, statuses) = zip(*values)
-        for name in names:
+        if values:
             html += f'''
-            <th>{name}</th>
+            <div class="scrolly">
+            <table>
+            <tr>'''
+            (names, statuses) = zip(*values)
+            for name in names:
+                html += f'''
+                <th>{name}</th>
+                '''
+            html += '''
+            </tr>
+            <tr>'''
+            for status in statuses:
+                color = color_mapping[status.split(':')[0]]
+                html += f'''
+                <td style="background-color:{color};text-align:center;">{status}</td>
+                '''
+            html += '''
+            </tr>
+            </table>
+            </div>
+            <br/>
             '''
-        html += '''
-        </tr>
-        <tr>'''
-        for status in statuses:
-            color = color_mapping[status]
-            html += f'''
-            <td style="background-color:{color};text-align:center;">{status}</td>
-            '''
-        html += '''
-        </tr>
-        </table>
-        </div>
-        <br/>
-        '''
+        else:
+            html += '<div><b>EMPTY</b></div><br/>'
     html += '</div>'
     return html
 
@@ -142,7 +149,7 @@ def generate_html_table_merged(data):
                 status = values[name]
             else:
                 status = 'N/A'
-            color = color_mapping[status]
+            color = color_mapping[status.split(':')[0]]
             html += f'''
             <td title="{item['slug'].upper()} {name}" style="background-color:{color};text-align:center;">{status}</td>
             '''
@@ -150,6 +157,8 @@ def generate_html_table_merged(data):
         </tr>'''
     html += '</table></div>'
     return html
+
+
 
 if __name__ == '__main__':
     generate_html_from_json('output_for_html', 'index')

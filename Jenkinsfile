@@ -31,15 +31,26 @@ podTemplate(label: 'api-tests', containers: [
         }
       }
       container('api-tests') {
-        sh "python api_tests.py"
-        publishHTML (target: [
-          allowMissing: false,
-          alwaysLinkToLastBuild: false,
-          keepAll: true,
-          reportDir: 'output',
-          reportFiles: 'index.html, output.json',
-          reportName: "Test Report"
-       ])
+      withCredentials([
+        string(
+          credentialsId: 'discord_webhook',
+          variable: 'DISCORD_WEBHOOK'
+        ),
+        string(
+          credentialsId: 'sanbase_api_key',
+          variable: 'API_KEY'
+        ),
+      ]) {
+          sh "python api_tests.py --sanity"
+          publishHTML (target: [
+            allowMissing: false,
+            alwaysLinkToLastBuild: false,
+            keepAll: true,
+            reportDir: 'output',
+            reportFiles: 'index.html, output.json',
+            reportName: "Test Report"
+         ])
+        }
       }
     }
   }

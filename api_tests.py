@@ -6,11 +6,15 @@ import logging
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT, INTERVAL, BATCH_SIZE
+from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
+from constants import DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT
+from constants import INTERVAL, BATCH_SIZE
 from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data, get_histogram_metric_data, get_query_data, get_marketcap_batch
 from html_reporter import generate_html_from_json
 from queries import special_queries
-from discord_bot import send_alert
+from discord_bot import send_frontend_alert, send_metric_alert
+from slugs import slugs_sanity
+from ignored_metrics import ignored_metrics
 
 class APIError(Exception):
     pass
@@ -43,17 +47,13 @@ def exclude_metrics(metrics, metrics_to_exclude):
     return result
 
 def test_token_metrics(slugs, ignored_metrics, last_days, interval):
-    output = []
+    output = {}
     output_for_html = []
     n = len(slugs)
+    error_flag = False
     for slug in slugs:
         (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
         queries = exclude_metrics(queries, special_queries)
-        if ignored_metrics:
-            if slug in ignored_metrics:
-                timeseries_metrics = exclude_metrics(timeseries_metrics, ignored_metrics[slug]['ignored_timeseries_metrics'])
-                histogram_metrics = exclude_metrics(histogram_metrics, ignored_metrics[slug]['ignored_histogram_metrics'])
-                queries = exclude_metrics(queries, ignored_metrics[slug]['ignored_queries'])
         logging.info("Testing slug: %s", slug)
         number_of_errors_metrics = 0
         number_of_errors_queries = 0
@@ -66,21 +66,22 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         for metric in timeseries_metrics:
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
             reason = None
-            message = None
+            last_date = ''
             try:
                 result = get_timeseries_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval)
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
-                message = str(e)
             else:
                 if not result:
                     reason = 'empty'
+                else:
+                    dates = sorted([dt.strptime(x['datetime'], DATETIME_PATTERN_METRIC) for x in result])
+                    if dt.now() - dates[-1] > td(days=3):
+                        reason = f'delayed: {dt.strftime(dates[-1], DATETIME_PATTERN_METRIC)}'
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
-                if message:
-                    error['message'] = message
                 errors_timeseries_metrics.append(error)
                 piece_for_html = {'name': metric, 'status': reason}
             else:
@@ -92,21 +93,17 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         for metric in histogram_metrics:
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
             reason = None
-            message = None
             try:
                 result = get_histogram_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval, HISTOGRAM_METRICS_LIMIT)
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
-                message = str(e)
             else:
                 if not result or not result['labels'] or not result['values'] or not result['values']['data']:
                     reason = 'empty'
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
-                if message:
-                    error['message'] = message
                 errors_histogram_metrics.append(error)
                 piece_for_html = {'name': metric, 'status': reason}
             else:
@@ -118,21 +115,17 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         for query in queries:
             logging.info(f"[Slug {i + 1}/{n}] Testing query: {query}")
             reason = None
-            message = None
             try:
                 result = get_query_data(query, slug, dt.now() - td(days=last_days), dt.now(), interval)
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
-                message = str(e)
             else:
                 if not result:
                     reason = 'empty'
             if reason:
                 number_of_errors_queries += 1
                 error = {'query': query, 'reason': reason}
-                if message:
-                    error['message'] = message
                 errors_queries.append(error)
                 piece_for_html = {'name': query, 'status': reason}
             else:
@@ -140,8 +133,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             if ignored_metrics and slug in ignored_metrics and query in ignored_metrics[slug]['ignored_queries']:
                 piece_for_html = {'name': query, 'status': 'ignored'}
             data_for_html.append(piece_for_html)
-        output.append({
-        'slug': slug,
+        output[slug] = {
         'number_of_errors_metrics': number_of_errors_metrics,
         'number_of_timeseries_metrics': len(timeseries_metrics),
         'errors_timeseries_metrics': errors_timeseries_metrics,
@@ -149,12 +141,15 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         'errors_histogram_metrics': errors_histogram_metrics,
         'number_of_errors_queries': number_of_errors_queries,
         'number_of_queries': len(queries),
-        'errors_queries': errors_queries})
+        'errors_queries': errors_queries
+        }
         output_for_html.append({
         'slug': slug,
         'data': data_for_html
         })
-    return output, output_for_html
+        if number_of_errors_metrics + number_of_errors_queries > 0:
+            error_flag = True
+    return output, output_for_html, error_flag
 
 def save_output_to_file(output, filename='output'):
     if not os.path.isdir('./output'):
@@ -201,17 +196,21 @@ if __name__ == '__main__':
             test_frontend_api(DAYS_BACK_TEST, INTERVAL)
         except (SanError, APIError, KeyError) as e:
             message = str(e)
-            send_alert(message)
+            send_frontend_alert(message)
         else:
-            send_alert(None)
+            send_frontend_alert(None)
     else:
         # Optionally provide slugs arguments
         if(len(sys.argv) > 1):
-            for i in range(1, len(sys.argv)):
-                slugs.append(sys.argv[i])
+            if sys.argv[1] == "--sanity":
+                slugs = slugs_sanity
+            else:
+                for i in range(1, len(sys.argv)):
+                    slugs.append(sys.argv[i])
         else:
             slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
-        (output, output_for_html) = test_token_metrics(slugs, None, DAYS_BACK_TEST, INTERVAL)
+        (output, output_for_html, error_flag) = test_token_metrics(slugs, ignored_metrics, DAYS_BACK_TEST, INTERVAL)
         save_output_to_file(output)
         save_output_to_file(output_for_html, 'output_for_html')
         generate_html_from_json('output_for_html', 'index')
+        send_metric_alert(error_flag)

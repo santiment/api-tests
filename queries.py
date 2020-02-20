@@ -395,5 +395,11 @@ special_queries = [
     "fundsRaisedEthIcoEndPrice",
     "fundsRaisedBtcIcoEndPrice",
     "tokenAgeConsumed",
-    "ethSpent"
+    "ethSpent",
+    "socialGainersLosersStatus",
+    "exchangeWallets",
+    "allExchanges",
+    "percentOfTokenSupplyOnExchanges",
+    "dailyActiveDeposits",
+    "shareOfDeposits"
 ]
