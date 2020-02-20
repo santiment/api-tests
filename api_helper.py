@@ -36,6 +36,7 @@ def get_query_data(query, slug, dt_from, dt_to, interval):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_QUERY)
     str_to = dt.strftime(dt_to, DATETIME_PATTERN_QUERY)
     args = {'slug': slug, 'from': str_from, 'to': str_to, 'interval': interval}
+    error = None
     if query in queries:
         query_template = queries[query]
         query_args_str = ''
@@ -52,9 +53,10 @@ def get_query_data(query, slug, dt_from, dt_to, interval):
             try:
                 response = execute_gql(gql_query)
                 return response[query]
-            except SanError:
+            except SanError as e:
                 attempts += 1
-        raise SanError(f"Not able to fetch {query} query for {slug} after 3 attempts")
+                error = e
+        raise SanError(f"Not able to fetch {query} query for {slug} after 3 attempts. Reason: {str(error)}")
     elif query in special_queries:
         raise SanError(f"Query {query} is used in other format.")
     else:
@@ -87,7 +89,7 @@ def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
         except SanError as e:
             attempts += 1
             error = e
-    raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts. Reason: {str(e)}")
+    raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts. Reason: {str(error)}")
 
 def get_marketcap_batch(slugs):
     to_str = dt.strftime(dt.now(), DATETIME_PATTERN_QUERY)
