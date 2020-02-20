@@ -41,7 +41,7 @@ podTemplate(label: 'api-tests', containers: [
           variable: 'API_KEY'
         ),
       ]) {
-          sh "python api_tests.py"
+          sh "python api_tests.py --sanity"
           publishHTML (target: [
             allowMissing: false,
             alwaysLinkToLastBuild: false,
