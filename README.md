@@ -1,6 +1,6 @@
 # api-tests
 
-This repository contains tests for Santiment API 
+This repository contains tests for Santiment API
 
 ## Installation
 
@@ -17,8 +17,8 @@ More information about sanpy here: https://github.com/santiment/sanpy
 constants.py contain the list of environmental variables, available to configure the test run:
 
 ```
-API_KEY - your API key from https://neuro.santiment/net Used to fetch premium metrics
-DAYS_BACK_TEST - amount many days back from now to fetch metric data, default=10
+API_KEY - your API key (requires Pro subscription to Sanbase in order for all metrics to work). Used to fetch premium metrics
+DAYS_BACK_TEST - amount many days back from now to fetch metric data, default=30
 TOP_PROJECTS_BY_MARKETCAP - amount of projects from top of the list by marketcap to test metrics against, default=100
 HISTOGRAM_METRICS_LIMIT - limit for historgam-type metrics data, default=10
 ```
@@ -36,11 +36,23 @@ https://api-stage.santiment.net/graphql
 If you want to run tests against TOP_PROJECTS_BY_MARKETCAP number of projects, run:
 
 ```
-python api-tests.py
+python api_tests.py
 ```
 
 To test against specific projects:
 
 ```
-python api-tests.py <project_1_slug> <project_2_slug> ... <project_n_slug>
+python api_tests.py <project_1_slug> <project_2_slug> ... <project_n_slug>
+```
+
+To check frontend-specific API calls, run:
+
+```
+python api_tests.py --frontend
+```
+
+To run the test for metrics against key projects, run:
+
+```
+python api_tests.py --sanity
 ```
