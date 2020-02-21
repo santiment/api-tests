@@ -1,5 +1,5 @@
 properties([
-  pipelineTriggers([cron('H 00 * * *')]),
+  pipelineTriggers([cron('00 * * * *')]),
   disableConcurrentBuilds(),
   buildDiscarder(logRotator(numToKeepStr: '10'))
 ])
