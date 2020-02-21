@@ -5,10 +5,12 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 from constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, NUMBER_OF_RETRIES
 from queries import queries, special_queries
+import time
 #TODO separate gql string building into another methods
 
 
 def get_available_metrics_and_queries(slug):
+    time.sleep(0.5)
     gql_query = '''
     {
         projectBySlug(slug: "''' + slug + '''"){
@@ -33,6 +35,7 @@ def get_available_metrics_and_queries(slug):
     raise SanError(f"Not able to get availableMetrics for {slug} after multiple attempts.")
 
 def get_query_data(query, slug, dt_from, dt_to, interval):
+    time.sleep(0.5)
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_QUERY)
     str_to = dt.strftime(dt_to, DATETIME_PATTERN_QUERY)
     args = {'slug': slug, 'from': str_from, 'to': str_to, 'interval': interval}
@@ -64,6 +67,7 @@ def get_query_data(query, slug, dt_from, dt_to, interval):
 
 
 def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
+    time.sleep(0.5)
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_METRIC)
     str_to = dt.strftime(dt_to, DATETIME_PATTERN_METRIC)
     error = None
@@ -92,6 +96,7 @@ def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
     raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts. Reason: {str(error)}")
 
 def get_marketcap_batch(slugs):
+    time.sleep(0.5)
     to_str = dt.strftime(dt.now(), DATETIME_PATTERN_QUERY)
     from_str = dt.strftime(dt.now() - td(days=1), DATETIME_PATTERN_QUERY)
     error = None
@@ -120,6 +125,7 @@ def get_marketcap_batch(slugs):
 
 
 def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
+    time.sleep(0.5)
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_METRIC)
     str_to = dt.strftime(dt_to, DATETIME_PATTERN_METRIC)
     error = None
