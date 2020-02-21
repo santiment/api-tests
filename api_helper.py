@@ -3,7 +3,7 @@ from san.graphql import execute_gql
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
+from constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, NUMBER_OF_RETRIES
 from queries import queries, special_queries
 #TODO separate gql string building into another methods
 
@@ -19,7 +19,7 @@ def get_available_metrics_and_queries(slug):
     }
     '''
     attempts = 0
-    while attempts < 3:
+    while attempts < NUMBER_OF_RETRIES:
         try:
             response = execute_gql(gql_query)
             timeseries_metrics = response['projectBySlug']['availableTimeseriesMetrics']
@@ -49,7 +49,7 @@ def get_query_data(query, slug, dt_from, dt_to, interval):
         query_fields_str = '{' + ' '.join(query_template['fields']) + '}' if query_template['fields'] else ''
         gql_query = '{' + query + '(' + query_args_str + ')' + query_fields_str + '}'
         attempts = 0
-        while attempts < 3:
+        while attempts < NUMBER_OF_RETRIES:
             try:
                 response = execute_gql(gql_query)
                 return response[query]
@@ -82,7 +82,7 @@ def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
     }
     '''
     attempts = 0
-    while attempts < 3:
+    while attempts < NUMBER_OF_RETRIES:
         try:
             response = execute_gql(gql_query)
             return response['getMetric']['timeseriesData']
@@ -109,7 +109,7 @@ def get_marketcap_batch(slugs):
         i += 1
     gql_query += '}'
     attempts = 0
-    while attempts < 3:
+    while attempts < NUMBER_OF_RETRIES:
         try:
             response = execute_gql(gql_query)
             return [response[f"query_{x}"][0]['marketcap'] if response[f"query_{x}"] else 0 for x in range(len(slugs))]
@@ -142,7 +142,7 @@ def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
     }
     '''
     attempts = 0
-    while attempts < 3:
+    while attempts < NUMBER_OF_RETRIES:
         try:
             response = execute_gql(gql_query)
             return response['getMetric']['histogramData']
