@@ -20,6 +20,7 @@ def get_available_metrics_and_queries(slug):
     }
     '''
     attempts = 0
+    error = None
     while attempts < NUMBER_OF_RETRIES:
         try:
             time.sleep(CALL_DELAY)
@@ -30,9 +31,10 @@ def get_available_metrics_and_queries(slug):
             if 'getMetric' in queries:
                 queries.remove('getMetric')
             return (timeseries_metrics, histogram_metrics, queries)
-        except SanError:
+        except SanError as e:
             attempts += 1
-    raise SanError(f"Not able to get availableMetrics for {slug} after multiple attempts.")
+            error = e
+    raise SanError(f"Not able to get availableMetrics for {slug} after multiple attempts. Reason: {str(error)}")
 
 def get_query_data(query, slug, dt_from, dt_to, interval):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_QUERY)
