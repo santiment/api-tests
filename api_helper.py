@@ -139,11 +139,13 @@ def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
           to: "''' + str_to + '''"
           interval: "''' + interval + '''",
           limit: ''' + str(limit) + '''){
-            labels
-            values {
-              ... on FloatList{ data }
-              ... on StringList{ data }
+            values{
+            ... on DatetimeRangeFloatValueList{
+              data {
+                value
+              }
             }
+          }
         }
       }
     }

@@ -99,7 +99,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                 logging.info(str(e))
                 reason = 'GraphQL error'
             else:
-                if not result or not result['labels'] or not result['values'] or not result['values']['data']:
+                if not result or not result['values'] or not result['values']['data']:
                     reason = 'empty'
             if reason:
                 number_of_errors_metrics += 1
