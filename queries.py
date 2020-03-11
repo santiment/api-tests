@@ -73,10 +73,7 @@ queries = {
             "interval": '"%s"'
         },
         "fields": [
-            "followersCount",
-            "slug",
-            "ticker",
-            "twitterName"
+            "followersCount"
         ]
     },
     "twitterData": {
@@ -84,10 +81,7 @@ queries = {
             "slug": '"%s"',
         },
         "fields": [
-            "followersCount",
-            "slug",
-            "ticker",
-            "twitterName"
+            "followersCount"
         ]
     },
     "socialGainersLosersStatus": {
