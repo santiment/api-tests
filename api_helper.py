@@ -79,6 +79,7 @@ def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
           slug: "''' + slug + '''"
           from: "''' + str_from + '''"
           to: "''' + str_to + '''"
+          includeIncompleteData: true
           interval: "''' + interval + '''"){
             datetime
             value
