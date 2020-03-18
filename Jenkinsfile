@@ -55,7 +55,7 @@ podTemplate(label: 'api-tests', containers: [
            footer: '',
            image: '',
            link: '${env.BUILD_URL}',
-           result: 'SUCCESS|UNSTABLE|FAILURE|ABORTED',
+           result: 'SUCCESS',
            thumbnail: '',
            title: '',
            webhookURL: '${DISCORD_WEBHOOK}'
