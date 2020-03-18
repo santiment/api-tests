@@ -186,32 +186,33 @@ def test_frontend_api(last_days, interval):
 
 
 if __name__ == '__main__':
-    if API_KEY:
-        san.ApiConfig.api_key = API_KEY
-    slugs = []
-    # TODO set the logging level through a config file
-    logging.basicConfig(level=logging.INFO)
-    if len(sys.argv) == 2 and sys.argv[1] == "--frontend":
-        message = ""
-        try:
-            test_frontend_api(DAYS_BACK_TEST, INTERVAL)
-        except (SanError, APIError, KeyError) as e:
-            message = str(e)
-            send_frontend_alert(message)
-        else:
-            send_frontend_alert(None)
-    else:
-        # Optionally provide slugs arguments
-        if(len(sys.argv) > 1):
-            if sys.argv[1] == "--sanity":
-                slugs = slugs_sanity
-            else:
-                for i in range(1, len(sys.argv)):
-                    slugs.append(sys.argv[i])
-        else:
-            slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
-        (output, output_for_html, error_flag) = test_token_metrics(slugs, ignored_metrics, DAYS_BACK_TEST, INTERVAL)
-        save_output_to_file(output)
-        save_output_to_file(output_for_html, 'output_for_html')
-        generate_html_from_json('output_for_html', 'index')
-        send_metric_alert(error_flag)
+#    if API_KEY:
+#        san.ApiConfig.api_key = API_KEY
+#    slugs = []
+#    # TODO set the logging level through a config file
+#    logging.basicConfig(level=logging.INFO)
+#    if len(sys.argv) == 2 and sys.argv[1] == "--frontend":
+#        message = ""
+#        try:
+#            test_frontend_api(DAYS_BACK_TEST, INTERVAL)
+#        except (SanError, APIError, KeyError) as e:
+#            message = str(e)
+#            send_frontend_alert(message)
+#        else:
+#            send_frontend_alert(None)
+#    else:
+#        # Optionally provide slugs arguments
+#        if(len(sys.argv) > 1):
+#            if sys.argv[1] == "--sanity":
+#                slugs = slugs_sanity
+#            else:
+#                for i in range(1, len(sys.argv)):
+#                    slugs.append(sys.argv[i])
+#        else:
+#            slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
+#        (output, output_for_html, error_flag) = test_token_metrics(slugs, ignored_metrics, DAYS_BACK_TEST, INTERVAL)
+#        save_output_to_file(output)
+#        save_output_to_file(output_for_html, 'output_for_html')
+#        generate_html_from_json('output_for_html', 'index')
+#        send_metric_alert(error_flag)
+    print(1)

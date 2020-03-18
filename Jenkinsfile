@@ -50,6 +50,16 @@ podTemplate(label: 'api-tests', containers: [
             reportFiles: 'index.html, output.json',
             reportName: "Test Report"
          ])
+         discordSend (
+           description: '${env.JOB_NAME} ended with status ${env.BUILD_STATUS}. Click the link to see details.',
+           footer: '',
+           image: '',
+           link: '${env.BUILD_URL}',
+           result: 'SUCCESS|UNSTABLE|FAILURE|ABORTED',
+           thumbnail: '',
+           title: '',
+           webhookURL: '${DISCORD_WEBHOOK}'
+         )
         }
       }
     }
