@@ -54,11 +54,11 @@ podTemplate(label: 'api-tests', containers: [
            description: '${env.JOB_NAME} ended with status ${env.BUILD_STATUS}. Click the link to see details.',
            footer: '',
            image: '',
-           link: '${env.BUILD_URL}',
+           link: env.BUILD_URL,
            result: 'SUCCESS',
            thumbnail: '',
            title: '',
-           webhookURL: '$discord_webhook'
+           webhookURL: DISCORD_WEBHOOK
          )
         }
       }
