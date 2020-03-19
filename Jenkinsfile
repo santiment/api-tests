@@ -50,16 +50,20 @@ podTemplate(label: 'api-tests', containers: [
             reportFiles: 'index.html, output.json',
             reportName: "Test Report"
          ])
-         discordSend (
-           description: 'description',
-           footer: 'footer',
-           image: '',
-           link: 'https://jenkins.internal.santiment.net/job/Santiment/job/api-tests/job/master/',
-           result: 'FAILURE',
-           thumbnail: '',
-           title: 'title',
-           webhookURL: DISCORD_WEBHOOK
-         )
+         post {
+           failure {
+              discordSend (
+              description: 'API tests build failed.',
+              footer: 'footer',
+              image: '',
+              link: 'https://jenkins.internal.santiment.net/job/Santiment/job/api-tests/job/master/',
+              result: 'FAILURE',
+              thumbnail: '',
+              title: 'Click here for details',
+              webhookURL: DISCORD_WEBHOOK
+            )
+           }
+         }
         }
       }
     }
