@@ -53,7 +53,7 @@ podTemplate(label: 'api-tests', containers: [
             reportFiles: 'index.html, output.json',
             reportName: "Test Report"
           ])
-          if (RUN_STATUS == 1) {
+          if (RUN_STATUS == 0) {
             discordSend (
               description: 'API tests build failed.',
               footer: '',
