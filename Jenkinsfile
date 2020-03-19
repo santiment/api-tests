@@ -41,20 +41,21 @@ podTemplate(label: 'api-tests', containers: [
           variable: 'API_KEY'
         ),
       ]) {
-          sh "python api_tests.py --sanity"
-          publishHTML (target: [
-            allowMissing: false,
-            alwaysLinkToLastBuild: false,
-            keepAll: true,
-            reportDir: 'output',
-            reportFiles: 'index.html, output.json',
-            reportName: "Test Report"
-         ])
-         post {
-           failure {
-              discordSend (
+          try {
+            sh "python api_tests.py --sanity"
+            publishHTML (target: [
+              allowMissing: false,
+              alwaysLinkToLastBuild: false,
+              keepAll: true,
+              reportDir: 'output',
+              reportFiles: 'index.html, output.json',
+              reportName: "Test Report"
+            ])
+          }
+          catch (e) {
+            discordSend (
               description: 'API tests build failed.',
-              footer: 'footer',
+              footer: '',
               image: '',
               link: 'https://jenkins.internal.santiment.net/job/Santiment/job/api-tests/job/master/',
               result: 'FAILURE',
@@ -62,8 +63,7 @@ podTemplate(label: 'api-tests', containers: [
               title: 'Click here for details',
               webhookURL: DISCORD_WEBHOOK
             )
-           }
-         }
+          }
         }
       }
     }
