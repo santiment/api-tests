@@ -51,10 +51,10 @@ podTemplate(label: 'api-tests', containers: [
             reportName: "Test Report"
          ])
          discordSend (
-           description: '${env.JOB_NAME} ended with status ${env.BUILD_STATUS}. Click the link to see details.',
+           description: JOB_NAME ended with status BUILD_STATUS. Click the link to see details.,
            footer: '',
            image: '',
-           link: env.BUILD_URL,
+           link: BUILD_URL,
            result: 'FAILURE',
            thumbnail: '',
            title: '',
