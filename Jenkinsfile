@@ -55,7 +55,7 @@ podTemplate(label: 'api-tests', containers: [
             footer: '',
             image: '',
             link: 'https://jenkins.internal.santiment.net/job/Santiment/job/api-tests/job/master/',
-            result: buildStatus,
+            result: 'FAILURE',
             thumbnail: '',
             title: 'Click here for details',
             webhookURL: DISCORD_WEBHOOK
