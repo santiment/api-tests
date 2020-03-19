@@ -51,7 +51,7 @@ podTemplate(label: 'api-tests', containers: [
             reportName: "Test Report"
          ])
          discordSend (
-           description: JOB_NAME ended with status BUILD_STATUS. Click the link to see details.,
+           description: 'API tests build failed. Click the link to see the details.',
            footer: '',
            image: '',
            link: BUILD_URL,
