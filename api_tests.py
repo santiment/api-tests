@@ -66,7 +66,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         for metric in timeseries_metrics:
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
             reason = None
-            delay = td(hours=48) if metric == "network_growth" else td(hours=24)
+            delay = td(hours=48) if metric in ["network_growth", "amount_in_top_holders"] else td(hours=24)
             last_date = ''
             try:
                 result = get_timeseries_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval)
