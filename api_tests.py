@@ -50,7 +50,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
     output = {}
     output_for_html = []
     n = len(slugs)
-    error_flag = False
+    error_output = None
     for slug in slugs:
         (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
         queries = exclude_metrics(queries, special_queries)
@@ -73,6 +73,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
+                error_output = "graphql error"
             else:
                 if not result:
                     reason = 'empty'
@@ -80,6 +81,8 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                     dates = sorted([dt.strptime(x['datetime'], DATETIME_PATTERN_METRIC) for x in result])
                     if dt.now() - dates[-1] > delay:
                         reason = f'delayed: {dt.strftime(dates[-1], DATETIME_PATTERN_METRIC)}'
+                if not error_output:
+                    error_output = "empty or delayed data"
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
@@ -99,9 +102,12 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
+                error_output = "graphql error"
             else:
                 if not result or not result['values'] or not result['values']['data']:
                     reason = 'empty'
+                if not error_output:
+                    error_output = "empty or delayed data"
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
@@ -121,9 +127,12 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
+                error_output = "graphql error"
             else:
                 if not result:
                     reason = 'empty'
+                if not error_output:
+                    error_output = "empty or delayed data"
             if reason:
                 number_of_errors_queries += 1
                 error = {'query': query, 'reason': reason}
@@ -148,9 +157,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         'slug': slug,
         'data': data_for_html
         })
-        if number_of_errors_metrics + number_of_errors_queries > 0:
-            error_flag = True
-    return output, output_for_html, error_flag
+    return output, output_for_html, error_output
 
 def save_output_to_file(output, filename='output'):
     if not os.path.isdir('./output'):
@@ -210,8 +217,8 @@ if __name__ == '__main__':
                     slugs.append(sys.argv[i])
         else:
             slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
-        (output, output_for_html, error_flag) = test_token_metrics(slugs, ignored_metrics, DAYS_BACK_TEST, INTERVAL)
+        (output, output_for_html, error_output) = test_token_metrics(slugs, ignored_metrics, DAYS_BACK_TEST, INTERVAL)
         save_output_to_file(output)
         save_output_to_file(output_for_html, 'output_for_html')
         generate_html_from_json('output_for_html', 'index')
-        send_metric_alert(error_flag)
+        send_metric_alert(error_output)

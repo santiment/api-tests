@@ -30,12 +30,12 @@ Caused by: {error_message}
     if DISCORD_WEBHOOK:
         webhook.send(message, username='API Alert Bot')
 
-def send_metric_alert(error=False):
+def send_metric_alert(error=None):
     if error:
         message = f"""
 ++++++++++++++++++++++++++++++++++++++++++++++++
 {mention}
-Something broke in metrics
+Problem with API: {error}
 Triggered at {datetime.datetime.now()}
 See report at {report_url}
 ===============================================
