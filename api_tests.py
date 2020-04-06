@@ -8,7 +8,7 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
 from constants import DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT
-from constants import INTERVAL, BATCH_SIZE
+from constants import INTERVAL, BATCH_SIZE, METRICS_WITH_LONGER_DELAY
 from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data, get_histogram_metric_data, get_query_data, get_marketcap_batch
 from html_reporter import generate_html_from_json
 from queries import special_queries
@@ -66,7 +66,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         for metric in timeseries_metrics:
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
             reason = None
-            delay = td(hours=48) if metric in ["network_growth", "amount_in_top_holders"] else td(hours=24)
+            delay = td(hours=48) if metric in METRICS_WITH_LONGER_DELAY else td(hours=24)
             last_date = ''
             try:
                 result = get_timeseries_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval)
