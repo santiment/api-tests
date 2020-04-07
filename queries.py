@@ -372,6 +372,17 @@ queries = {
             " projects {change slug status}"
         ]
     },
+    "minersBalance": {
+        "arguments": {
+            "slug": '"%s"',
+            "from": '"%s"',
+            "to": '"%s"',
+            "interval": '"%s"'
+        },
+        "fields": [
+            "balance"
+        ]
+    },
 }
 
 special_queries = [
