@@ -377,7 +377,7 @@ queries = {
             "slug": '"%s"',
             "from": '"%s"',
             "to": '"%s"',
-            "interval": '"1d"'
+            "interval": '"%s"'
         },
         "fields": [
             "balance"
