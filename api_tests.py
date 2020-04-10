@@ -217,7 +217,6 @@ def is_data_incorrect(metric, values):
     if None in values:
         reason = 'None'
     elif metric not in METRICS_WITH_ALLOWED_NEGATIVES:
-        print(values)
         if list(filter(lambda x: x < 0, values)):
             reason = 'negative'
     return (bool(reason), reason)

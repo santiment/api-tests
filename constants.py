@@ -18,7 +18,7 @@ METRICS_WITH_LONGER_DELAY = [
     "amount_in_top_holders",
     "amount_in_exchange_top_holders",
     "amount_in_non_exchange_top_holders",
-    ]
+]
 
 METRICS_WITH_ALLOWED_NEGATIVES = [
     "exchange_balance",
