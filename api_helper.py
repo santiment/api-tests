@@ -172,8 +172,18 @@ def get_min_interval(metric):
         }
     }
     '''
-    response = execute_gql(gql_query)
-    return response['getMetric']['metadata']['minInterval']
+    attempts = 0
+    error = None
+    while attempts < NUMBER_OF_RETRIES:
+        try:
+            time.sleep(CALL_DELAY)
+            response = execute_gql(gql_query)
+            return response['getMetric']['metadata']['minInterval']
+        except SanError as e:
+            attempts += 1
+            error = e
+    raise SanError(f"Not able to get min interval for {metric} after 3 attempts. Reason: {str(error)}")
+
 
 if __name__ == '__main__':
     print(get_query_data('priceVolumeDiff', 'ethereum', dt.now() - td(days=1), dt.now(), '1d'))
