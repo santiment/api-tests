@@ -173,6 +173,7 @@ def get_min_interval(metric):
     }
     '''
     attempts = 0
+    error = None
     while attempts < NUMBER_OF_RETRIES:
         try:
             time.sleep(CALL_DELAY)
