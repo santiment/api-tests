@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta as td
 API_KEY = os.getenv('API_KEY')
 DT_FORMAT = os.getenv("DT_FORMAT", "%Y-%m-%d")
 DATETIME_PATTERN_METRIC = os.getenv("DATETIME_PATTERN_METRIC", "%Y-%m-%dT%H:00:00Z")
@@ -18,3 +19,25 @@ METRICS_WITH_LONGER_DELAY = [
     "amount_in_exchange_top_holders",
     "amount_in_non_exchange_top_holders",
     ]
+
+METRICS_WITH_ALLOWED_NEGATIVES = [
+    "exchange_balance",
+    "priceVolumeDiff",
+    "price_usd_change_1d",
+    "price_usd_change_30d",
+    "price_usd_change_7d",
+    "volume_usd_change_1d",
+    "volume_usd_change_30d",
+    "volume_usd_change_7d",
+    "active_addresses_24h_change_1d",
+    "active_addresses_24h_change_30d",
+    "active_addresses_24h_change_7d",
+]
+
+INTERVAL_TIMEDELTA = {
+    '12h': td(hours=12),
+    '1d': td(days=1),
+    '5m': td(minutes=5),
+    '1m': td(minutes=1),
+    '6h': td(hours=6)
+}

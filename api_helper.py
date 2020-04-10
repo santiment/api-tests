@@ -162,6 +162,18 @@ def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
             error = e
     raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts. Reason: {str(error)}")
 
+def get_min_interval(metric):
+    gql_query = '''
+    {
+        getMetric(metric: "''' + metric + '''") {
+            metadata {
+                minInterval
+            }
+        }
+    }
+    '''
+    response = execute_gql(gql_query)
+    return response['getMetric']['metadata']['minInterval']
 
 if __name__ == '__main__':
     print(get_query_data('priceVolumeDiff', 'ethereum', dt.now() - td(days=1), dt.now(), '1d'))
