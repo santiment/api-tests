@@ -80,7 +80,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                 else:
                     (dates, values) = transform_data_for_checks(result)
                     (is_delayed, delayed_since) = is_metric_delayed(metric, dates)
-                    is_incorrect = is_data_incorrect(metric, values)
+                    (is_incorrect, reason_incorrect) = is_data_incorrect(metric, values)
                     has_gaps = data_has_gaps(metric, interval, dates)
                     if True in [is_delayed, is_incorrect, has_gaps]:
                         reason = 'corrupted'
@@ -88,7 +88,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                     if is_delayed:
                         details.append(f'delayed: {dt.strftime(delayed_since, DATETIME_PATTERN_METRIC)}')
                     if is_incorrect:
-                        details.append('data has negative values which is not allowed')
+                        details.append(f'data has {reason_incorrect} values which is not allowed')
                     if has_gaps:
                         details.append('data has gaps')
                 if not error_output:
@@ -205,7 +205,7 @@ def test_frontend_api(last_days, interval):
 
 def transform_data_for_checks(data):
     dates = sorted([dt.strptime(x['datetime'], DATETIME_PATTERN_METRIC) for x in data])
-    values = sorted([float(x['value']) if x['value'] else 0.0 for x in data])
+    values = [float(x['value']) if x['value'] else x['value'] for x in data]
     return (dates, values)
 
 def is_metric_delayed(metric, dates):
@@ -213,7 +213,14 @@ def is_metric_delayed(metric, dates):
     return (dt.now() - dates[-1] > delay, dates[-1])
 
 def is_data_incorrect(metric, values):
-    return metric not in METRICS_WITH_ALLOWED_NEGATIVES and list(filter(lambda x: x < 0, values))
+    reason = ''
+    if None in values:
+        reason = 'None'
+    elif metric not in METRICS_WITH_ALLOWED_NEGATIVES:
+        print(values)
+        if list(filter(lambda x: x < 0, values)):
+            reason = 'negative'
+    return (bool(reason), reason)
 
 def data_has_gaps(metric, interval, dates):
     delta = INTERVAL_TIMEDELTA[interval]

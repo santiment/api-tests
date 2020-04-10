@@ -32,6 +32,8 @@ METRICS_WITH_ALLOWED_NEGATIVES = [
     "active_addresses_24h_change_1d",
     "active_addresses_24h_change_30d",
     "active_addresses_24h_change_7d",
+    "holders_distribution_combined_balance_10M_to_inf",
+    "mvrv_long_short_diff_usd"
 ]
 
 INTERVAL_TIMEDELTA = {
