@@ -8,8 +8,10 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
 from constants import DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT
-from constants import INTERVAL, BATCH_SIZE, METRICS_WITH_LONGER_DELAY
-from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data, get_histogram_metric_data, get_query_data, get_marketcap_batch
+from constants import INTERVAL, BATCH_SIZE, METRICS_WITH_LONGER_DELAY, METRICS_WITH_ALLOWED_NEGATIVES
+from constants import INTERVAL_TIMEDELTA
+from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data
+from api_helper import get_histogram_metric_data, get_query_data, get_marketcap_batch, get_min_interval
 from html_reporter import generate_html_from_json
 from queries import special_queries
 from discord_bot import send_frontend_alert, send_metric_alert
@@ -66,8 +68,6 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
         for metric in timeseries_metrics:
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
             reason = None
-            delay = td(hours=48) if metric in METRICS_WITH_LONGER_DELAY else td(hours=24)
-            last_date = ''
             try:
                 result = get_timeseries_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval)
             except SanError as e:
@@ -78,14 +78,26 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                 if not result:
                     reason = 'empty'
                 else:
-                    dates = sorted([dt.strptime(x['datetime'], DATETIME_PATTERN_METRIC) for x in result])
-                    if dt.now() - dates[-1] > delay:
-                        reason = f'delayed: {dt.strftime(dates[-1], DATETIME_PATTERN_METRIC)}'
+                    (dates, values) = transform_data_for_checks(result)
+                    (is_delayed, delayed_since) = is_metric_delayed(metric, dates)
+                    (is_incorrect, reason_incorrect) = is_data_incorrect(metric, values)
+                    has_gaps = data_has_gaps(metric, interval, dates)
+                    if True in [is_delayed, is_incorrect, has_gaps]:
+                        reason = 'corrupted'
+                    details = []
+                    if is_delayed:
+                        details.append(f'delayed: {dt.strftime(delayed_since, DATETIME_PATTERN_METRIC)}')
+                    if is_incorrect:
+                        details.append(f'data has {reason_incorrect} values which is not allowed')
+                    if has_gaps:
+                        details.append('data has gaps')
                 if not error_output:
-                    error_output = "empty or delayed data"
+                    error_output = "corrupted data"
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
+                if reason == 'corrupted':
+                    error['details'] = details
                 errors_timeseries_metrics.append(error)
                 piece_for_html = {'name': metric, 'status': reason}
             else:
@@ -107,7 +119,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                 if not result or not result['values'] or not result['values']['data']:
                     reason = 'empty'
                 if not error_output:
-                    error_output = "empty or delayed data"
+                    error_output = "corrupted data"
             if reason:
                 number_of_errors_metrics += 1
                 error = {'metric': metric, 'reason': reason}
@@ -132,7 +144,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                 if not result:
                     reason = 'empty'
                 if not error_output:
-                    error_output = "empty or delayed data"
+                    error_output = "corrupted data"
             if reason:
                 number_of_errors_queries += 1
                 error = {'query': query, 'reason': reason}
@@ -190,6 +202,31 @@ def test_frontend_api(last_days, interval):
         for gl in gainers_losers:
             if not gl["change"] or not gl["slug"] or not gl["status"]:
                 raise APIError("Empty result in topSocialGainersLosers")
+
+def transform_data_for_checks(data):
+    dates = sorted([dt.strptime(x['datetime'], DATETIME_PATTERN_METRIC) for x in data])
+    values = [float(x['value']) if x['value'] else x['value'] for x in data]
+    return (dates, values)
+
+def is_metric_delayed(metric, dates):
+    delay = td(hours=48) if metric in METRICS_WITH_LONGER_DELAY else td(hours=24)
+    return (dt.now() - dates[-1] > delay, dates[-1])
+
+def is_data_incorrect(metric, values):
+    reason = ''
+    if None in values:
+        reason = 'None'
+    elif metric not in METRICS_WITH_ALLOWED_NEGATIVES:
+        if list(filter(lambda x: x < 0, values)):
+            reason = 'negative'
+    return (bool(reason), reason)
+
+def data_has_gaps(metric, interval, dates):
+    delta = INTERVAL_TIMEDELTA[interval]
+    delta_metric = INTERVAL_TIMEDELTA[get_min_interval(metric)]
+    delta_result = max(delta, delta_metric)
+    gaps = [dates[x] - dates[x-1] > delta_result for x in range(1, len(dates) - 1)]
+    return True in gaps
 
 
 if __name__ == '__main__':
