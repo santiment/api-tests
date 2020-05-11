@@ -63,8 +63,8 @@ podTemplate(label: 'api-tests', containers: [
             reportFiles: 'index.html, output.json',
             reportName: "Test Report"
           ]) 
-          sh "aws s3 cp output/output.json s3://api-tests-json/latest_report.json"
-          sh "aws s3 cp output/output.json s3://api-tests-json/output-${BUILD_NUMBER}.json"
+          sh "aws s3 cp output/output.json s3://api-tests-json/latest_report.json --acl public-read"
+          sh "aws s3 cp output/output.json s3://api-tests-json/output-${BUILD_NUMBER}.json --acl public-read"
           if (RUN_STATUS == 1) {
             discordSend (
               description: 'API tests build failed.',
