@@ -63,6 +63,7 @@ podTemplate(label: 'api-tests', containers: [
             reportFiles: 'index.html, output.json',
             reportName: "Test Report"
           ]) 
+          sh "aws s3 cp output/output.json s3://api-tests-json/latest_report.json"
           sh "aws s3 cp output/output.json s3://api-tests-json/output-${BUILD_NUMBER}.json"
           if (RUN_STATUS == 1) {
             discordSend (
