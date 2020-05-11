@@ -40,7 +40,17 @@ podTemplate(label: 'api-tests', containers: [
           credentialsId: 'sanbase_api_key',
           variable: 'API_KEY'
         ),
+        [
+          $class: 'AmazonWebServicesCredentialsBinding', 
+          accessKeyVariable: 'AWS_ACCESS_KEY_ID', 
+          credentialsId: 's3_api-tests-json', 
+          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+        ]
       ]) {
+          sh "apt-get install -y curl unzip"
+          sh 'curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"'
+          sh "unzip awscliv2.zip"
+          sh "./aws/install"
           RUN_STATUS = sh (
             script: "python api_tests.py --sanity",
             returnStatus: true
@@ -52,7 +62,8 @@ podTemplate(label: 'api-tests', containers: [
             reportDir: 'output',
             reportFiles: 'index.html, output.json',
             reportName: "Test Report"
-          ])
+          ]) 
+          sh "aws s3 cp output/output.json s3://api-tests-json/output-${BUILD_NUMBER}.json"
           if (RUN_STATUS == 1) {
             discordSend (
               description: 'API tests build failed.',
