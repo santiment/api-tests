@@ -42,5 +42,6 @@ INTERVAL_TIMEDELTA = {
     '5m': td(minutes=5),
     '1m': td(minutes=1),
     '6h': td(hours=6),
+    '1h': td(hours=1),
     '8h': td(hours=8)
 }
