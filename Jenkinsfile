@@ -55,16 +55,6 @@ podTemplate(label: 'api-tests', containers: [
             script: "python api_tests.py --sanity",
             returnStatus: true
           )
-          publishHTML (target: [
-            allowMissing: false,
-            alwaysLinkToLastBuild: false,
-            keepAll: true,
-            reportDir: 'output',
-            reportFiles: 'index.html, output.json',
-            reportName: "Test Report"
-          ]) 
-          sh "aws s3 cp output/output.json s3://api-tests-json/latest_report.json --acl public-read"
-          sh "aws s3 cp output/output.json s3://api-tests-json/output-${BUILD_NUMBER}.json --acl public-read"
           if (RUN_STATUS != 0) {
             discordSend (
               description: 'API tests build failed.',
@@ -76,6 +66,19 @@ podTemplate(label: 'api-tests', containers: [
               title: 'Click here for details',
               webhookURL: DISCORD_WEBHOOK
             )
+          }
+          else {
+            publishHTML (
+              target: [
+                allowMissing: false,
+                alwaysLinkToLastBuild: false,
+                keepAll: true,
+                reportDir: 'output',
+                reportFiles: 'index.html, output.json',
+                reportName: "Test Report"
+            ]) 
+            sh "aws s3 cp output/output.json s3://api-tests-json/latest_report.json --acl public-read"
+            sh "aws s3 cp output/output.json s3://api-tests-json/output-${BUILD_NUMBER}.json --acl public-read"
           }
         }
       }
