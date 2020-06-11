@@ -33,7 +33,23 @@ METRICS_WITH_ALLOWED_NEGATIVES = [
     "active_addresses_24h_change_30d",
     "active_addresses_24h_change_7d",
     "holders_distribution_combined_balance_10M_to_inf",
-    "mvrv_long_short_diff_usd"
+    "mvrv_long_short_diff_usd",
+    "bitmex_perpetual_funding_rate",
+    "dev_activity_change_30d",
+    "sentiment_balance_bitcointalk",
+    "sentiment_balance_discord",
+    "sentiment_balance_professional_traders_chat",
+    "sentiment_balance_reddit",
+    "sentiment_balance_telegram",
+    "sentiment_balance_twitter",
+    "sentiment_balance_total",
+    "sentiment_volume_consumed_bitcointalk",
+    "sentiment_volume_consumed_discord",
+    "sentiment_volume_consumed_professional_traders_chat",
+    "sentiment_volume_consumed_reddit",
+    "sentiment_volume_consumed_telegram",
+    "sentiment_volume_consumed_twitter",
+    "sentiment_volume_consumed_total",
 ]
 
 INTERVAL_TIMEDELTA = {
