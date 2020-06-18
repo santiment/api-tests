@@ -69,7 +69,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
             reason = None
             try:
-                result = get_timeseries_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval)
+                (gql_query, result) = get_timeseries_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval)
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
@@ -95,7 +95,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                     error_output = "corrupted data"
             if reason:
                 number_of_errors_metrics += 1
-                error = {'metric': metric, 'reason': reason}
+                error = {'metric': metric, 'reason': reason, 'gql_query': gql_query}
                 if reason == 'corrupted':
                     error['details'] = details
                 errors_timeseries_metrics.append(error)
@@ -110,7 +110,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
             reason = None
             try:
-                result = get_histogram_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval, HISTOGRAM_METRICS_LIMIT)
+                (gql_query, result) = get_histogram_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval, HISTOGRAM_METRICS_LIMIT)
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
@@ -122,7 +122,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                     error_output = "corrupted data"
             if reason:
                 number_of_errors_metrics += 1
-                error = {'metric': metric, 'reason': reason}
+                error = {'metric': metric, 'reason': reason, 'gql_query': gql_query}
                 errors_histogram_metrics.append(error)
                 piece_for_html = {'name': metric, 'status': reason}
             else:
@@ -135,7 +135,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             logging.info(f"[Slug {i + 1}/{n}] Testing query: {query}")
             reason = None
             try:
-                result = get_query_data(query, slug, dt.now() - td(days=last_days), dt.now(), interval)
+                (gql_query, result) = get_query_data(query, slug, dt.now() - td(days=last_days), dt.now(), interval)
             except SanError as e:
                 logging.info(str(e))
                 reason = 'GraphQL error'
@@ -147,7 +147,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                     error_output = "corrupted data"
             if reason:
                 number_of_errors_queries += 1
-                error = {'query': query, 'reason': reason}
+                error = {'query': query, 'reason': reason, 'gql_query': gql_query}
                 errors_queries.append(error)
                 piece_for_html = {'name': query, 'status': reason}
             else:

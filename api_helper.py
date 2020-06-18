@@ -57,7 +57,7 @@ def get_query_data(query, slug, dt_from, dt_to, interval):
             try:
                 time.sleep(CALL_DELAY)
                 response = execute_gql(gql_query)
-                return response[query]
+                return (gql_query, response[query])
             except SanError as e:
                 attempts += 1
                 error = e
@@ -92,7 +92,7 @@ def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
         try:
             time.sleep(CALL_DELAY)
             response = execute_gql(gql_query)
-            return response['getMetric']['timeseriesData']
+            return (gql_query, response['getMetric']['timeseriesData'])
         except SanError as e:
             attempts += 1
             error = e
@@ -156,7 +156,7 @@ def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
         try:
             time.sleep(CALL_DELAY)
             response = execute_gql(gql_query)
-            return response['getMetric']['histogramData']
+            return (gql_query, response['getMetric']['histogramData'])
         except SanError as e:
             attempts += 1
             error = e
