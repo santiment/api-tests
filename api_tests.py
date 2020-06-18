@@ -10,6 +10,7 @@ from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, 
 from constants import DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT
 from constants import INTERVAL, BATCH_SIZE, METRICS_WITH_LONGER_DELAY, METRICS_WITH_ALLOWED_NEGATIVES
 from constants import INTERVAL_TIMEDELTA
+from san.env_vars import SANBASE_GQL_HOST
 from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data
 from api_helper import get_histogram_metric_data, get_query_data, get_marketcap_batch, get_min_interval
 from html_reporter import generate_html_from_json
@@ -17,6 +18,7 @@ from queries import special_queries
 from discord_bot import send_frontend_alert, send_metric_alert
 from slugs import slugs_sanity
 from ignored_metrics import ignored_metrics
+import urllib.parse
 
 class APIError(Exception):
     pass
@@ -47,6 +49,11 @@ def exclude_metrics(metrics, metrics_to_exclude):
         if metric in result:
             result.remove(metric)
     return result
+
+def generate_gql_url(query):
+    first_part = SANBASE_GQL_HOST.replace('graphql', 'graphiql?query=')
+    second_part = urllib.parse.quote(query)
+    return first_part + second_part
 
 def test_token_metrics(slugs, ignored_metrics, last_days, interval):
     output = {}
@@ -95,7 +102,12 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                     error_output = "corrupted data"
             if reason:
                 number_of_errors_metrics += 1
-                error = {'metric': metric, 'reason': reason, 'gql_query': gql_query}
+                error = {
+                    'metric': metric, 
+                    'reason': reason, 
+                    'gql_query': gql_query,
+                    'gql_query_url': generate_gql_url(gql_query) 
+                }
                 if reason == 'corrupted':
                     error['details'] = details
                 errors_timeseries_metrics.append(error)
@@ -122,7 +134,12 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                     error_output = "corrupted data"
             if reason:
                 number_of_errors_metrics += 1
-                error = {'metric': metric, 'reason': reason, 'gql_query': gql_query}
+                error = {
+                    'metric': metric, 
+                    'reason': reason, 
+                    'gql_query': gql_query,
+                    'gql_query_url': generate_gql_url(gql_query) 
+                }
                 errors_histogram_metrics.append(error)
                 piece_for_html = {'name': metric, 'status': reason}
             else:
@@ -147,7 +164,12 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
                     error_output = "corrupted data"
             if reason:
                 number_of_errors_queries += 1
-                error = {'query': query, 'reason': reason, 'gql_query': gql_query}
+                error = {
+                    'query': query, 
+                    'reason': reason, 
+                    'gql_query': gql_query, 
+                    'gql_query_url': generate_gql_url(gql_query) 
+                }
                 errors_queries.append(error)
                 piece_for_html = {'name': query, 'status': reason}
             else:
