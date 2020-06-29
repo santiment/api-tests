@@ -9,7 +9,7 @@ from datetime import timedelta as td
 from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
 from constants import DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT
 from constants import INTERVAL, BATCH_SIZE, METRICS_WITH_LONGER_DELAY, METRICS_WITH_ALLOWED_NEGATIVES
-from constants import INTERVAL_TIMEDELTA
+from constants import INTERVAL_TIMEDELTA, ERRORS_IN_ROW
 from san.env_vars import SANBASE_GQL_HOST
 from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data
 from api_helper import get_histogram_metric_data, get_query_data, get_marketcap_batch, get_min_interval
@@ -19,6 +19,7 @@ from discord_bot import send_frontend_alert, send_metric_alert
 from slugs import slugs_sanity
 from ignored_metrics import ignored_metrics
 import urllib.parse
+from json_processor import create_stable_json
 
 class APIError(Exception):
     pass
@@ -278,6 +279,7 @@ if __name__ == '__main__':
             slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
         (output, output_for_html, error_output) = test_token_metrics(slugs, ignored_metrics, DAYS_BACK_TEST, INTERVAL)
         save_output_to_file(output)
+        create_stable_json(ERRORS_IN_ROW)
         save_output_to_file(output_for_html, 'output_for_html')
         generate_html_from_json('output_for_html', 'index')
         send_metric_alert(error_output)
