@@ -52,6 +52,7 @@ METRICS_WITH_ALLOWED_NEGATIVES = [
     "sentiment_volume_consumed_twitter",
     "sentiment_volume_consumed_total",
     "bitmex_perpetual_basis",
+    "bitmex_perpetual_basis_ratio"
 ]
 
 INTERVAL_TIMEDELTA = {
