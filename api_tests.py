@@ -201,30 +201,30 @@ def save_output_to_file(output, filename='output'):
         json.dump(output, file, indent=4)
 
 def test_frontend_api(last_days, interval):
-    events = get_query_data("timelineEvents", None, dt.now() - td(days=last_days), dt.now(), interval)
-    if not events:
-        raise APIError("timelineEvents returns empty array")
+    test_data = [
+        ("timelineEvents", interval, "events", ["id"]),
+        ("getTrendingWords", interval, "topWords", ["word", "score"]),
+        ("topSocialGainersLosers", None, "projects", ["change", "slug", "status"]),
+        ("featuredInsights", None, None, ["id"]),
+        ("featuredWatchlists", None, None, ["id"]),
+        ("featuredChartConfigurations", None, None, ["id"]),
+    ]
+    for data in test_data:
+        test_frontend_query(data[0], last_days, data[1], data[2], data[3])
+
+def test_frontend_query(query, last_days, interval, key, key_values):
+    data = get_query_data(query, None, dt.now() - td(days=last_days), dt.now(), interval)
+    if not data[1]:
+        raise APIError(f"{query} returns empty array")
     else:
-        events = events[0]["events"]
-        for event in events:
-            if not event["id"]:
-                raise APIError("Empty result in timelineEvents")
-    words = get_query_data("getTrendingWords", None, dt.now() - td(days=last_days), dt.now(), interval)
-    if not words:
-        raise APIError("getTrendingWords returns empty array")
-    else:
-        words = words[0]["topWords"]
-        for word in words:
-            if not word["word"] or not word["score"]:
-                raise APIError("Empty result in getTrendingWords")
-    gainers_losers = get_query_data("topSocialGainersLosers", None, dt.now() - td(days=last_days), dt.now(), None)
-    if not gainers_losers:
-        raise APIError("topSocialGainersLosers returns empty array")
-    else:
-        gainers_losers = gainers_losers[0]["projects"]
-        for gl in gainers_losers:
-            if not gl["change"] or not gl["slug"] or not gl["status"]:
-                raise APIError("Empty result in topSocialGainersLosers")
+        if key:
+            data = data[1][0][key]
+        else:
+            data = data[1]
+        for bit in data:
+            for key_value in key_values:
+                if not bit[key_value]:
+                    raise APIError(f"Empty result in {query}")
 
 def transform_data_for_checks(data):
     dates = sorted([dt.strptime(x['datetime'], DATETIME_PATTERN_METRIC) for x in data])
@@ -259,13 +259,14 @@ if __name__ == '__main__':
     # TODO set the logging level through a config file
     logging.basicConfig(level=logging.INFO)
     if len(sys.argv) == 2 and sys.argv[1] == "--frontend":
-        message = ""
         try:
             test_frontend_api(DAYS_BACK_TEST, INTERVAL)
         except (SanError, APIError, KeyError) as e:
             message = str(e)
+            logging.error(message)
             send_frontend_alert(message)
         else:
+            logging.info('Success')
             send_frontend_alert(None)
     else:
         # Optionally provide slugs arguments

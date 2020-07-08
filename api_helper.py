@@ -51,7 +51,8 @@ def get_query_data(query, slug, dt_from, dt_to, interval):
             else:
                 query_args_str += f"{arg}: {args_template[arg]},\n"
         query_fields_str = '{' + ' '.join(query_template['fields']) + '}' if query_template['fields'] else ''
-        gql_query = '{' + query + '(' + query_args_str + ')' + query_fields_str + '}'
+        query_args_str = '(' + query_args_str + ')' if query_args_str else ''
+        gql_query = '{' + query + query_args_str + query_fields_str + '}'
         attempts = 0
         while attempts < NUMBER_OF_RETRIES:
             try:

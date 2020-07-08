@@ -383,6 +383,24 @@ queries = {
             "balance"
         ]
     },
+    "featuredInsights": {
+        "arguments": {},
+        "fields": [
+            "id"
+        ]
+    },
+     "featuredWatchlists": {
+        "arguments": {},
+        "fields": [
+            "id"
+        ]
+    },
+     "featuredChartConfigurations": {
+        "arguments": {},
+        "fields": [
+            "id"
+        ]
+    },
 }
 
 special_queries = [
