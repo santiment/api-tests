@@ -63,7 +63,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
     error_output = None
     for slug in slugs:
         if slug in legacy_asset_slugs:
-            (timeseries_metrics, histogram_metrics, queries) = ("price_usd", [], [])
+            (timeseries_metrics, histogram_metrics, queries) = (["price_usd"], [], [])
         else:
             (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
             queries = exclude_metrics(queries, special_queries)
