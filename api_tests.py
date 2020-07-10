@@ -88,7 +88,7 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             else:
                 if not result:
                     reason = 'empty'
-                else:
+                elif slug not in legacy_asset_slugs:
                     (dates, values) = transform_data_for_checks(result)
                     (is_delayed, delayed_since) = is_metric_delayed(metric, dates)
                     (is_incorrect, reason_incorrect) = is_data_incorrect(metric, values)
