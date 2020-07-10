@@ -16,7 +16,7 @@ from api_helper import get_histogram_metric_data, get_query_data, get_marketcap_
 from html_reporter import generate_html_from_json
 from queries import special_queries
 from discord_bot import send_frontend_alert, send_metric_alert
-from slugs import slugs_sanity
+from slugs import slugs_sanity, legacy_asset_slugs
 from ignored_metrics import ignored_metrics
 import urllib.parse
 from json_processor import create_stable_json
@@ -62,8 +62,11 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
     n = len(slugs)
     error_output = None
     for slug in slugs:
-        (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
-        queries = exclude_metrics(queries, special_queries)
+        if slug in legacy_asset_slugs:
+            (timeseries_metrics, histogram_metrics, queries) = ("price_usd", [], [])
+        else:
+            (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
+            queries = exclude_metrics(queries, special_queries)
         logging.info("Testing slug: %s", slug)
         number_of_errors_metrics = 0
         number_of_errors_queries = 0
@@ -272,7 +275,7 @@ if __name__ == '__main__':
         # Optionally provide slugs arguments
         if(len(sys.argv) > 1):
             if sys.argv[1] == "--sanity":
-                slugs = slugs_sanity
+                slugs = slugs_sanity + legacy_asset_slugs
             else:
                 for i in range(1, len(sys.argv)):
                     slugs.append(sys.argv[i])
