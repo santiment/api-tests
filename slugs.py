@@ -27,3 +27,9 @@ slugs_sanity = [
 "maker",
 "status"
 ]
+
+legacy_asset_slugs = [
+    "gold",
+    "s-and-p-500",
+    "crude-oil"
+]
