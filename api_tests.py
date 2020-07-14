@@ -15,15 +15,12 @@ from api_helper import get_available_metrics_and_queries, get_timeseries_metric_
 from api_helper import get_histogram_metric_data, get_query_data, get_marketcap_batch, get_min_interval
 from html_reporter import generate_html_from_json
 from queries import special_queries
-from discord_bot import send_frontend_alert, send_metric_alert
+from discord_bot import send_metric_alert
 from slugs import slugs_sanity, legacy_asset_slugs
 from ignored_metrics import ignored_metrics
 import urllib.parse
 from json_processor import create_stable_json
-
-class APIError(Exception):
-    pass
-
+from exceptions import APIError
 
 def run(slugs, days_back, interval):
     (output, output_for_html, error_output) = test_token_metrics(
@@ -217,55 +214,6 @@ def save_output_to_file(output, filename='output'):
         os.mkdir('./output')
     with open(f'./output/{filename}.json', 'w+') as file:
         json.dump(output, file, indent=4)
-
-def test_frontend(last_days, interval):
-    try:
-        test_frontend_api(last_days, interval)
-    except (SanError, APIError, KeyError) as e:
-        message = str(e)
-        logging.error(message)
-        send_frontend_alert(message)
-    else:
-        logging.info('Success')
-        send_frontend_alert(None)
-
-def test_frontend_api(last_days, interval):
-    test_data = [
-        ("timelineEvents", interval, "events", ["id"]),
-        ("getTrendingWords", interval, "topWords", ["word", "score"]),
-        ("topSocialGainersLosers", None, "projects", ["change", "slug", "status"]),
-        ("featuredInsights", None, None, ["id"]),
-        ("featuredWatchlists", None, None, ["id"]),
-        ("featuredChartConfigurations", None, None, ["id"]),
-        #("getReports", None, None, ["description", "name", "url"])
-        #commented out until I figure out why it's failing
-    ]
-    message = ""
-    for data in test_data:
-        try:
-            test_frontend_query(data[0], back_test_period, data[1], data[2], data[3])
-        except (SanError, APIError, KeyError) as e:
-            message += str(e) + '\n'
-            logging.error(str(e))
-        else:
-            logging.info(f"{data[0]} check success")
-    if not message:
-        logging.info("Frontend check success!")
-    return message
-
-def test_frontend_query(query, back_test_period, interval, key, key_values):
-    data = get_query_data(query, None, dt.now() - back_test_period, dt.now(), interval)
-    if not data[1]:
-        raise APIError(f"{query} returns empty array")
-    else:
-        if key:
-            data = data[1][0][key]
-        else:
-            data = data[1]
-        for bit in data:
-            for key_value in key_values:
-                if not bit[key_value]:
-                    raise APIError(f"Empty result in {query}")
 
 def transform_data_for_checks(data):
     dates = sorted([dt.strptime(x['datetime'], DATETIME_PATTERN_METRIC) for x in data])

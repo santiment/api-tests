@@ -4,7 +4,8 @@ import logging
 import fire
 from slugs import slugs_sanity, legacy_asset_slugs
 from constants import DAYS_BACK_TEST, INTERVAL, API_KEY, TOP_PROJECTS_BY_MARKETCAP
-from api_tests import run, test_frontend, filter_projects_by_marketcap
+from api_tests import run, filter_projects_by_marketcap
+from frontend import run as run_frontend_test
 
 if API_KEY:
     san.ApiConfig.api_key = API_KEY
@@ -15,7 +16,7 @@ slugs = []
 
 def frontend():
     logging.info('Testing frontend...')
-    test_frontend(DAYS_BACK_TEST, INTERVAL)
+    run_frontend_test(DAYS_BACK_TEST, INTERVAL)
 
 def sanity():
     logging.info('Doing sanity check...')
