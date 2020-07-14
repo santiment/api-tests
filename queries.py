@@ -386,21 +386,90 @@ queries = {
     "featuredInsights": {
         "arguments": {},
         "fields": [
-            "id"
+            """
+       id
+    readyState
+    title
+    createdAt
+    publishedAt
+    updatedAt
+    tags {
+      name
+    }
+    votedAt
+    votes {
+      totalVotes
+    }
+    user {
+      id
+      username
+      avatarUrl
+    }
+    shortDesc
+    commentsCount
+    isPaywallRequired
+    isPulse
+    __typename
+    """
         ]
     },
      "featuredWatchlists": {
         "arguments": {},
         "fields": [
-            "id"
+            """
+            id
+    isPublic
+    name
+    function
+    insertedAt
+    isMonitored
+    updatedAt
+    user {
+      id
+    }
+       listItems {
+      project {
+        id
+        slug
+      }
+    }
+    """
         ]
     },
      "featuredChartConfigurations": {
         "arguments": {},
         "fields": [
-            "id"
+            """
+            id
+    isPublic
+    title
+    description
+    metrics
+    project {
+      id
+      slug
+      name
+      ticker
+    }
+    user {
+      id
+      avatarUrl
+      username
+    }
+    options
+    insertedAt
+    __typename
+    """
         ]
     },
+    "getReports": {
+        "arguments": {},
+        "fields": [
+            "description",
+            "name",
+            "url"
+        ]
+    }
 }
 
 special_queries = [
