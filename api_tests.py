@@ -6,10 +6,10 @@ import logging
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
-from constants import DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT
-from constants import INTERVAL, BATCH_SIZE, METRICS_WITH_LONGER_DELAY, METRICS_WITH_ALLOWED_NEGATIVES
-from constants import INTERVAL_TIMEDELTA, ERRORS_IN_ROW, HOURS_BACK_TEST_FRONTEND, INTERVAL_FRONTEND
+from constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
+from constants import DAYS_BACK_TEST, HISTOGRAM_METRICS_LIMIT
+from constants import BATCH_SIZE, METRICS_WITH_LONGER_DELAY, METRICS_WITH_ALLOWED_NEGATIVES
+from constants import INTERVAL_TIMEDELTA, ERRORS_IN_ROW
 from san.env_vars import SANBASE_GQL_HOST
 from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data
 from api_helper import get_histogram_metric_data, get_query_data, get_marketcap_batch, get_min_interval
@@ -23,6 +23,21 @@ from json_processor import create_stable_json
 
 class APIError(Exception):
     pass
+
+
+def run(slugs, days_back, interval):
+    (output, output_for_html, error_output) = test_token_metrics(
+        slugs,
+        ignored_metrics,
+        days_back,
+        interval
+    )
+
+    save_output_to_file(output)
+    create_stable_json(ERRORS_IN_ROW)
+    save_output_to_file(output_for_html, 'output_for_html')
+    generate_html_from_json('output_for_html', 'index')
+    send_metric_alert(error_output)
 
 def test():
     result = san.get(
@@ -203,7 +218,18 @@ def save_output_to_file(output, filename='output'):
     with open(f'./output/{filename}.json', 'w+') as file:
         json.dump(output, file, indent=4)
 
-def test_frontend_api(back_test_period, interval):
+def test_frontend(last_days, interval):
+    try:
+        test_frontend_api(last_days, interval)
+    except (SanError, APIError, KeyError) as e:
+        message = str(e)
+        logging.error(message)
+        send_frontend_alert(message)
+    else:
+        logging.info('Success')
+        send_frontend_alert(None)
+
+def test_frontend_api(last_days, interval):
     test_data = [
         ("timelineEvents", interval, "events", ["id"]),
         ("getTrendingWords", interval, "topWords", ["word", "score"]),
@@ -265,39 +291,3 @@ def data_has_gaps(metric, interval, dates):
     delta_result = max(delta, delta_metric)
     gaps = [dates[x] - dates[x-1] > delta_result for x in range(1, len(dates) - 1)]
     return True in gaps
-
-
-if __name__ == '__main__':
-    if API_KEY:
-        san.ApiConfig.api_key = API_KEY
-
-    slugs = []
-
-    # TODO set the logging level through a config file
-    logging.basicConfig(level=logging.INFO)
-
-    if len(sys.argv) == 2 and sys.argv[1] == "--frontend":
-        message = test_frontend_api(td(hours=HOURS_BACK_TEST_FRONTEND), INTERVAL_FRONTEND)
-        send_frontend_alert(message)
-    else:
-        # Optionally provide slugs arguments
-        if(len(sys.argv) > 1):
-            if sys.argv[1] == "--sanity":
-                logging.info('Doing sanity check...')
-                slugs = slugs_sanity + legacy_asset_slugs
-                logging.info(f'Slugs: {slugs}')
-            else:
-                for i in range(1, len(sys.argv)):
-                    slugs.append(sys.argv[i])
-                logging.info(f'Slugs: {slugs}')
-        else:
-            logging.info(f'Testing top {TOP_PROJECTS_BY_MARKETCAP} projects by marketcap...')
-            slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
-            logging.info(f'Slugs: {slugs}')
-
-        (output, output_for_html, error_output) = test_token_metrics(slugs, ignored_metrics, DAYS_BACK_TEST, INTERVAL)
-        save_output_to_file(output)
-        create_stable_json(ERRORS_IN_ROW)
-        save_output_to_file(output_for_html, 'output_for_html')
-        generate_html_from_json('output_for_html', 'index')
-        send_metric_alert(error_output)

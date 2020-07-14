@@ -33,23 +33,23 @@ https://api.santiment.net/graphql / https://api-stage.santiment.net/graphql
 If you want to run tests against `TOP_PROJECTS_BY_MARKETCAP` number of projects, run:
 
 ```
-python api_tests.py
+python cli.py top
 ```
 
 To test against specific projects:
 
 ```
-python api_tests.py <project_1_slug> <project_2_slug> ... <project_n_slug>
+python cli.py projects <project_1_slug> <project_2_slug> ... <project_n_slug>
 ```
 
 To check frontend-specific API calls, run:
 
 ```
-python api_tests.py --frontend
+python cli.py frontend
 ```
 
 To run the test for metrics against key projects, run:
 
 ```
-python api_tests.py --sanity
+python cli.py sanity
 ```
