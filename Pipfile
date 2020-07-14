@@ -10,6 +10,7 @@ sanpy = "==0.7.15"
 requests = "==2.22.0"
 "discord.py" = "==1.2.3"
 s3fs = "==0.4.2"
+fire = "==0.2.1"
 
 [requires]
 python_version = "3.8"
