@@ -36,15 +36,6 @@ def run(slugs, days_back, interval):
     generate_html_from_json('output_for_html', 'index')
     send_metric_alert(error_output)
 
-def test():
-    result = san.get(
-        f"burn_rate/bitcoin-cash",
-        from_date = dt.strftime(dt.today() - td(days=10), DT_FORMAT),
-        to_date = dt.strftime(dt.today(), DT_FORMAT),
-        interval = '12h'
-    )
-    print(result, '', sep='\n')
-
 def filter_projects_by_marketcap(number):
     projects = san.get('projects/all')
     slugs = projects['slug'].values
