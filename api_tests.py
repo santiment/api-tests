@@ -40,7 +40,7 @@ def filter_projects_by_marketcap(number):
     for i in range(len(slugs)//BATCH_SIZE):
         slugs_sub = slugs[BATCH_SIZE*i:BATCH_SIZE*(i+1)]
         caps += get_marketcap_batch(slugs_sub)
-        print(f"Batch {i} executed")
+        logging.info(f"Batch {i} executed")
     results = zip(slugs, caps)
     return [x[0] for x in sorted(results, key=lambda k: k[1], reverse=True)[:number]]
 
@@ -107,10 +107,10 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             if reason:
                 number_of_errors_metrics += 1
                 error = {
-                    'metric': metric, 
-                    'reason': reason, 
+                    'metric': metric,
+                    'reason': reason,
                     'gql_query': gql_query,
-                    'gql_query_url': generate_gql_url(gql_query) 
+                    'gql_query_url': generate_gql_url(gql_query)
                 }
                 if reason == 'corrupted':
                     error['details'] = details
@@ -139,10 +139,10 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             if reason:
                 number_of_errors_metrics += 1
                 error = {
-                    'metric': metric, 
-                    'reason': reason, 
+                    'metric': metric,
+                    'reason': reason,
                     'gql_query': gql_query,
-                    'gql_query_url': generate_gql_url(gql_query) 
+                    'gql_query_url': generate_gql_url(gql_query)
                 }
                 errors_histogram_metrics.append(error)
                 piece_for_html = {'name': metric, 'status': reason}
@@ -169,10 +169,10 @@ def test_token_metrics(slugs, ignored_metrics, last_days, interval):
             if reason:
                 number_of_errors_queries += 1
                 error = {
-                    'query': query, 
-                    'reason': reason, 
-                    'gql_query': gql_query, 
-                    'gql_query_url': generate_gql_url(gql_query) 
+                    'query': query,
+                    'reason': reason,
+                    'gql_query': gql_query,
+                    'gql_query_url': generate_gql_url(gql_query)
                 }
                 errors_queries.append(error)
                 piece_for_html = {'name': query, 'status': reason}
@@ -225,7 +225,7 @@ def test_frontend_api(back_test_period, interval):
             logging.info(f"{data[0]} check success")
     if not message:
         logging.info("Frontend check success!")
-    return message   
+    return message
 
 def test_frontend_query(query, back_test_period, interval, key, key_values):
     data = get_query_data(query, None, dt.now() - back_test_period, dt.now(), interval)
@@ -270,9 +270,12 @@ def data_has_gaps(metric, interval, dates):
 if __name__ == '__main__':
     if API_KEY:
         san.ApiConfig.api_key = API_KEY
+
     slugs = []
+
     # TODO set the logging level through a config file
     logging.basicConfig(level=logging.INFO)
+
     if len(sys.argv) == 2 and sys.argv[1] == "--frontend":
         message = test_frontend_api(td(hours=HOURS_BACK_TEST_FRONTEND), INTERVAL_FRONTEND)
         send_frontend_alert(message)
@@ -280,12 +283,18 @@ if __name__ == '__main__':
         # Optionally provide slugs arguments
         if(len(sys.argv) > 1):
             if sys.argv[1] == "--sanity":
+                logging.info('Doing sanity check...')
                 slugs = slugs_sanity + legacy_asset_slugs
+                logging.info(f'Slugs: {slugs}')
             else:
                 for i in range(1, len(sys.argv)):
                     slugs.append(sys.argv[i])
+                logging.info(f'Slugs: {slugs}')
         else:
+            logging.info(f'Testing top {TOP_PROJECTS_BY_MARKETCAP} projects by marketcap...')
             slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
+            logging.info(f'Slugs: {slugs}')
+
         (output, output_for_html, error_output) = test_token_metrics(slugs, ignored_metrics, DAYS_BACK_TEST, INTERVAL)
         save_output_to_file(output)
         create_stable_json(ERRORS_IN_ROW)
