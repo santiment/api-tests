@@ -1,0 +1,14 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+sanpy = "==0.7.15"
+requests = "==2.22.0"
+"discord.py" = "==1.2.3"
+
+[requires]
+python_version = "3.8"
