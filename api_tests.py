@@ -9,7 +9,7 @@ from datetime import timedelta as td
 from constants import API_KEY, DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
 from constants import DAYS_BACK_TEST, TOP_PROJECTS_BY_MARKETCAP, HISTOGRAM_METRICS_LIMIT
 from constants import INTERVAL, BATCH_SIZE, METRICS_WITH_LONGER_DELAY, METRICS_WITH_ALLOWED_NEGATIVES
-from constants import INTERVAL_TIMEDELTA, ERRORS_IN_ROW
+from constants import INTERVAL_TIMEDELTA, ERRORS_IN_ROW, HOURS_BACK_TEST_FRONTEND, INTERVAL_FRONTEND
 from san.env_vars import SANBASE_GQL_HOST
 from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data
 from api_helper import get_histogram_metric_data, get_query_data, get_marketcap_batch, get_min_interval
@@ -203,7 +203,7 @@ def save_output_to_file(output, filename='output'):
     with open(f'./output/{filename}.json', 'w+') as file:
         json.dump(output, file, indent=4)
 
-def test_frontend_api(last_days, interval):
+def test_frontend_api(back_test_period, interval):
     test_data = [
         ("timelineEvents", interval, "events", ["id"]),
         ("getTrendingWords", interval, "topWords", ["word", "score"]),
@@ -214,11 +214,21 @@ def test_frontend_api(last_days, interval):
         #("getReports", None, None, ["description", "name", "url"])
         #commented out until I figure out why it's failing
     ]
+    message = ""
     for data in test_data:
-        test_frontend_query(data[0], last_days, data[1], data[2], data[3])
+        try:
+            test_frontend_query(data[0], back_test_period, data[1], data[2], data[3])
+        except (SanError, APIError, KeyError) as e:
+            message += str(e) + '\n'
+            logging.error(str(e))
+        else:
+            logging.info(f"{data[0]} check success")
+    if not message:
+        logging.info("Frontend check success!")
+    return message   
 
-def test_frontend_query(query, last_days, interval, key, key_values):
-    data = get_query_data(query, None, dt.now() - td(days=last_days), dt.now(), interval)
+def test_frontend_query(query, back_test_period, interval, key, key_values):
+    data = get_query_data(query, None, dt.now() - back_test_period, dt.now(), interval)
     if not data[1]:
         raise APIError(f"{query} returns empty array")
     else:
@@ -264,15 +274,8 @@ if __name__ == '__main__':
     # TODO set the logging level through a config file
     logging.basicConfig(level=logging.INFO)
     if len(sys.argv) == 2 and sys.argv[1] == "--frontend":
-        try:
-            test_frontend_api(DAYS_BACK_TEST, INTERVAL)
-        except (SanError, APIError, KeyError) as e:
-            message = str(e)
-            logging.error(message)
-            send_frontend_alert(message)
-        else:
-            logging.info('Success')
-            send_frontend_alert(None)
+        message = test_frontend_api(td(hours=HOURS_BACK_TEST_FRONTEND), INTERVAL_FRONTEND)
+        send_frontend_alert(message)
     else:
         # Optionally provide slugs arguments
         if(len(sys.argv) > 1):
