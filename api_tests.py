@@ -10,22 +10,19 @@ from constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
 from constants import DAYS_BACK_TEST, HISTOGRAM_METRICS_LIMIT
 from constants import BATCH_SIZE, METRICS_WITH_LONGER_DELAY, METRICS_WITH_ALLOWED_NEGATIVES
 from constants import INTERVAL_TIMEDELTA, ERRORS_IN_ROW
-from san.env_vars import SANBASE_GQL_HOST
 from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data
 from api_helper import get_histogram_metric_data, get_query_data, get_marketcap_batch, get_min_interval
 from html_reporter import generate_html_from_json
 from queries import special_queries
 from discord_bot import send_metric_alert
 from slugs import slugs_sanity, legacy_asset_slugs
-from ignored_metrics import ignored_metrics
-import urllib.parse
 from json_processor import create_stable_json
 from exceptions import APIError
+from metric_report import MetricReport
 
 def run(slugs, days_back, interval):
     (output, output_for_html, error_output) = test_token_metrics(
         slugs,
-        ignored_metrics,
         days_back,
         interval
     )
@@ -54,11 +51,6 @@ def exclude_metrics(metrics, metrics_to_exclude):
             result.remove(metric)
     return result
 
-def generate_gql_url(query):
-    first_part = SANBASE_GQL_HOST.replace('graphql', 'graphiql?query=')
-    second_part = urllib.parse.quote(query)
-    return first_part + second_part
-
 def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_progress_string):
     number_of_errors_metrics = 0
     errors_timeseries_metrics = []
@@ -69,27 +61,27 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
     for metric in timeseries_metrics:
         metric_progress_string = build_progress_string('timeseries metric',  metric, timeseries_metrics)
         logging.info(f"{slug_progress_string}{metric_progress_string} Testing metric: {metric}")
-        reason = None
 
         from_dt = dt.now() - td(days=last_days)
         to_dt = dt.now()
 
         try:
             (gql_query, result) = get_timeseries_metric_data(metric, slug, from_dt , to_dt, interval)
+            metric_report = MetricReport(metric=metric, slug=slug, query=gql_query)
         except SanError as e:
             logging.info(str(e))
-            reason = 'GraphQL error'
+            metric_report.set_graphql_error()
             error_output = "graphql error"
         else:
             if not result:
-                reason = 'empty'
+                metric_report.set_empty()
             elif slug not in legacy_asset_slugs:
                 (dates, values) = transform_data_for_checks(result)
                 (is_delayed, delayed_since) = is_metric_delayed(metric, dates)
                 (is_incorrect, reason_incorrect) = is_data_incorrect(metric, values)
                 has_gaps = data_has_gaps(metric, interval, dates)
                 if True in [is_delayed, is_incorrect, has_gaps]:
-                    reason = 'corrupted'
+                    metric_report.set_corrupted()
                 details = []
                 if is_delayed:
                     details.append(f'delayed: {dt.strftime(delayed_since, DATETIME_PATTERN_METRIC)}')
@@ -99,23 +91,17 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
                     details.append('data has gaps')
             if not error_output:
                 error_output = "corrupted data"
-        if reason:
+
+        if metric_report.is_corrupted():
+            metric_report.set_error_details(details)
+
+        json_summary = metric_report.summary_to_json('ignored_timeseries_metrics')
+
+        if metric_report.has_errors():
+            errors_timeseries_metrics.append(metric_report.error_to_json())
             number_of_errors_metrics += 1
-            error = {
-                'metric': metric,
-                'reason': reason,
-                'gql_query': gql_query,
-                'gql_query_url': generate_gql_url(gql_query)
-            }
-            if reason == 'corrupted':
-                error['details'] = details
-            errors_timeseries_metrics.append(error)
-            piece_for_html = {'name': metric, 'status': reason}
-        else:
-            piece_for_html = {'name': metric, 'status': 'passed'}
-        if ignored_metrics and slug in ignored_metrics and metric in ignored_metrics[slug]['ignored_timeseries_metrics']:
-            piece_for_html = {'name': metric, 'status': 'ignored'}
-        data_for_html.append(piece_for_html)
+
+        data_for_html.append(json_summary)
 
     return number_of_errors_metrics, errors_timeseries_metrics, data_for_html, error_output
 
@@ -130,8 +116,6 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_pr
         metric_progress_string = build_progress_string('histogram metric', metric, histogram_metrics)
         logging.info(f"{slug_progress_string}{metric_progress_string} Testing metric: {metric}")
 
-        reason = None
-
         from_dt = dt.now() - td(days=last_days)
         to_dt = dt.now()
 
@@ -144,30 +128,24 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_pr
                 interval,
                 HISTOGRAM_METRICS_LIMIT
             )
+
+            metric_report = MetricReport(metric=metric, slug=slug, query=gql_query)
         except SanError as e:
             logging.info(str(e))
-            reason = 'GraphQL error'
+            metric_report.set_graphql_error()
             error_output = "graphql error"
         else:
             if not result or not result['values'] or not result['values']['data']:
-                reason = 'empty'
+                metric_report.set_empty()
             if not error_output:
                 error_output = "corrupted data"
-        if reason:
+
+        if metric_report.has_errors():
+            errors_histogram_metrics.append(metric_report.error_to_json())
             number_of_errors_metrics += 1
-            error = {
-                'metric': metric,
-                'reason': reason,
-                'gql_query': gql_query,
-                'gql_query_url': generate_gql_url(gql_query)
-            }
-            errors_histogram_metrics.append(error)
-            piece_for_html = {'name': metric, 'status': reason}
-        else:
-            piece_for_html = {'name': metric, 'status': 'passed'}
-        if ignored_metrics and slug in ignored_metrics and metric in ignored_metrics[slug]['ignored_histogram_metrics']:
-            piece_for_html = {'name': metric, 'status': 'ignored'}
-        data_for_html.append(piece_for_html)
+
+        json_summary = metric_report.summary_to_json('ignored_histogram_metrics')
+        data_for_html.append(json_summary)
 
     return number_of_errors_metrics, errors_histogram_metrics, data_for_html, error_output
 
@@ -181,41 +159,32 @@ def test_queries(slug, queries, last_days, interval, slug_progress_string):
         query_progress_string = build_progress_string('query', query, queries)
         logging.info(f"{slug_progress_string}{query_progress_string} Testing query: {query}")
 
-        reason = None
         from_dt = dt.now() - td(days=last_days)
         to_dt = dt.now()
 
         try:
             (gql_query, result) = get_query_data(query, slug, from_dt, to_dt, interval)
+            metric_report = MetricReport(metric=query, slug=slug, query=gql_query)
         except SanError as e:
             logging.info(str(e))
-            reason = 'GraphQL error'
+            metric_report.set_graphql_error()
             error_output = "graphql error"
         else:
             if not result:
-                reason = 'empty'
+                metric_report.set_empty()
             if not error_output:
                 error_output = "corrupted data"
-        if reason:
-            number_of_errors_queries += 1
-            error = {
-                'query': query,
-                'reason': reason,
-                'gql_query': gql_query,
-                'gql_query_url': generate_gql_url(gql_query)
-            }
-            errors_queries.append(error)
-            piece_for_html = {'name': query, 'status': reason}
-        else:
-            piece_for_html = {'name': query, 'status': 'passed'}
-        if ignored_metrics and slug in ignored_metrics and query in ignored_metrics[slug]['ignored_queries']:
-            piece_for_html = {'name': query, 'status': 'ignored'}
 
-        data_for_html.append(piece_for_html)
+        if metric_report.has_errors():
+            errors_queries.append(metric_report.error_to_json())
+            number_of_errors_queries += 1
+
+        json_summary = metric_report.summary_to_json('ignored_queries')
+        data_for_html.append(json_summary)
 
     return number_of_errors_queries, errors_queries, data_for_html, error_output
 
-def test_token_metrics(slugs, ignored_metrics, last_days, interval):
+def test_token_metrics(slugs, last_days, interval):
     output = {}
     output_for_html = []
     error_output = None
