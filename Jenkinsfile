@@ -66,6 +66,7 @@ podTemplate(label: 'api-tests', containers: [
               title: 'Click here for details',
               webhookURL: DISCORD_WEBHOOK
             )
+            currentBuild.result = 'FAILURE'
           }
           else {
             publishHTML (
