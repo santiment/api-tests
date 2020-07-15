@@ -59,146 +59,233 @@ def generate_gql_url(query):
     second_part = urllib.parse.quote(query)
     return first_part + second_part
 
+def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_progress_string):
+    number_of_errors_metrics = 0
+    errors_timeseries_metrics = []
+    data_for_html = []
+
+    error_output = None
+
+    for metric in timeseries_metrics:
+        metric_progress_string = build_progress_string('timeseries metric',  metric, timeseries_metrics)
+        logging.info(f"{slug_progress_string}{metric_progress_string} Testing metric: {metric}")
+        reason = None
+
+        from_dt = dt.now() - td(days=last_days)
+        to_dt = dt.now()
+
+        try:
+            (gql_query, result) = get_timeseries_metric_data(metric, slug, from_dt , to_dt, interval)
+        except SanError as e:
+            logging.info(str(e))
+            reason = 'GraphQL error'
+            error_output = "graphql error"
+        else:
+            if not result:
+                reason = 'empty'
+            elif slug not in legacy_asset_slugs:
+                (dates, values) = transform_data_for_checks(result)
+                (is_delayed, delayed_since) = is_metric_delayed(metric, dates)
+                (is_incorrect, reason_incorrect) = is_data_incorrect(metric, values)
+                has_gaps = data_has_gaps(metric, interval, dates)
+                if True in [is_delayed, is_incorrect, has_gaps]:
+                    reason = 'corrupted'
+                details = []
+                if is_delayed:
+                    details.append(f'delayed: {dt.strftime(delayed_since, DATETIME_PATTERN_METRIC)}')
+                if is_incorrect:
+                    details.append(f'data has {reason_incorrect} values which is not allowed')
+                if has_gaps:
+                    details.append('data has gaps')
+            if not error_output:
+                error_output = "corrupted data"
+        if reason:
+            number_of_errors_metrics += 1
+            error = {
+                'metric': metric,
+                'reason': reason,
+                'gql_query': gql_query,
+                'gql_query_url': generate_gql_url(gql_query)
+            }
+            if reason == 'corrupted':
+                error['details'] = details
+            errors_timeseries_metrics.append(error)
+            piece_for_html = {'name': metric, 'status': reason}
+        else:
+            piece_for_html = {'name': metric, 'status': 'passed'}
+        if ignored_metrics and slug in ignored_metrics and metric in ignored_metrics[slug]['ignored_timeseries_metrics']:
+            piece_for_html = {'name': metric, 'status': 'ignored'}
+        data_for_html.append(piece_for_html)
+
+    return number_of_errors_metrics, errors_timeseries_metrics, data_for_html, error_output
+
+def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_progress_string):
+    number_of_errors_metrics = 0
+    errors_histogram_metrics = []
+    data_for_html = []
+
+    error_output = None
+
+    for metric in histogram_metrics:
+        metric_progress_string = build_progress_string('histogram metric', metric, histogram_metrics)
+        logging.info(f"{slug_progress_string}{metric_progress_string} Testing metric: {metric}")
+
+        reason = None
+
+        from_dt = dt.now() - td(days=last_days)
+        to_dt = dt.now()
+
+        try:
+            (gql_query, result) = get_histogram_metric_data(
+                metric,
+                slug,
+                from_dt,
+                to_dt,
+                interval,
+                HISTOGRAM_METRICS_LIMIT
+            )
+        except SanError as e:
+            logging.info(str(e))
+            reason = 'GraphQL error'
+            error_output = "graphql error"
+        else:
+            if not result or not result['values'] or not result['values']['data']:
+                reason = 'empty'
+            if not error_output:
+                error_output = "corrupted data"
+        if reason:
+            number_of_errors_metrics += 1
+            error = {
+                'metric': metric,
+                'reason': reason,
+                'gql_query': gql_query,
+                'gql_query_url': generate_gql_url(gql_query)
+            }
+            errors_histogram_metrics.append(error)
+            piece_for_html = {'name': metric, 'status': reason}
+        else:
+            piece_for_html = {'name': metric, 'status': 'passed'}
+        if ignored_metrics and slug in ignored_metrics and metric in ignored_metrics[slug]['ignored_histogram_metrics']:
+            piece_for_html = {'name': metric, 'status': 'ignored'}
+        data_for_html.append(piece_for_html)
+
+    return number_of_errors_metrics, errors_histogram_metrics, data_for_html, error_output
+
+def test_queries(slug, queries, last_days, interval, slug_progress_string):
+    number_of_errors_queries = 0
+    errors_queries = []
+    data_for_html = []
+    error_output = None
+
+    for query in queries:
+        query_progress_string = build_progress_string('query', query, queries)
+        logging.info(f"{slug_progress_string}{query_progress_string} Testing query: {query}")
+
+        reason = None
+        from_dt = dt.now() - td(days=last_days)
+        to_dt = dt.now()
+
+        try:
+            (gql_query, result) = get_query_data(query, slug, from_dt, to_dt, interval)
+        except SanError as e:
+            logging.info(str(e))
+            reason = 'GraphQL error'
+            error_output = "graphql error"
+        else:
+            if not result:
+                reason = 'empty'
+            if not error_output:
+                error_output = "corrupted data"
+        if reason:
+            number_of_errors_queries += 1
+            error = {
+                'query': query,
+                'reason': reason,
+                'gql_query': gql_query,
+                'gql_query_url': generate_gql_url(gql_query)
+            }
+            errors_queries.append(error)
+            piece_for_html = {'name': query, 'status': reason}
+        else:
+            piece_for_html = {'name': query, 'status': 'passed'}
+        if ignored_metrics and slug in ignored_metrics and query in ignored_metrics[slug]['ignored_queries']:
+            piece_for_html = {'name': query, 'status': 'ignored'}
+
+        data_for_html.append(piece_for_html)
+
+    return number_of_errors_queries, errors_queries, data_for_html, error_output
+
 def test_token_metrics(slugs, ignored_metrics, last_days, interval):
     output = {}
     output_for_html = []
-    n = len(slugs)
     error_output = None
+
     for slug in slugs:
         if slug in legacy_asset_slugs:
             (timeseries_metrics, histogram_metrics, queries) = (["price_usd"], [], [])
         else:
             (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
             queries = exclude_metrics(queries, special_queries)
+
         logging.info("Testing slug: %s", slug)
+
         number_of_errors_metrics = 0
-        number_of_errors_queries = 0
-        i = slugs.index(slug)
-        errors_timeseries_metrics = []
-        errors_histogram_metrics = []
-        errors_queries = []
         data_for_html = []
 
-        for metric in timeseries_metrics:
-            logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
-            reason = None
-            try:
-                (gql_query, result) = get_timeseries_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval)
-            except SanError as e:
-                logging.info(str(e))
-                reason = 'GraphQL error'
-                error_output = "graphql error"
-            else:
-                if not result:
-                    reason = 'empty'
-                elif slug not in legacy_asset_slugs:
-                    (dates, values) = transform_data_for_checks(result)
-                    (is_delayed, delayed_since) = is_metric_delayed(metric, dates)
-                    (is_incorrect, reason_incorrect) = is_data_incorrect(metric, values)
-                    has_gaps = data_has_gaps(metric, interval, dates)
-                    if True in [is_delayed, is_incorrect, has_gaps]:
-                        reason = 'corrupted'
-                    details = []
-                    if is_delayed:
-                        details.append(f'delayed: {dt.strftime(delayed_since, DATETIME_PATTERN_METRIC)}')
-                    if is_incorrect:
-                        details.append(f'data has {reason_incorrect} values which is not allowed')
-                    if has_gaps:
-                        details.append('data has gaps')
-                if not error_output:
-                    error_output = "corrupted data"
-            if reason:
-                number_of_errors_metrics += 1
-                error = {
-                    'metric': metric,
-                    'reason': reason,
-                    'gql_query': gql_query,
-                    'gql_query_url': generate_gql_url(gql_query)
-                }
-                if reason == 'corrupted':
-                    error['details'] = details
-                errors_timeseries_metrics.append(error)
-                piece_for_html = {'name': metric, 'status': reason}
-            else:
-                piece_for_html = {'name': metric, 'status': 'passed'}
-            if ignored_metrics and slug in ignored_metrics and metric in ignored_metrics[slug]['ignored_timeseries_metrics']:
-                piece_for_html = {'name': metric, 'status': 'ignored'}
-            data_for_html.append(piece_for_html)
+        slug_progress_string = build_progress_string('slug', slug, slugs)
 
-        for metric in histogram_metrics:
-            logging.info(f"[Slug {i + 1}/{n}] Testing metric: {metric}")
-            reason = None
-            try:
-                (gql_query, result) = get_histogram_metric_data(metric, slug, dt.now() - td(days=last_days), dt.now(), interval, HISTOGRAM_METRICS_LIMIT)
-            except SanError as e:
-                logging.info(str(e))
-                reason = 'GraphQL error'
-                error_output = "graphql error"
-            else:
-                if not result or not result['values'] or not result['values']['data']:
-                    reason = 'empty'
-                if not error_output:
-                    error_output = "corrupted data"
-            if reason:
-                number_of_errors_metrics += 1
-                error = {
-                    'metric': metric,
-                    'reason': reason,
-                    'gql_query': gql_query,
-                    'gql_query_url': generate_gql_url(gql_query)
-                }
-                errors_histogram_metrics.append(error)
-                piece_for_html = {'name': metric, 'status': reason}
-            else:
-                piece_for_html = {'name': metric, 'status': 'passed'}
-            if ignored_metrics and slug in ignored_metrics and metric in ignored_metrics[slug]['ignored_histogram_metrics']:
-                piece_for_html = {'name': metric, 'status': 'ignored'}
-            data_for_html.append(piece_for_html)
+        (
+            number_of_timeseries_metrics_errors,
+            errors_timeseries_metrics,
+            timeseries_metrics_data_for_html,
+            timeseries_metrics_error_output
+        ) = test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_progress_string)
 
-        for query in queries:
-            logging.info(f"[Slug {i + 1}/{n}] Testing query: {query}")
-            reason = None
-            try:
-                (gql_query, result) = get_query_data(query, slug, dt.now() - td(days=last_days), dt.now(), interval)
-            except SanError as e:
-                logging.info(str(e))
-                reason = 'GraphQL error'
-                error_output = "graphql error"
-            else:
-                if not result:
-                    reason = 'empty'
-                if not error_output:
-                    error_output = "corrupted data"
-            if reason:
-                number_of_errors_queries += 1
-                error = {
-                    'query': query,
-                    'reason': reason,
-                    'gql_query': gql_query,
-                    'gql_query_url': generate_gql_url(gql_query)
-                }
-                errors_queries.append(error)
-                piece_for_html = {'name': query, 'status': reason}
-            else:
-                piece_for_html = {'name': query, 'status': 'passed'}
-            if ignored_metrics and slug in ignored_metrics and query in ignored_metrics[slug]['ignored_queries']:
-                piece_for_html = {'name': query, 'status': 'ignored'}
-            data_for_html.append(piece_for_html)
+        number_of_errors_metrics += number_of_timeseries_metrics_errors
+        data_for_html += timeseries_metrics_data_for_html
+        error_output = timeseries_metrics_error_output
+
+        (
+            number_of_histogram_metrics_errors,
+            errors_histogram_metrics,
+            histogram_metrics_data_for_html,
+            histogram_metrics_error_output
+        ) = test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_progress_string)
+
+        number_of_errors_metrics += number_of_histogram_metrics_errors
+        data_for_html += histogram_metrics_data_for_html
+        error_output = histogram_metrics_error_output
+
+        (
+            number_of_errors_queries,
+            errors_queries,
+            queries_data_for_html,
+            queries_error_output
+        ) = test_queries(slug, queries, last_days, interval, slug_progress_string)
+
+        data_for_html += queries_data_for_html
+        error_output = queries_error_output
+
         output[slug] = {
-        'number_of_errors_metrics': number_of_errors_metrics,
-        'number_of_timeseries_metrics': len(timeseries_metrics),
-        'errors_timeseries_metrics': errors_timeseries_metrics,
-        'number_of_histogram_metrics': len(histogram_metrics),
-        'errors_histogram_metrics': errors_histogram_metrics,
-        'number_of_errors_queries': number_of_errors_queries,
-        'number_of_queries': len(queries),
-        'errors_queries': errors_queries
+            'number_of_errors_metrics': number_of_errors_metrics,
+            'number_of_timeseries_metrics': len(timeseries_metrics),
+            'errors_timeseries_metrics': errors_timeseries_metrics,
+            'number_of_histogram_metrics': len(histogram_metrics),
+            'errors_histogram_metrics': errors_histogram_metrics,
+            'number_of_errors_queries': number_of_errors_queries,
+            'number_of_queries': len(queries),
+            'errors_queries': errors_queries
         }
+
         output_for_html.append({
-        'slug': slug,
-        'data': data_for_html
+            'slug': slug,
+            'data': data_for_html
         })
+
     return output, output_for_html, error_output
+
+def build_progress_string(name, current, total):
+    return f"[{name} {total.index(current) + 1}/{len(total)}]"
 
 def save_output_to_file(output, filename='output'):
     if not os.path.isdir('./output'):
