@@ -17,7 +17,7 @@ def run(last_days, interval):
         logging.info('Success')
         send_frontend_alert(None)
 
-def test_frontend_api(last_days, interval):
+def test_frontend_api(back_test_period, interval):
     test_data = [
         ("timelineEvents", interval, "events", ["id"]),
         ("getTrendingWords", interval, "topWords", ["word", "score"]),
@@ -28,11 +28,22 @@ def test_frontend_api(last_days, interval):
         #("getReports", None, None, ["description", "name", "url"])
         #commented out until I figure out why it's failing
     ]
+    message = ""
     for data in test_data:
-        test_frontend_query(data[0], last_days, data[1], data[2], data[3])
+        try:
+            test_frontend_query(data[0], back_test_period, data[1], data[2], data[3])
+        except (SanError, APIError, KeyError) as e:
+            message += str(e) + '\n'
+            logging.error(str(e))
+        else:
+            logging.info(f"{data[0]} check success")
+    if not message:
+        logging.info("Frontend check success!")
+    return message
 
-def test_frontend_query(query, last_days, interval, key, key_values):
-    data = get_query_data(query, None, dt.now() - td(days=last_days), dt.now(), interval)
+
+def test_frontend_query(query, back_test_period, interval, key, key_values):
+    data = get_query_data(query, None, dt.now() - back_test_period, dt.now(), interval)
     if not data[1]:
         raise APIError(f"{query} returns empty array")
     else:

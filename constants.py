@@ -17,7 +17,7 @@ NUMBER_OF_RETRIES = os.getenv('NUMBER_OF_RETRIES', 5)
 CALL_DELAY = float(os.getenv('CALL_DELAY', 0.09))
 ERRORS_IN_ROW = int(os.getenv('ERRORS_IN_ROW', 5))
 METRICS_WITH_LONGER_DELAY = [
-    "network_growth", 
+    "network_growth",
     "amount_in_top_holders",
     "amount_in_exchange_top_holders",
     "amount_in_non_exchange_top_holders",
