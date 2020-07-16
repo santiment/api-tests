@@ -28,11 +28,9 @@ class MetricReport:
 
     def error_output(self):
         if self.status == 'GraphQL error':
-            message = 'graphql error'
+            return 'graphql error'
         elif self.status == 'empty' or self.status == 'corrupted':
-            message = 'corrupted data'
-
-        return message
+            return 'corrupted data'
 
     def set_error_details(self, details):
         self.error['details'] = details
@@ -57,9 +55,7 @@ class MetricReport:
         else:
             json_summary = {'name': self.metric, 'status': 'passed'}
 
-        ignored_metrics_list = ignored_metrics[self.slug][ignored_metrics_key]
-
-        if ignored_metrics and self.slug in ignored_metrics and self.metric in ignored_metrics_list:
+        if ignored_metrics and self.slug in ignored_metrics and self.metric in ignored_metrics[self.slug][ignored_metrics_key]:
             json_summary = {'name': self.metric, 'status': 'ignored'}
 
         return json_summary
