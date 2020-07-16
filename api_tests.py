@@ -48,10 +48,10 @@ def exclude_metrics(metrics, metrics_to_exclude):
             result.remove(metric)
     return result
 
-def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_progress_string, slug_report):
+def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_report):
     for metric in timeseries_metrics:
         metric_progress_string = build_progress_string('timeseries metric',  metric, timeseries_metrics)
-        logging.info(f"{slug_progress_string}{metric_progress_string} Testing metric: {metric}")
+        logging.info(f"{slug_report.progress}{metric_progress_string} Testing metric: {metric}")
 
         from_dt = dt.now() - td(days=last_days)
         to_dt = dt.now()
@@ -93,10 +93,10 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
         slug_report.metric_states.append(json_summary)
         slug_report.error_output = metric_report.error_output()
 
-def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_progress_string, slug_report):
+def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_report):
     for metric in histogram_metrics:
         metric_progress_string = build_progress_string('histogram metric', metric, histogram_metrics)
-        logging.info(f"{slug_progress_string}{metric_progress_string} Testing metric: {metric}")
+        logging.info(f"{slug_report.progress}{metric_progress_string} Testing metric: {metric}")
 
         from_dt = dt.now() - td(days=last_days)
         to_dt = dt.now()
@@ -127,10 +127,10 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_pr
         slug_report.metric_states.append(json_summary)
         slug_report.error_output = metric_report.error_output()
 
-def test_queries(slug, queries, last_days, interval, slug_progress_string, slug_report):
+def test_queries(slug, queries, last_days, interval, slug_report):
     for query in queries:
         query_progress_string = build_progress_string('query', query, queries)
-        logging.info(f"{slug_progress_string}{query_progress_string} Testing query: {query}")
+        logging.info(f"{slug_report.progress}{query_progress_string} Testing query: {query}")
 
         from_dt = dt.now() - td(days=last_days)
         to_dt = dt.now()
@@ -158,27 +158,26 @@ def test_token_metrics(slugs, last_days, interval):
     output_for_html = []
 
     for slug in slugs:
+        logging.info("Testing slug: %s", slug)
+
         if slug in legacy_asset_slugs:
             (timeseries_metrics, histogram_metrics, queries) = (["price_usd"], [], [])
         else:
             (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
             queries = exclude_metrics(queries, special_queries)
 
-        logging.info("Testing slug: %s", slug)
+        slug_progress_string = build_progress_string('slug', slug, slugs)
 
-        slug_report = SlugReport(slug)
+        slug_report = SlugReport(slug, slug_progress_string)
         slug_report.number_of_timeseries_metrics = len(timeseries_metrics)
         slug_report.number_of_histogram_metrics = len(histogram_metrics)
         slug_report.number_of_queries = len(queries)
-
-        slug_progress_string = build_progress_string('slug', slug, slugs)
 
         test_timeseries_metrics(
             slug,
             timeseries_metrics,
             last_days,
             interval,
-            slug_progress_string,
             slug_report
         )
 
@@ -187,7 +186,6 @@ def test_token_metrics(slugs, last_days, interval):
             histogram_metrics,
             last_days,
             interval,
-            slug_progress_string,
             slug_report
         )
 
@@ -196,7 +194,6 @@ def test_token_metrics(slugs, last_days, interval):
             queries,
             last_days,
             interval,
-            slug_progress_string,
             slug_report
         )
 

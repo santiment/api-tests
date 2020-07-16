@@ -1,6 +1,7 @@
 class SlugReport:
-    def __init__(self, slug):
+    def __init__(self, slug, progress):
         self.slug = slug
+        self.progress = progress
         self.number_of_errors_metrics = 0
         self.number_of_timeseries_metrics = 0
         self.errors_timeseries_metrics = []
