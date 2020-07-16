@@ -23,7 +23,7 @@ from constants import DATETIME_PATTERN_METRIC, \
                       ERRORS_IN_ROW
 
 def run(slugs, days_back, interval):
-    (output, output_for_html, error_output) = test_token_metrics(slugs, days_back, interval)
+    (output, output_for_html, error_output) = test_all(slugs, days_back, interval)
 
     save_output_to_file(output)
     create_stable_json(ERRORS_IN_ROW)
@@ -31,28 +31,59 @@ def run(slugs, days_back, interval):
     generate_html_from_json('output_for_html', 'index')
     send_metric_alert(error_output)
 
-def filter_projects_by_marketcap(number):
-    projects = san.get('projects/all')
-    slugs = projects['slug'].values
-    caps = []
-    for i in range(len(slugs)//BATCH_SIZE):
-        slugs_sub = slugs[BATCH_SIZE*i:BATCH_SIZE*(i+1)]
-        caps += get_marketcap_batch(slugs_sub)
-        logging.info("Batch %s executed", i)
-    results = zip(slugs, caps)
-    return [x[0] for x in sorted(results, key=lambda k: k[1], reverse=True)[:number]]
+def test_all(slugs, last_days, interval):
+    output = {}
+    output_for_html = []
 
-def exclude_metrics(metrics, metrics_to_exclude):
-    result = list(metrics)
-    for metric in metrics_to_exclude:
-        if metric in result:
-            result.remove(metric)
-    return result
+    for slug in slugs:
+        logging.info("Testing slug: %s", slug)
+
+        if slug in legacy_asset_slugs:
+            (timeseries_metrics, histogram_metrics, queries) = (["price_usd"], [], [])
+        else:
+            (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
+            queries = exclude_metrics(queries, special_queries)
+
+        slug_progress_string = build_progress_string('slug', slug, slugs)
+
+        slug_report = SlugReport(slug, slug_progress_string)
+        slug_report.number_of_timeseries_metrics = len(timeseries_metrics)
+        slug_report.number_of_histogram_metrics = len(histogram_metrics)
+        slug_report.number_of_queries = len(queries)
+
+        test_timeseries_metrics(
+            slug,
+            timeseries_metrics,
+            last_days,
+            interval,
+            slug_report
+        )
+
+        test_histogram_metrics(
+            slug,
+            histogram_metrics,
+            last_days,
+            interval,
+            slug_report
+        )
+
+        test_queries(
+            slug,
+            queries,
+            last_days,
+            interval,
+            slug_report
+        )
+
+        output[slug] = slug_report.to_json()
+        output_for_html.append({'slug': slug, 'data': slug_report.metric_states})
+
+    return output, output_for_html, slug_report.error_output
 
 def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_report):
     for metric in timeseries_metrics:
         metric_progress_string = build_progress_string('timeseries metric', metric, timeseries_metrics)
-        logging.info("%s%s Testing metric: %s", slug_report.progess, metric_progress_string, metric)
+        logging.info("%s%s Testing metric: %s", slug_report.progress, metric_progress_string, metric)
 
         from_dt = dt.now() - td(days=last_days)
         to_dt = dt.now()
@@ -153,54 +184,23 @@ def test_queries(slug, queries, last_days, interval, slug_report):
         slug_report.metric_states.append(metric_summary)
         slug_report.error_output = metric_report.error_output()
 
-def test_token_metrics(slugs, last_days, interval):
-    output = {}
-    output_for_html = []
+def filter_projects_by_marketcap(number):
+    projects = san.get('projects/all')
+    slugs = projects['slug'].values
+    caps = []
+    for i in range(len(slugs)//BATCH_SIZE):
+        slugs_sub = slugs[BATCH_SIZE*i:BATCH_SIZE*(i+1)]
+        caps += get_marketcap_batch(slugs_sub)
+        logging.info("Batch %s executed", i)
+    results = zip(slugs, caps)
+    return [x[0] for x in sorted(results, key=lambda k: k[1], reverse=True)[:number]]
 
-    for slug in slugs:
-        logging.info("Testing slug: %s", slug)
-
-        if slug in legacy_asset_slugs:
-            (timeseries_metrics, histogram_metrics, queries) = (["price_usd"], [], [])
-        else:
-            (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
-            queries = exclude_metrics(queries, special_queries)
-
-        slug_progress_string = build_progress_string('slug', slug, slugs)
-
-        slug_report = SlugReport(slug, slug_progress_string)
-        slug_report.number_of_timeseries_metrics = len(timeseries_metrics)
-        slug_report.number_of_histogram_metrics = len(histogram_metrics)
-        slug_report.number_of_queries = len(queries)
-
-        test_timeseries_metrics(
-            slug,
-            timeseries_metrics,
-            last_days,
-            interval,
-            slug_report
-        )
-
-        test_histogram_metrics(
-            slug,
-            histogram_metrics,
-            last_days,
-            interval,
-            slug_report
-        )
-
-        test_queries(
-            slug,
-            queries,
-            last_days,
-            interval,
-            slug_report
-        )
-
-        output[slug] = slug_report.to_json()
-        output_for_html.append({'slug': slug, 'data': slug_report.metric_states})
-
-    return output, output_for_html, slug_report.error_output
+def exclude_metrics(metrics, metrics_to_exclude):
+    result = list(metrics)
+    for metric in metrics_to_exclude:
+        if metric in result:
+            result.remove(metric)
+    return result
 
 def build_progress_string(name, current, total):
     return f"[{name} {total.index(current) + 1}/{len(total)}]"
