@@ -19,13 +19,10 @@ from slugs import slugs_sanity, legacy_asset_slugs
 from json_processor import create_stable_json
 from exceptions import APIError
 from metric_report import MetricReport
+from slug_report import SlugReport
 
 def run(slugs, days_back, interval):
-    (output, output_for_html, error_output) = test_token_metrics(
-        slugs,
-        days_back,
-        interval
-    )
+    (output, output_for_html, error_output) = test_token_metrics(slugs, days_back, interval)
 
     save_output_to_file(output)
     create_stable_json(ERRORS_IN_ROW)
@@ -51,9 +48,7 @@ def exclude_metrics(metrics, metrics_to_exclude):
             result.remove(metric)
     return result
 
-def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_progress_string):
-    number_of_errors_metrics = 0
-    errors_timeseries_metrics = []
+def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_progress_string, slug_report):
     data_for_html = []
 
     error_output = None
@@ -98,16 +93,14 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
         json_summary = metric_report.summary_to_json('ignored_timeseries_metrics')
 
         if metric_report.has_errors():
-            errors_timeseries_metrics.append(metric_report.error_to_json())
-            number_of_errors_metrics += 1
+            slug_report.errors_timeseries_metrics.append(metric_report.error_to_json())
+            slug_report.inc_number_of_metric_errors()
 
         data_for_html.append(json_summary)
 
-    return number_of_errors_metrics, errors_timeseries_metrics, data_for_html, error_output
+    return data_for_html, error_output
 
-def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_progress_string):
-    number_of_errors_metrics = 0
-    errors_histogram_metrics = []
+def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_progress_string, slug_report):
     data_for_html = []
 
     error_output = None
@@ -141,17 +134,15 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_pr
                 error_output = "corrupted data"
 
         if metric_report.has_errors():
-            errors_histogram_metrics.append(metric_report.error_to_json())
-            number_of_errors_metrics += 1
+            slug_report.errors_histogram_metrics.append(metric_report.error_to_json())
+            slug_report.inc_number_of_metric_errors()
 
         json_summary = metric_report.summary_to_json('ignored_histogram_metrics')
         data_for_html.append(json_summary)
 
-    return number_of_errors_metrics, errors_histogram_metrics, data_for_html, error_output
+    return data_for_html, error_output
 
-def test_queries(slug, queries, last_days, interval, slug_progress_string):
-    number_of_errors_queries = 0
-    errors_queries = []
+def test_queries(slug, queries, last_days, interval, slug_progress_string, slug_report):
     data_for_html = []
     error_output = None
 
@@ -176,13 +167,13 @@ def test_queries(slug, queries, last_days, interval, slug_progress_string):
                 error_output = "corrupted data"
 
         if metric_report.has_errors():
-            errors_queries.append(metric_report.error_to_json())
-            number_of_errors_queries += 1
+            slug_report.errors_queries.append(metric_report.error_to_json())
+            slug_report.inc_number_of_query_errors()
 
         json_summary = metric_report.summary_to_json('ignored_queries')
         data_for_html.append(json_summary)
 
-    return number_of_errors_queries, errors_queries, data_for_html, error_output
+    return data_for_html, error_output
 
 def test_token_metrics(slugs, last_days, interval):
     output = {}
@@ -198,53 +189,53 @@ def test_token_metrics(slugs, last_days, interval):
 
         logging.info("Testing slug: %s", slug)
 
-        number_of_errors_metrics = 0
+        slug_report = SlugReport(slug)
+        slug_report.number_of_timeseries_metrics = len(timeseries_metrics)
+        slug_report.number_of_histogram_metrics = len(histogram_metrics)
+        slug_report.number_of_queries = len(queries)
+
         data_for_html = []
 
         slug_progress_string = build_progress_string('slug', slug, slugs)
 
-        (
-            number_of_timeseries_metrics_errors,
-            errors_timeseries_metrics,
-            timeseries_metrics_data_for_html,
-            timeseries_metrics_error_output
-        ) = test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_progress_string)
+        (timeseries_metrics_data_for_html, timeseries_metrics_error_output) = test_timeseries_metrics(
+            slug,
+            timeseries_metrics,
+            last_days,
+            interval,
+            slug_progress_string,
+            slug_report
+        )
 
-        number_of_errors_metrics += number_of_timeseries_metrics_errors
         data_for_html += timeseries_metrics_data_for_html
         error_output = timeseries_metrics_error_output
 
-        (
-            number_of_histogram_metrics_errors,
-            errors_histogram_metrics,
-            histogram_metrics_data_for_html,
-            histogram_metrics_error_output
-        ) = test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_progress_string)
+        (histogram_metrics_data_for_html, histogram_metrics_error_output) = test_histogram_metrics(
+            slug,
+            histogram_metrics,
+            last_days,
+            interval,
+            slug_progress_string,
+            slug_report
+        )
 
-        number_of_errors_metrics += number_of_histogram_metrics_errors
         data_for_html += histogram_metrics_data_for_html
         error_output = histogram_metrics_error_output
 
-        (
-            number_of_errors_queries,
-            errors_queries,
-            queries_data_for_html,
-            queries_error_output
-        ) = test_queries(slug, queries, last_days, interval, slug_progress_string)
+        (queries_data_for_html, queries_error_output) = test_queries(
+            slug,
+            queries,
+            last_days,
+            interval,
+            slug_progress_string,
+            slug_report
+        )
 
         data_for_html += queries_data_for_html
         error_output = queries_error_output
 
-        output[slug] = {
-            'number_of_errors_metrics': number_of_errors_metrics,
-            'number_of_timeseries_metrics': len(timeseries_metrics),
-            'errors_timeseries_metrics': errors_timeseries_metrics,
-            'number_of_histogram_metrics': len(histogram_metrics),
-            'errors_histogram_metrics': errors_histogram_metrics,
-            'number_of_errors_queries': number_of_errors_queries,
-            'number_of_queries': len(queries),
-            'errors_queries': errors_queries
-        }
+
+        output[slug] = slug_report.to_json()
 
         output_for_html.append({
             'slug': slug,
