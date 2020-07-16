@@ -1,25 +1,26 @@
-import sys
 import os
-import san
 import json
 import logging
-from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT
-from constants import DAYS_BACK_TEST, HISTOGRAM_METRICS_LIMIT
-from constants import BATCH_SIZE, METRICS_WITH_LONGER_DELAY, METRICS_WITH_ALLOWED_NEGATIVES
-from constants import INTERVAL_TIMEDELTA, ERRORS_IN_ROW
+import san
+from san.error import SanError
 from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data
 from api_helper import get_histogram_metric_data, get_query_data, get_marketcap_batch, get_min_interval
 from html_reporter import generate_html_from_json
 from queries import special_queries
 from discord_bot import send_metric_alert
-from slugs import slugs_sanity, legacy_asset_slugs
+from slugs import legacy_asset_slugs
 from json_processor import create_stable_json
-from exceptions import APIError
 from metric_report import MetricReport
 from slug_report import SlugReport
+from constants import DATETIME_PATTERN_METRIC, \
+                      HISTOGRAM_METRICS_LIMIT, \
+                      BATCH_SIZE, \
+                      METRICS_WITH_LONGER_DELAY, \
+                      METRICS_WITH_ALLOWED_NEGATIVES, \
+                      INTERVAL_TIMEDELTA, \
+                      ERRORS_IN_ROW
 
 def run(slugs, days_back, interval):
     (output, output_for_html, error_output) = test_token_metrics(slugs, days_back, interval)
@@ -37,7 +38,7 @@ def filter_projects_by_marketcap(number):
     for i in range(len(slugs)//BATCH_SIZE):
         slugs_sub = slugs[BATCH_SIZE*i:BATCH_SIZE*(i+1)]
         caps += get_marketcap_batch(slugs_sub)
-        logging.info(f"Batch {i} executed")
+        logging.info("Batch %s executed", i)
     results = zip(slugs, caps)
     return [x[0] for x in sorted(results, key=lambda k: k[1], reverse=True)[:number]]
 
@@ -50,17 +51,17 @@ def exclude_metrics(metrics, metrics_to_exclude):
 
 def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_report):
     for metric in timeseries_metrics:
-        metric_progress_string = build_progress_string('timeseries metric',  metric, timeseries_metrics)
-        logging.info(f"{slug_report.progress}{metric_progress_string} Testing metric: {metric}")
+        metric_progress_string = build_progress_string('timeseries metric', metric, timeseries_metrics)
+        logging.info("%s%s Testing metric: %s", slug_report.progess, metric_progress_string, metric)
 
         from_dt = dt.now() - td(days=last_days)
         to_dt = dt.now()
 
         try:
-            (gql_query, result) = get_timeseries_metric_data(metric, slug, from_dt , to_dt, interval)
+            (gql_query, result) = get_timeseries_metric_data(metric, slug, from_dt, to_dt, interval)
             metric_report = MetricReport(metric=metric, slug=slug, query=gql_query)
-        except SanError as e:
-            logging.info(str(e))
+        except SanError as error:
+            logging.info(str(error))
             metric_report.set_graphql_error()
         else:
             if not result:
@@ -84,19 +85,18 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
         if metric_report.is_corrupted():
             metric_report.set_error_details(details)
 
-        json_summary = metric_report.summary_to_json('ignored_timeseries_metrics')
-
         if metric_report.has_errors():
             slug_report.errors_timeseries_metrics.append(metric_report.error_to_json())
             slug_report.inc_number_of_metric_errors()
 
-        slug_report.metric_states.append(json_summary)
+        metric_summary = metric_report.summary_to_json('ignored_timeseries_metrics')
+        slug_report.metric_states.append(metric_summary)
         slug_report.error_output = metric_report.error_output()
 
 def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_report):
     for metric in histogram_metrics:
         metric_progress_string = build_progress_string('histogram metric', metric, histogram_metrics)
-        logging.info(f"{slug_report.progress}{metric_progress_string} Testing metric: {metric}")
+        logging.info("%s%s Testing metric: %s", slug_report.progress, metric_progress_string, metric)
 
         from_dt = dt.now() - td(days=last_days)
         to_dt = dt.now()
@@ -112,8 +112,8 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_re
             )
 
             metric_report = MetricReport(metric=metric, slug=slug, query=gql_query)
-        except SanError as e:
-            logging.info(str(e))
+        except SanError as error:
+            logging.info(str(error))
             metric_report.set_graphql_error()
         else:
             if not result or not result['values'] or not result['values']['data']:
@@ -123,14 +123,14 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_re
             slug_report.errors_histogram_metrics.append(metric_report.error_to_json())
             slug_report.inc_number_of_metric_errors()
 
-        json_summary = metric_report.summary_to_json('ignored_histogram_metrics')
-        slug_report.metric_states.append(json_summary)
+        metric_summary = metric_report.summary_to_json('ignored_histogram_metrics')
+        slug_report.metric_states.append(metric_summary)
         slug_report.error_output = metric_report.error_output()
 
 def test_queries(slug, queries, last_days, interval, slug_report):
     for query in queries:
         query_progress_string = build_progress_string('query', query, queries)
-        logging.info(f"{slug_report.progress}{query_progress_string} Testing query: {query}")
+        logging.info("%s%s Testing query: %s", slug_report.progress, query_progress_string, query)
 
         from_dt = dt.now() - td(days=last_days)
         to_dt = dt.now()
@@ -138,8 +138,8 @@ def test_queries(slug, queries, last_days, interval, slug_report):
         try:
             (gql_query, result) = get_query_data(query, slug, from_dt, to_dt, interval)
             metric_report = MetricReport(metric=query, slug=slug, query=gql_query)
-        except SanError as e:
-            logging.info(str(e))
+        except SanError as error:
+            logging.info(str(error))
             metric_report.set_graphql_error()
         else:
             if not result:
@@ -149,8 +149,8 @@ def test_queries(slug, queries, last_days, interval, slug_report):
             slug_report.errors_queries.append(metric_report.error_to_json())
             slug_report.inc_number_of_query_errors()
 
-        json_summary = metric_report.summary_to_json('ignored_queries')
-        slug_report.metric_states.append(json_summary)
+        metric_summary = metric_report.summary_to_json('ignored_queries')
+        slug_report.metric_states.append(metric_summary)
         slug_report.error_output = metric_report.error_output()
 
 def test_token_metrics(slugs, last_days, interval):
