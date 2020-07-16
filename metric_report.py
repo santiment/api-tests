@@ -29,6 +29,12 @@ class MetricReport:
         else:
             return False
 
+    def error_output(self):
+        if self.status == 'GraphQL error':
+            return 'graphql error'
+        elif self.status == 'empty' or self.status == 'corrupted':
+            return 'corrupted data'
+
     def set_error_details(self, details):
         self.error['details'] = details
 

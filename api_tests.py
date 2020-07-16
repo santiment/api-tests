@@ -49,10 +49,6 @@ def exclude_metrics(metrics, metrics_to_exclude):
     return result
 
 def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_progress_string, slug_report):
-    data_for_html = []
-
-    error_output = None
-
     for metric in timeseries_metrics:
         metric_progress_string = build_progress_string('timeseries metric',  metric, timeseries_metrics)
         logging.info(f"{slug_progress_string}{metric_progress_string} Testing metric: {metric}")
@@ -66,7 +62,6 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
         except SanError as e:
             logging.info(str(e))
             metric_report.set_graphql_error()
-            error_output = "graphql error"
         else:
             if not result:
                 metric_report.set_empty()
@@ -75,6 +70,7 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
                 (is_delayed, delayed_since) = is_metric_delayed(metric, dates)
                 (is_incorrect, reason_incorrect) = is_data_incorrect(metric, values)
                 has_gaps = data_has_gaps(metric, interval, dates)
+
                 if True in [is_delayed, is_incorrect, has_gaps]:
                     metric_report.set_corrupted()
                 details = []
@@ -84,8 +80,6 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
                     details.append(f'data has {reason_incorrect} values which is not allowed')
                 if has_gaps:
                     details.append('data has gaps')
-            if not error_output:
-                error_output = "corrupted data"
 
         if metric_report.is_corrupted():
             metric_report.set_error_details(details)
@@ -96,15 +90,10 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
             slug_report.errors_timeseries_metrics.append(metric_report.error_to_json())
             slug_report.inc_number_of_metric_errors()
 
-        data_for_html.append(json_summary)
-
-    return data_for_html, error_output
+        slug_report.metric_states.append(json_summary)
+        slug_report.error_output = metric_report.error_output()
 
 def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_progress_string, slug_report):
-    data_for_html = []
-
-    error_output = None
-
     for metric in histogram_metrics:
         metric_progress_string = build_progress_string('histogram metric', metric, histogram_metrics)
         logging.info(f"{slug_progress_string}{metric_progress_string} Testing metric: {metric}")
@@ -126,26 +115,19 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_pr
         except SanError as e:
             logging.info(str(e))
             metric_report.set_graphql_error()
-            error_output = "graphql error"
         else:
             if not result or not result['values'] or not result['values']['data']:
                 metric_report.set_empty()
-            if not error_output:
-                error_output = "corrupted data"
 
         if metric_report.has_errors():
             slug_report.errors_histogram_metrics.append(metric_report.error_to_json())
             slug_report.inc_number_of_metric_errors()
 
         json_summary = metric_report.summary_to_json('ignored_histogram_metrics')
-        data_for_html.append(json_summary)
-
-    return data_for_html, error_output
+        slug_report.metric_states.append(json_summary)
+        slug_report.error_output = metric_report.error_output()
 
 def test_queries(slug, queries, last_days, interval, slug_progress_string, slug_report):
-    data_for_html = []
-    error_output = None
-
     for query in queries:
         query_progress_string = build_progress_string('query', query, queries)
         logging.info(f"{slug_progress_string}{query_progress_string} Testing query: {query}")
@@ -159,26 +141,21 @@ def test_queries(slug, queries, last_days, interval, slug_progress_string, slug_
         except SanError as e:
             logging.info(str(e))
             metric_report.set_graphql_error()
-            error_output = "graphql error"
         else:
             if not result:
                 metric_report.set_empty()
-            if not error_output:
-                error_output = "corrupted data"
 
         if metric_report.has_errors():
             slug_report.errors_queries.append(metric_report.error_to_json())
             slug_report.inc_number_of_query_errors()
 
         json_summary = metric_report.summary_to_json('ignored_queries')
-        data_for_html.append(json_summary)
-
-    return data_for_html, error_output
+        slug_report.metric_states.append(json_summary)
+        slug_report.error_output = metric_report.error_output()
 
 def test_token_metrics(slugs, last_days, interval):
     output = {}
     output_for_html = []
-    error_output = None
 
     for slug in slugs:
         if slug in legacy_asset_slugs:
@@ -194,11 +171,9 @@ def test_token_metrics(slugs, last_days, interval):
         slug_report.number_of_histogram_metrics = len(histogram_metrics)
         slug_report.number_of_queries = len(queries)
 
-        data_for_html = []
-
         slug_progress_string = build_progress_string('slug', slug, slugs)
 
-        (timeseries_metrics_data_for_html, timeseries_metrics_error_output) = test_timeseries_metrics(
+        test_timeseries_metrics(
             slug,
             timeseries_metrics,
             last_days,
@@ -207,10 +182,7 @@ def test_token_metrics(slugs, last_days, interval):
             slug_report
         )
 
-        data_for_html += timeseries_metrics_data_for_html
-        error_output = timeseries_metrics_error_output
-
-        (histogram_metrics_data_for_html, histogram_metrics_error_output) = test_histogram_metrics(
+        test_histogram_metrics(
             slug,
             histogram_metrics,
             last_days,
@@ -219,10 +191,7 @@ def test_token_metrics(slugs, last_days, interval):
             slug_report
         )
 
-        data_for_html += histogram_metrics_data_for_html
-        error_output = histogram_metrics_error_output
-
-        (queries_data_for_html, queries_error_output) = test_queries(
+        test_queries(
             slug,
             queries,
             last_days,
@@ -231,18 +200,10 @@ def test_token_metrics(slugs, last_days, interval):
             slug_report
         )
 
-        data_for_html += queries_data_for_html
-        error_output = queries_error_output
-
-
         output[slug] = slug_report.to_json()
+        output_for_html.append({'slug': slug, 'data': slug_report.metric_states})
 
-        output_for_html.append({
-            'slug': slug,
-            'data': data_for_html
-        })
-
-    return output, output_for_html, error_output
+    return output, output_for_html, slug_report.error_output
 
 def build_progress_string(name, current, total):
     return f"[{name} {total.index(current) + 1}/{len(total)}]"

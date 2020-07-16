@@ -9,6 +9,8 @@ class SlugReport:
         self.number_of_errors_queries = 0
         self.number_of_queries = 0
         self.errors_queries = []
+        self.metric_states = []
+        self.error_output = None
 
 
     def inc_number_of_metric_errors(self):
