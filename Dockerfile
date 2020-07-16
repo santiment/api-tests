@@ -23,4 +23,4 @@ ENV PYTHONPATH /app
 
 WORKDIR /app
 
-CMD ["python", "api_tests.py"]
+CMD ["python", "cli.py", "top"]
