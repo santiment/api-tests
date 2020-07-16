@@ -41,9 +41,9 @@ podTemplate(label: 'api-tests', containers: [
           variable: 'API_KEY'
         ),
         [
-          $class: 'AmazonWebServicesCredentialsBinding', 
-          accessKeyVariable: 'AWS_ACCESS_KEY_ID', 
-          credentialsId: 's3_api-tests-json', 
+          $class: 'AmazonWebServicesCredentialsBinding',
+          accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+          credentialsId: 's3_api-tests-json',
           secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
         ]
       ]) {
@@ -52,7 +52,7 @@ podTemplate(label: 'api-tests', containers: [
           sh "unzip awscliv2.zip"
           sh "./aws/install"
           RUN_STATUS = sh (
-            script: "python api_tests.py --sanity",
+            script: "python cli.py sanity",
             returnStatus: true
           )
           if (RUN_STATUS != 0) {
@@ -77,7 +77,7 @@ podTemplate(label: 'api-tests', containers: [
                 reportDir: 'output',
                 reportFiles: 'index.html, output.json',
                 reportName: "Test Report"
-            ]) 
+            ])
             sh "aws s3 cp output/output.json s3://api-tests-json/latest_report.json --acl public-read"
             sh "aws s3 cp output/output.json s3://api-tests-json/output-${BUILD_NUMBER}.json --acl public-read"
             sh "aws s3 cp output/output_stable.json s3://api-tests-json/latest_report_stable.json --acl public-read"
