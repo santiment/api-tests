@@ -24,9 +24,7 @@ def test_frontend_api(back_test_period, interval):
         ("topSocialGainersLosers", None, "projects", ["change", "slug", "status"]),
         ("featuredInsights", None, None, ["id"]),
         ("featuredWatchlists", None, None, ["id"]),
-        ("featuredChartConfigurations", None, None, ["id"]),
-        #("getReports", None, None, ["description", "name", "url"])
-        #commented out until I figure out why it's failing
+        ("featuredChartConfigurations", None, None, ["id"])
     ]
     message = ""
     for data in test_data:
