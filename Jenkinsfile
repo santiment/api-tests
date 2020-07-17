@@ -9,7 +9,7 @@ podTemplate(label: 'api-tests', containers: [
     envVar(key: 'DOCKER_HOST', value: 'tcp://docker-host-docker-host:2375')
   ]),
   containerTemplate(name: 'api-tests',
-                    image: '913750763724.dkr.ecr.eu-central-1.amazonaws.com/api-tests:master',
+                    image: "913750763724.dkr.ecr.eu-central-1.amazonaws.com/api-tests:${env.BRANCH_NAME}",
                     ttyEnabled: true,
                     command: 'cat',
                     envVars: [envVar(key: 'TOP_PROJECTS_BY_MARKETCAP', value: '100')]
@@ -30,16 +30,16 @@ podTemplate(label: 'api-tests', containers: [
         }
       }
       container('api-tests') {
-      withCredentials([
-        string(credentialsId: 'discord_webhook', variable: 'DISCORD_WEBHOOK'),
-        string(credentialsId: 'sanbase_api_key', variable: 'API_KEY'),
-        [
-          $class: 'AmazonWebServicesCredentialsBinding',
-          accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-          credentialsId: 's3_api-tests-json',
-          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-        ]
-      ]) {
+        withCredentials([
+          string(credentialsId: 'discord_webhook', variable: 'DISCORD_WEBHOOK'),
+          string(credentialsId: 'sanbase_api_key', variable: 'API_KEY'),
+          [
+            $class: 'AmazonWebServicesCredentialsBinding',
+            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+            credentialsId: 's3_api-tests-json',
+            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+          ]
+        ]) {
           sh "apt-get install -y curl unzip"
           sh 'curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"'
           sh "unzip awscliv2.zip"
