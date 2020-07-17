@@ -3,6 +3,7 @@
 import logging
 import fire
 from datetime import timedelta as td
+import san
 from slugs import slugs_sanity, legacy_asset_slugs
 from api_tests import run, filter_projects_by_marketcap
 from frontend import run as run_frontend_test
