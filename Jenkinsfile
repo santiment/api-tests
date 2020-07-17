@@ -4,19 +4,14 @@ properties([
   buildDiscarder(logRotator(numToKeepStr: '10'))
 ])
 
-podTemplate(label: 'api-tests', containers: [
+podTemplate(label: 'docker', containers: [
   containerTemplate(name: 'docker', image: 'docker', ttyEnabled: true, command: 'cat', envVars: [
     envVar(key: 'DOCKER_HOST', value: 'tcp://docker-host-docker-host:2375')
-  ]),
-  containerTemplate(name: 'api-tests',
-                    image: "913750763724.dkr.ecr.eu-central-1.amazonaws.com/api-tests:${env.BRANCH_NAME}",
-                    ttyEnabled: true,
-                    command: 'cat',
-                    envVars: [envVar(key: 'TOP_PROJECTS_BY_MARKETCAP', value: '100')]
-  )
-]) {
-  node('api-tests') {
-    stage('Run Build') {
+  ])
+])
+{
+  node('docker') {
+    stage('Build and publish image') {
       container('docker') {
         def scmVars = checkout scm
 
@@ -29,6 +24,21 @@ podTemplate(label: 'api-tests', containers: [
           }
         }
       }
+    }
+  }
+}
+
+podTemplate(label: 'api-tests', containers: [
+  containerTemplate(name: 'api-tests',
+                    image: "913750763724.dkr.ecr.eu-central-1.amazonaws.com/api-tests:${env.BRANCH_NAME}",
+                    ttyEnabled: true,
+                    command: 'cat',
+                    envVars: [envVar(key: 'TOP_PROJECTS_BY_MARKETCAP', value: '100')]
+  )
+])
+{
+  node('api-tests') {
+    stage('Run tests') {
       container('api-tests') {
         withCredentials([
           string(credentialsId: 'discord_webhook', variable: 'DISCORD_WEBHOOK'),
@@ -44,7 +54,8 @@ podTemplate(label: 'api-tests', containers: [
           sh 'curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"'
           sh "unzip awscliv2.zip"
           sh "./aws/install"
-          RUN_STATUS = sh(script: "python cli.py sanity", returnStatus: true)
+          sh 'ls /app'
+          RUN_STATUS = sh(script: "python /app/cli.py sanity", returnStatus: true)
 
           if (RUN_STATUS != 0) {
             discordSend (
