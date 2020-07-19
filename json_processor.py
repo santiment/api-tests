@@ -20,7 +20,7 @@ def extract_all_failures(latest_files):
         for file in latest_files:
             failures[slug]["timeseries"] += [metric["metric"] for metric in file[slug]["errors_timeseries_metrics"]]
             failures[slug]["histogram"] += [metric["metric"] for metric in file[slug]["errors_histogram_metrics"]]
-            failures[slug]["queries"] += [metric["query"] for metric in file[slug]["errors_queries"]]
+            failures[slug]["queries"] += [metric["metric"] for metric in file[slug]["errors_queries"]]
     return failures
 
 def filter_only_repeating_failures(latest_files, failures):
