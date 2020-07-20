@@ -23,14 +23,31 @@ from constants import DATETIME_PATTERN_METRIC, \
                       ERRORS_IN_ROW
 
 def run(slugs, days_back, interval):
+    logging.info('Testing...')
     (output, output_for_html, error_output) = test_all(slugs, days_back, interval)
 
-    save_output_to_file(output)
-    create_stable_json(ERRORS_IN_ROW)
-    save_output_to_file(output_for_html, 'output_for_html')
+    json_output_filename = 'output.json'
+    logging.info('Saving %s', json_output_filename)
+    save_output_to_file(output, json_output_filename)
+
+    json_to_html_output_filename = 'output_for_html.json'
+    logging.info('Saving %s', json_to_html_output_filename)
+    save_output_to_file(output_for_html, json_to_html_output_filename)
+
+    logging.info('Generating HTML report...')
     generate_html_from_json('output_for_html', 'index')
+
+    if ERRORS_IN_ROW == 0:
+        logging.info('ERRORS_IN_ROW: %s, skipping generation of stable json.', ERRORS_IN_ROW)
+    else:
+        logging.info('Generating stable json...')
+        create_stable_json(ERRORS_IN_ROW)
+    
+    logging.info('Sending alerts...')
     send_metric_alert(error_output)
 
+    logging.info('Finished')
+    
 def test_all(slugs, last_days, interval):
     output = {}
     output_for_html = []
@@ -205,10 +222,10 @@ def exclude_metrics(metrics, metrics_to_exclude):
 def build_progress_string(name, current, total):
     return f"[{name} {total.index(current) + 1}/{len(total)}]"
 
-def save_output_to_file(output, filename='output'):
+def save_output_to_file(output, filename):
     if not os.path.isdir('./output'):
         os.mkdir('./output')
-    with open(f'./output/{filename}.json', 'w+') as file:
+    with open(f'./output/{filename}', 'w+') as file:
         json.dump(output, file, indent=4)
 
 def transform_data_for_checks(data):

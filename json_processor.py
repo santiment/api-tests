@@ -43,13 +43,10 @@ def filter_only_repeating_failures(latest_files, failures):
                 file[slug]["number_of_errors_queries"] =- 1
     return file
 
-def create_stable_json(n):
-    latest_files = get_latest_files(n)
+def create_stable_json(errors_in_row):
+    latest_files = get_latest_files(errors_in_row)
     failures = extract_all_failures(latest_files)
     result = filter_only_repeating_failures(latest_files, failures)
+    
     with open('output/output_stable.json', 'w') as file:
         json.dump(result, file)        
-    
-
-if __name__ == "__main__":
-    create_stable_json(5)
