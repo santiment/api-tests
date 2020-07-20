@@ -18,26 +18,26 @@ def extract_all_failures(latest_files):
     for slug in slugs_sanity:
         failures[slug] = {"timeseries": [], "histogram": [], "queries": []}
         for file in latest_files:
-            failures[slug]["timeseries"] += [metric["metric"] for metric in file[slug]["errors_timeseries_metrics"]]
-            failures[slug]["histogram"] += [metric["metric"] for metric in file[slug]["errors_histogram_metrics"]]
-            failures[slug]["queries"] += [metric["metric"] for metric in file[slug]["errors_queries"]]
+            failures[slug]["timeseries"] += [metric["name"] for metric in file[slug]["errors_timeseries_metrics"]]
+            failures[slug]["histogram"] += [metric["name"] for metric in file[slug]["errors_histogram_metrics"]]
+            failures[slug]["queries"] += [query["name"] for query in file[slug]["errors_queries"]]
     return failures
 
 def filter_only_repeating_failures(latest_files, failures):
     file = latest_files[-1]
     for slug in file:
         for metric in file[slug]["errors_timeseries_metrics"]:
-            n = failures[slug]["timeseries"].count(metric["metric"])
+            n = failures[slug]["timeseries"].count(metric["name"])
             if n > len(latest_files):
                 file[slug]["errors_timeseries_metrics"].remove(metric)
                 file[slug]["number_of_errors_metrics"] =- 1
         for metric in file[slug]["errors_histogram_metrics"]:
-            n = failures[slug]["histogram"].count(metric["metric"])
+            n = failures[slug]["histogram"].count(metric["name"])
             if n > len(latest_files):
                 file[slug]["errors_histogram_metrics"].remove(metric)
                 file[slug]["number_of_errors_metrics"] =- 1
         for query in file[slug]["errors_queries"]:
-            n = failures[slug]["queries"].count(query["query"])
+            n = failures[slug]["queries"].count(query["name"])
             if n > len(latest_files):
                 file[slug]["errors_queries"].remove(query)    
                 file[slug]["number_of_errors_queries"] =- 1

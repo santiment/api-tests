@@ -90,7 +90,7 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
 
         try:
             (gql_query, result) = get_timeseries_metric_data(metric, slug, from_dt, to_dt, interval)
-            metric_report = MetricReport(metric=metric, slug=slug, query=gql_query)
+            metric_report = MetricReport(name=metric, slug=slug, query=gql_query)
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -142,7 +142,7 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_re
                 HISTOGRAM_METRICS_LIMIT
             )
 
-            metric_report = MetricReport(metric=metric, slug=slug, query=gql_query)
+            metric_report = MetricReport(name=metric, slug=slug, query=gql_query)
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -168,7 +168,7 @@ def test_queries(slug, queries, last_days, interval, slug_report):
 
         try:
             (gql_query, result) = get_query_data(query, slug, from_dt, to_dt, interval)
-            metric_report = MetricReport(metric=query, slug=slug, query=gql_query)
+            metric_report = MetricReport(name=query, slug=slug, query=gql_query)
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
