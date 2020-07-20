@@ -3,8 +3,8 @@ from san.env_vars import SANBASE_GQL_HOST
 from ignored_metrics import ignored_metrics
 
 class MetricReport:
-    def __init__(self, metric, slug, query):
-        self.metric = metric
+    def __init__(self, name, slug, query):
+        self.name = name
         self.slug = slug
         self.query = query
         self.status = None
@@ -41,7 +41,7 @@ class MetricReport:
         return first_part + second_part
 
     def error_to_json(self):
-        self.error['metric'] = self.metric
+        self.error['name'] = self.name
         self.error['reason'] = self.status
         self.error['gql_query'] = self.query
         self.error['gql_query_url'] = self.generate_gql_url()
@@ -51,11 +51,11 @@ class MetricReport:
     def summary_to_json(self, ignored_metrics_key):
         json_summary = {}
         if self.status:
-            json_summary = {'name': self.metric, 'status': self.status}
+            json_summary = {'name': self.name, 'status': self.status}
         else:
-            json_summary = {'name': self.metric, 'status': 'passed'}
+            json_summary = {'name': self.name, 'status': 'passed'}
 
-        if ignored_metrics and self.slug in ignored_metrics and self.metric in ignored_metrics[self.slug][ignored_metrics_key]:
-            json_summary = {'name': self.metric, 'status': 'ignored'}
+        if ignored_metrics and self.slug in ignored_metrics and self.name in ignored_metrics[self.slug][ignored_metrics_key]:
+            json_summary = {'name': self.name, 'status': 'ignored'}
 
         return json_summary
