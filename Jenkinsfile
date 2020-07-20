@@ -50,6 +50,7 @@ podTemplate(label: 'api-tests', containers: [
             secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
           ]
         ]) {
+          sh "aws --version"
           sh "apt-get install -y curl unzip"
           sh 'curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"'
           sh "unzip awscliv2.zip"
