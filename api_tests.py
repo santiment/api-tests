@@ -82,7 +82,6 @@ def test_all(slugs, last_days, interval):
             interval,
             slug_report
         )
-        print(slug_report.error_output)
 
         test_histogram_metrics(
             slug,
@@ -91,7 +90,6 @@ def test_all(slugs, last_days, interval):
             interval,
             slug_report
         )
-        print(slug_report.error_output)
 
         test_queries(
             slug,
@@ -100,7 +98,6 @@ def test_all(slugs, last_days, interval):
             interval,
             slug_report
         )
-        print(slug_report.error_output)
 
         output[slug] = slug_report.to_json()
         output_for_html.append({'slug': slug, 'data': slug_report.metric_states})
