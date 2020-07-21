@@ -6,7 +6,6 @@ from datetime import timedelta as td
 from constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, NUMBER_OF_RETRIES, CALL_DELAY
 from queries import queries, special_queries
 import time
-#TODO separate gql string building into another methods
 
 
 def get_available_metrics_and_queries(slug):
@@ -36,11 +35,10 @@ def get_available_metrics_and_queries(slug):
             error = e
     raise SanError(f"Not able to get availableMetrics for {slug} after multiple attempts. Reason: {str(error)}")
 
-def get_query_data(query, slug, dt_from, dt_to, interval):
+def build_query_gql_string(query, slug, dt_from, dt_to, interval):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_QUERY)
     str_to = dt.strftime(dt_to, DATETIME_PATTERN_QUERY)
     args = {'slug': slug, 'from': str_from, 'to': str_to, 'interval': interval}
-    error = None
     if query in queries:
         query_template = queries[query]
         query_args_str = ''
@@ -53,26 +51,29 @@ def get_query_data(query, slug, dt_from, dt_to, interval):
         query_fields_str = '{' + ' '.join(query_template['fields']) + '}' if query_template['fields'] else ''
         query_args_str = '(' + query_args_str + ')' if query_args_str else ''
         gql_query = '{' + query + query_args_str + query_fields_str + '}'
-        attempts = 0
-        while attempts < NUMBER_OF_RETRIES:
-            try:
-                time.sleep(CALL_DELAY)
-                response = execute_gql(gql_query)
-                return (gql_query, response[query])
-            except SanError as e:
-                attempts += 1
-                error = e
-        raise SanError(f"Not able to fetch {query} query for {slug} after 3 attempts. Reason: {str(error)}")
+        return gql_query
     elif query in special_queries:
         raise SanError(f"Query {query} is used in other format.")
     else:
         raise SanError(f"Unknown query: {query}")
 
 
-def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
+def get_query_data(gql_query, query, slug):
+    error = None
+    attempts = 0
+    while attempts < NUMBER_OF_RETRIES:
+        try:
+            time.sleep(CALL_DELAY)
+            response = execute_gql(gql_query)
+            return response[query]
+        except SanError as e:
+            attempts += 1
+            error = e
+    raise SanError(f"Not able to fetch {query} query for {slug} after 3 attempts. Reason: {str(error)}")
+
+def build_timeseries_gql_string(metric, slug, dt_from, dt_to, interval):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_METRIC)
     str_to = dt.strftime(dt_to, DATETIME_PATTERN_METRIC)
-    error = None
     gql_query = '''
     {
       getMetric(metric: "''' + metric + '''"){
@@ -88,12 +89,16 @@ def get_timeseries_metric_data(metric, slug, dt_from, dt_to, interval):
       }
     }
     '''
+    return gql_query
+
+def get_timeseries_metric_data(gql_query, metric, slug):
+    error = None
     attempts = 0
     while attempts < NUMBER_OF_RETRIES:
         try:
             time.sleep(CALL_DELAY)
             response = execute_gql(gql_query)
-            return (gql_query, response['getMetric']['timeseriesData'])
+            return response['getMetric']['timeseriesData']
         except SanError as e:
             attempts += 1
             error = e
@@ -127,11 +132,9 @@ def get_marketcap_batch(slugs):
             error = e
     raise SanError(f"Not able to fetcha batch of marketcaps after 3 attempts. Reason: {str(error)}")
 
-
-def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
+def build_histogram_gql_string(metric, slug, dt_from, dt_to, interval, limit):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_METRIC)
     str_to = dt.strftime(dt_to, DATETIME_PATTERN_METRIC)
-    error = None
     gql_query = '''
     {
       getMetric(metric: "''' + metric + '''"){
@@ -152,12 +155,16 @@ def get_histogram_metric_data(metric, slug, dt_from, dt_to, interval, limit):
       }
     }
     '''
+    return gql_query
+
+def get_histogram_metric_data(gql_query, metric, slug):
+    error = None
     attempts = 0
     while attempts < NUMBER_OF_RETRIES:
         try:
             time.sleep(CALL_DELAY)
             response = execute_gql(gql_query)
-            return (gql_query, response['getMetric']['histogramData'])
+            return response['getMetric']['histogramData']
         except SanError as e:
             attempts += 1
             error = e

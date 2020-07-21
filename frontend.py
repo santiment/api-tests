@@ -3,7 +3,7 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 from san.error import SanError
 from exceptions import APIError
-from api_helper import get_query_data
+from api_helper import get_query_data, build_query_gql_string
 from discord_bot import send_frontend_alert
 
 def run(last_days, interval):
@@ -41,14 +41,13 @@ def test_frontend_api(back_test_period, interval):
 
 
 def test_frontend_query(query, back_test_period, interval, key, key_values):
-    data = get_query_data(query, None, dt.now() - back_test_period, dt.now(), interval)
-    if not data[1]:
+    gql_query = build_query_gql_string(query, None, dt.now() - back_test_period, dt.now(), interval)
+    data = get_query_data(gql_query, query, None)
+    if not data:
         raise APIError(f"{query} returns empty array")
     else:
         if key:
-            data = data[1][0][key]
-        else:
-            data = data[1]
+            data = data[0][key]
         for bit in data:
             for key_value in key_values:
                 if not bit[key_value]:

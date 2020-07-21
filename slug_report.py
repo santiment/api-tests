@@ -31,3 +31,12 @@ class SlugReport:
             'number_of_queries': self.number_of_queries,
             'errors_queries': self.errors_queries
         }
+    
+    def set_error_output(self, output):
+        if output and self.error_output != 'graphql error':
+            self.error_output = output
+    #hierarchy:
+    #graphql error
+    #corrupted
+    #None
+    #with this set of conditions it's the simplest code
