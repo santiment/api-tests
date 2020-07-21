@@ -51,6 +51,8 @@ def run(slugs, days_back, interval):
         create_stable_json(ERRORS_IN_ROW)
     
     logging.info('Sending alerts...')
+    final_status = 'passed' if not error_output else error_output
+    logging.info(f'Final status: {final_status}')
     send_metric_alert(error_output)
 
     logging.info('Finished')
