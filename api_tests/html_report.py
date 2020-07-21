@@ -66,6 +66,10 @@ def generate_html_from_json(input_file, output_file):
     '''
     html += generate_html_table_sorted(data)
     html += '''
+    <button type="button" class="collapsible">Big data view</button>
+    '''
+    html += generate_html_table_big_data(data)
+    html += '''
     <script>
     var coll = document.getElementsByClassName("collapsible");
     var i;
@@ -86,6 +90,39 @@ def generate_html_from_json(input_file, output_file):
     </html>'''
 
     return save_file(filename = output_file, data=html)
+
+def generate_html_table_big_data(data):
+    html = '<div class="content">'
+    for item in data:
+        html += f'''<div style="text-align:left;">{item['slug'].upper()}</div>'''
+        values = list(filter(lambda value: value['status'] == 'corrupted', item['data']))
+        if values:
+            html += f'''
+            <div class="scrolly">
+            <table>
+            <tr>'''
+            for value in values:
+                html += f'''
+                <th>{value['name']}</th>
+                '''
+            html += '''
+            </tr>
+            <tr>'''
+            for value in values:
+                color = color_mapping[value['status'].split(':')[0]]
+                html += f'''
+                <td style="background-color:{color};text-align:center;"><a href="{value['gql_query_url']}">{value['status']}</a></td>
+                '''
+            html += '''
+            </tr>
+            </table>
+            </div>
+            <br/>
+            '''
+        else:
+            html += '<div><b>EMPTY</b></div><br/>'
+    html += '</div>'
+    return html
 
 def generate_html_table_sorted(data):
     html = '<div class="content">'
