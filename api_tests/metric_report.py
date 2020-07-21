@@ -51,7 +51,7 @@ class MetricReport:
     def summary_to_json(self, ignored_metrics_key):
         json_summary = {}
         if self.status:
-            json_summary = {'name': self.name, 'status': self.status}
+            json_summary = {'name': self.name, 'status': self.status, 'gql_query_url': self.generate_gql_url()}
         else:
             json_summary = {'name': self.name, 'status': 'passed'}
 
