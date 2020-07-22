@@ -5,8 +5,15 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 import san
 from san.error import SanError
-from api_helper import get_available_metrics_and_queries, get_timeseries_metric_data
-from api_helper import get_histogram_metric_data, get_query_data, get_marketcap_batch, get_min_interval
+from api_helper import get_available_metrics_and_queries, \
+                       get_timeseries_metric_data, \
+                       get_histogram_metric_data, \
+                       get_query_data, \
+                       get_marketcap_batch, \
+                       get_min_interval, \
+                       build_histogram_gql_string, \
+                       build_query_gql_string, \
+                       build_timeseries_gql_string
 from html_reporter import generate_html_from_json
 from queries import special_queries
 from discord_bot import send_metric_alert
@@ -44,6 +51,8 @@ def run(slugs, days_back, interval):
         create_stable_json(ERRORS_IN_ROW)
     
     logging.info('Sending alerts...')
+    final_status = 'passed' if not error_output else error_output
+    logging.info(f'Final status: {final_status}')
     send_metric_alert(error_output)
 
     logging.info('Finished')
@@ -104,10 +113,10 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
 
         from_dt = dt.now() - td(days=last_days)
         to_dt = dt.now()
-
+        gql_query = build_timeseries_gql_string(metric, slug, from_dt, to_dt, interval)
+        metric_report = MetricReport(name=metric, slug=slug, query=gql_query)
         try:
-            (gql_query, result) = get_timeseries_metric_data(metric, slug, from_dt, to_dt, interval)
-            metric_report = MetricReport(name=metric, slug=slug, query=gql_query)
+            result = get_timeseries_metric_data(gql_query, metric, slug)
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -129,7 +138,6 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
                     details.append(f'data has {reason_incorrect} values which is not allowed')
                 if has_gaps:
                     details.append('data has gaps')
-
         if metric_report.is_corrupted():
             metric_report.set_error_details(details)
 
@@ -139,7 +147,7 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
 
         metric_summary = metric_report.summary_to_json('ignored_timeseries_metrics')
         slug_report.metric_states.append(metric_summary)
-        slug_report.error_output = metric_report.error_output()
+        slug_report.set_error_output(metric_report.error_output())
 
 def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_report):
     for metric in histogram_metrics:
@@ -148,18 +156,10 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_re
 
         from_dt = dt.now() - td(days=last_days)
         to_dt = dt.now()
-
+        gql_query = build_histogram_gql_string(metric, slug, from_dt, to_dt, interval, HISTOGRAM_METRICS_LIMIT)
+        metric_report = MetricReport(name=metric, slug=slug, query=gql_query)
         try:
-            (gql_query, result) = get_histogram_metric_data(
-                metric,
-                slug,
-                from_dt,
-                to_dt,
-                interval,
-                HISTOGRAM_METRICS_LIMIT
-            )
-
-            metric_report = MetricReport(name=metric, slug=slug, query=gql_query)
+            result = get_histogram_metric_data(gql_query, metric, slug)
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -173,7 +173,7 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_re
 
         metric_summary = metric_report.summary_to_json('ignored_histogram_metrics')
         slug_report.metric_states.append(metric_summary)
-        slug_report.error_output = metric_report.error_output()
+        slug_report.set_error_output(metric_report.error_output())
 
 def test_queries(slug, queries, last_days, interval, slug_report):
     for query in queries:
@@ -182,10 +182,10 @@ def test_queries(slug, queries, last_days, interval, slug_report):
 
         from_dt = dt.now() - td(days=last_days)
         to_dt = dt.now()
-
+        gql_query = build_query_gql_string(query, slug, from_dt, to_dt, interval)
+        metric_report = MetricReport(name=query, slug=slug, query=gql_query)
         try:
-            (gql_query, result) = get_query_data(query, slug, from_dt, to_dt, interval)
-            metric_report = MetricReport(name=query, slug=slug, query=gql_query)
+            result = get_query_data(gql_query, query, slug)
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -199,7 +199,7 @@ def test_queries(slug, queries, last_days, interval, slug_report):
 
         metric_summary = metric_report.summary_to_json('ignored_queries')
         slug_report.metric_states.append(metric_summary)
-        slug_report.error_output = metric_report.error_output()
+        slug_report.set_error_output(metric_report.error_output())
 
 def filter_projects_by_marketcap(number):
     projects = san.get('projects/all')
