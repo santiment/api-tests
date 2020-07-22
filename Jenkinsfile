@@ -49,9 +49,9 @@ podTemplate(label: 'api-tests', containers: [
             credentialsId: 's3_api-tests-json',
             secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
           ]
-        ]) 
-        
-        {     
+        ])
+
+        {
           sh 'ls /app'
           RUN_STATUS = sh(script: "python /app/cli.py sanity", returnStatus: true)
 
@@ -79,6 +79,7 @@ podTemplate(label: 'api-tests', containers: [
                 reportName: "Test Report"
             ])
             sh "aws s3 cp output/output.json s3://api-tests-json/latest_report.json --acl public-read"
+            sh "aws s3 cp output/index.html s3://api-tests-json/latest_report.html --acl public-read"
             sh "aws s3 cp output/output.json s3://api-tests-json/output-${BUILD_NUMBER}.json --acl public-read"
             sh "aws s3 cp output/output_stable.json s3://api-tests-json/latest_report_stable.json --acl public-read"
           }
