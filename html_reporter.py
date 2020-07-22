@@ -1,5 +1,6 @@
 import sys, os
 import json
+from file_utils import read_json_from_file, save_file
 
 color_mapping = {
     "passed": "PaleGreen",
@@ -13,9 +14,9 @@ color_mapping = {
     "N/A": "LightGray"
 }
 
-def generate_html_from_json(input_file, output_file=None):
-    with open(f'./output/{input_file}.json', 'r') as file:
-        data = json.load(file)
+def generate_html_from_json(input_file, output_file):
+    data = read_json_from_file(input_file)
+
     html = '''
     <!DOCTYPE html>
     <html>
@@ -83,10 +84,8 @@ def generate_html_from_json(input_file, output_file=None):
     </script>
     </body>
     </html>'''
-    if not output_file:
-        output_file = input_file
-    with open(f'./output/{output_file}.html', 'w+') as file:
-        file.write(html)
+
+    return save_file(filename = output_file, data=html)
 
 def generate_html_table_sorted(data):
     html = '<div class="content">'

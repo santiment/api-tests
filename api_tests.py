@@ -21,6 +21,8 @@ from slugs import legacy_asset_slugs
 from json_processor import create_stable_json
 from metric_report import MetricReport
 from slug_report import SlugReport
+from file_utils import save_json_to_file
+from s3 import upload_to_s3
 from constants import DATETIME_PATTERN_METRIC, \
                       HISTOGRAM_METRICS_LIMIT, \
                       BATCH_SIZE, \
@@ -30,33 +32,64 @@ from constants import DATETIME_PATTERN_METRIC, \
                       ERRORS_IN_ROW
 
 def run(slugs, days_back, interval):
+    started = dt.now()
+    started_string = started.strftime("%Y-%m-%d-%H-%M")
+
     logging.info('Testing...')
     (output, output_for_html, error_output) = test_all(slugs, days_back, interval)
 
-    json_output_filename = 'output.json'
-    logging.info('Saving %s', json_output_filename)
-    save_output_to_file(output, json_output_filename)
+    logging.info('Saving JSON output...')
+    json_output_filepath = save_json_to_file(output, 'output.json')
+    logging.info('Saved to %s', json_output_filepath)
 
-    json_to_html_output_filename = 'output_for_html.json'
-    logging.info('Saving %s', json_to_html_output_filename)
-    save_output_to_file(output_for_html, json_to_html_output_filename)
+    logging.info('Saving JSON output for HTML generation...')
+    json_to_html_output_filepath = save_json_to_file(output_for_html, 'output_for_html.json')
+    logging.info('Saved to %s', json_to_html_output_filepath)
 
     logging.info('Generating HTML report...')
-    generate_html_from_json('output_for_html', 'index')
+    html_filepath = generate_html_from_json('output_for_html.json', 'index.html')
+    logging.info('Saved to %s', html_filepath)
+
+    logging.info('Sending alerts...')
+    send_metric_alert(error_output)
+
+    final_status = 'passed' if not error_output else error_output
+    logging.info(f'Final status: {final_status}')
+
+    logging.info('Publishing reports to S3...')
+
+    latest_html_report_filename = 'latest-report.html'
+    upload_to_s3(filepath=html_filepath, key=latest_html_report_filename)
+    logging.info('Uploaded %s', latest_html_report_filename)
+
+    current_html_report_filename = f'{started_string}-report.html'
+    upload_to_s3(filepath=html_filepath, key=current_html_report_filename)
+    logging.info('Uploaded %s', current_html_report_filename)
+
+    latest_json_report_filename = 'latest-report.json'
+    upload_to_s3(filepath=json_output_filepath, key=latest_json_report_filename)
+    logging.info('Uploaded %s', latest_json_report_filename)
+
+    current_json_report_filename = f'{started_string}-report.json'
+    upload_to_s3(filepath=json_output_filepath, key=current_json_report_filename)
+    logging.info('Uploaded %s', current_json_report_filename)
 
     if ERRORS_IN_ROW == 0:
         logging.info('ERRORS_IN_ROW: %s, skipping generation of stable json.', ERRORS_IN_ROW)
     else:
-        logging.info('Generating stable json...')
-        create_stable_json(ERRORS_IN_ROW)
-    
-    logging.info('Sending alerts...')
-    final_status = 'passed' if not error_output else error_output
-    logging.info(f'Final status: {final_status}')
-    send_metric_alert(error_output)
+        logging.info('Generating stability json report...')
+        stability_json_filepath = create_stable_json(ERRORS_IN_ROW)
+
+        latest_json_stability_report_filename = 'latest-stability-report.json'
+        upload_to_s3(filepath=stability_json_filepath, key=latest_json_stability_report_filename)
+        logging.info('Uploaded %s', latest_json_stability_report_filename)
+
+        current_json_stability_report_filename = f'{started_string}-stability-report.json'
+        upload_to_s3(filepath=stability_json_filepath, key=current_json_stability_report_filename)
+        logging.info('Uploaded %s', current_json_stability_report_filename)
 
     logging.info('Finished')
-    
+
 def test_all(slugs, last_days, interval):
     output = {}
     output_for_html = []
@@ -221,12 +254,6 @@ def exclude_metrics(metrics, metrics_to_exclude):
 
 def build_progress_string(name, current, total):
     return f"[{name} {total.index(current) + 1}/{len(total)}]"
-
-def save_output_to_file(output, filename):
-    if not os.path.isdir('./output'):
-        os.mkdir('./output')
-    with open(f'./output/{filename}', 'w+') as file:
-        json.dump(output, file, indent=4)
 
 def transform_data_for_checks(data):
     dates = sorted([dt.strptime(x['datetime'], DATETIME_PATTERN_METRIC) for x in data])
