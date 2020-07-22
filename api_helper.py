@@ -58,18 +58,18 @@ def build_query_gql_string(query, slug, dt_from, dt_to, interval):
         raise SanError(f"Unknown query: {query}")
 
 
-def get_query_data(gql_query, query, slug):
+def get_query_data(gql_query, query_name, slug):
     error = None
     attempts = 0
     while attempts < NUMBER_OF_RETRIES:
         try:
             time.sleep(CALL_DELAY)
             response = execute_gql(gql_query)
-            return response[query]
+            return response[query_name]
         except SanError as e:
             attempts += 1
             error = e
-    raise SanError(f"Not able to fetch {query} query for {slug} after 3 attempts. Reason: {str(error)}")
+    raise SanError(f"Not able to fetch {query_name} query for {slug} after 3 attempts. Reason: {str(error)}")
 
 def build_timeseries_gql_string(metric, slug, dt_from, dt_to, interval):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_METRIC)
