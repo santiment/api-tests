@@ -1,10 +1,10 @@
 FROM python:3.7.4-slim as builder
 
 ARG PYTHON_ENV=production
-ENV PYTHON_ENV=${PYTHON_ENV}
+ARG API_KEY
 
-RUN apt-get -yqq update \
-&& apt-get -yqq install gcc
+ENV PYTHON_ENV=${PYTHON_ENV}
+ENV API_KEY=${API_KEY}
 
 WORKDIR /app
 
@@ -12,11 +12,6 @@ COPY requirements.txt /app/requirements.txt
 RUN pip3 wheel -r requirements.txt -w /wheels
 
 FROM python:3.7.4-slim
-RUN apt-get -yqq update \
-&& apt-get -yqq install gcc curl unzip \
-&& curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
-&& unzip awscliv2.zip \
-&& ./aws/install --update
 
 WORKDIR /app
 

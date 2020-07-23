@@ -7,14 +7,14 @@ slaveTemplates = new podTemplates()
 slaveTemplates.dockerTemplate { label ->
   node(label) {
     container('docker') {
+      def scmVars = checkout scm
+      def imageName = "api-tests"
+
       withCredentials([
         string(credentialsId: 'discord_webhook', variable: 'DISCORD_WEBHOOK'),
         string(credentialsId: 'sanbase_api_key', variable: 'API_KEY')
-      ]) {
-
-        def scmVars = checkout scm
-        def imageName = "api-tests"
-
+      ])
+      {
         stage('Run tests') {
           RUN_STATUS = sh(script: "./bin/test.sh", returnStatus: true)
 
@@ -41,8 +41,7 @@ slaveTemplates.dockerTemplate { label ->
           docker.withRegistry("https://${awsRegistry}", "ecr:eu-central-1:ecr-credentials") {
             sh "docker build \
               -t ${awsRegistry}/${imageName}:${env.BRANCH_NAME} \
-              -t ${awsRegistry}/${imageName}:${scmVars.GIT_COMMIT} \
-              -f docker/Dockerfile ."
+              -t ${awsRegistry}/${imageName}:${scmVars.GIT_COMMIT} ."
             sh "docker push ${awsRegistry}/${imageName}:${env.BRANCH_NAME}"
             sh "docker push ${awsRegistry}/${imageName}:${scmVars.GIT_COMMIT}"
           }
