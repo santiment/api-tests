@@ -9,7 +9,7 @@ slaveTemplates.dockerTemplate { label ->
     container('docker') {
       withCredentials([
         string(credentialsId: 'discord_webhook', variable: 'DISCORD_WEBHOOK'),
-        string(credentialsId: 'sanbase_api_key', variable: 'API_KEY'),
+        string(credentialsId: 'sanbase_api_key', variable: 'API_KEY')
       ]) {
 
         def scmVars = checkout scm

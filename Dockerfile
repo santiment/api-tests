@@ -1,5 +1,8 @@
 FROM python:3.7.4-slim as builder
 
+ARG PYTHON_ENV=production
+ENV PYTHON_ENV=${PYTHON_ENV}
+
 RUN apt-get -yqq update \
 && apt-get -yqq install gcc
 
@@ -22,6 +25,7 @@ COPY requirements.txt /app/requirements.txt
 RUN pip3 install -r requirements.txt --find-links /wheels
 
 COPY . /app
+
 ENV PYTHONPATH /app
 
 WORKDIR /app

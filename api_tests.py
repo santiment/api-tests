@@ -23,15 +23,19 @@ from metric_report import MetricReport
 from slug_report import SlugReport
 from file_utils import save_json_to_file
 from s3 import upload_to_s3
+from config import Config
 from constants import DATETIME_PATTERN_METRIC, \
                       HISTOGRAM_METRICS_LIMIT, \
                       BATCH_SIZE, \
                       METRICS_WITH_LONGER_DELAY, \
                       METRICS_WITH_ALLOWED_NEGATIVES, \
                       INTERVAL_TIMEDELTA, \
-                      ERRORS_IN_ROW
+                      ERRORS_IN_ROW, \
+                      PYTHON_ENV
 
 def run(slugs, days_back, interval):
+    logging.info('PYTHON_ENV: %s', PYTHON_ENV)
+    config = Config(PYTHON_ENV)
     started = dt.now()
     started_string = started.strftime("%Y-%m-%d-%H-%M")
 
@@ -56,37 +60,41 @@ def run(slugs, days_back, interval):
     final_status = 'passed' if not error_output else error_output
     logging.info(f'Final status: {final_status}')
 
-    logging.info('Publishing reports to S3...')
+    if config.getboolean('upload_to_s3'):
+        logging.info('Publishing reports to S3...')
 
-    latest_html_report_filename = 'latest-report.html'
-    upload_to_s3(filepath=html_filepath, key=latest_html_report_filename)
-    logging.info('Uploaded %s', latest_html_report_filename)
+        latest_html_report_filename = 'latest-report.html'
+        upload_to_s3(filepath=html_filepath, key=latest_html_report_filename)
+        logging.info('Uploaded %s', latest_html_report_filename)
 
-    current_html_report_filename = f'{started_string}-report.html'
-    upload_to_s3(filepath=html_filepath, key=current_html_report_filename)
-    logging.info('Uploaded %s', current_html_report_filename)
+        current_html_report_filename = f'{started_string}-report.html'
+        upload_to_s3(filepath=html_filepath, key=current_html_report_filename)
+        logging.info('Uploaded %s', current_html_report_filename)
 
-    latest_json_report_filename = 'latest-report.json'
-    upload_to_s3(filepath=json_output_filepath, key=latest_json_report_filename)
-    logging.info('Uploaded %s', latest_json_report_filename)
+        latest_json_report_filename = 'latest-report.json'
+        upload_to_s3(filepath=json_output_filepath, key=latest_json_report_filename)
+        logging.info('Uploaded %s', latest_json_report_filename)
 
-    current_json_report_filename = f'{started_string}-report.json'
-    upload_to_s3(filepath=json_output_filepath, key=current_json_report_filename)
-    logging.info('Uploaded %s', current_json_report_filename)
-
-    if ERRORS_IN_ROW == 0:
-        logging.info('ERRORS_IN_ROW: %s, skipping generation of stable json.', ERRORS_IN_ROW)
+        current_json_report_filename = f'{started_string}-report.json'
+        upload_to_s3(filepath=json_output_filepath, key=current_json_report_filename)
+        logging.info('Uploaded %s', current_json_report_filename)
     else:
+        logging.info("Skipping publish reports to S3")
+
+    if config.getboolean('build_stability_report'):
         logging.info('Generating stability json report...')
         stability_json_filepath = create_stable_json(ERRORS_IN_ROW)
 
-        latest_json_stability_report_filename = 'latest-stability-report.json'
-        upload_to_s3(filepath=stability_json_filepath, key=latest_json_stability_report_filename)
-        logging.info('Uploaded %s', latest_json_stability_report_filename)
+        if config.getboolean('upload_to_s3'):
+            latest_json_stability_report_filename = 'latest-stability-report.json'
+            upload_to_s3(filepath=stability_json_filepath, key=latest_json_stability_report_filename)
+            logging.info('Uploaded %s', latest_json_stability_report_filename)
 
-        current_json_stability_report_filename = f'{started_string}-stability-report.json'
-        upload_to_s3(filepath=stability_json_filepath, key=current_json_stability_report_filename)
-        logging.info('Uploaded %s', current_json_stability_report_filename)
+            current_json_stability_report_filename = f'{started_string}-stability-report.json'
+            upload_to_s3(filepath=stability_json_filepath, key=current_json_stability_report_filename)
+            logging.info('Uploaded %s', current_json_stability_report_filename)
+    else:
+        logging.info("Skipping generation of stability report")
 
     logging.info('Finished')
 

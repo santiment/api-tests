@@ -23,6 +23,8 @@ S3_BUCKET_NAME = os.getenv('S3_BUCKET_NAME', '')
 NUMBER_OF_RETRIES = os.getenv('NUMBER_OF_RETRIES', 5)
 CALL_DELAY = float(os.getenv('CALL_DELAY', 0.09))
 ERRORS_IN_ROW = int(os.getenv('ERRORS_IN_ROW', 0))
+PYTHON_ENV = os.getenv('PYTHON_ENV', 'development')
+
 METRICS_WITH_LONGER_DELAY = [
     "network_growth",
     "amount_in_top_holders",
