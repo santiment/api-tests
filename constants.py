@@ -25,6 +25,12 @@ CALL_DELAY = float(os.getenv('CALL_DELAY', 0.09))
 ERRORS_IN_ROW = int(os.getenv('ERRORS_IN_ROW', 0))
 PYTHON_ENV = os.getenv('PYTHON_ENV', 'development')
 
+LOG_FORMAT = os.getenv(
+    'LOG_FORMAT',
+    '{"level": "%(levelname)s", "time": "%(asctime)s", "message": "%(message)s"}')
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 METRICS_WITH_LONGER_DELAY = [
     "network_growth",
     "amount_in_top_holders",

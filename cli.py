@@ -12,10 +12,13 @@ from constants import DAYS_BACK_TEST, \
                       INTERVAL_FRONTEND, \
                       API_KEY,\
                       TOP_PROJECTS_BY_MARKETCAP, \
-                      HOURS_BACK_TEST_FRONTEND
+                      HOURS_BACK_TEST_FRONTEND, \
+                      LOG_FORMAT, \
+                      LOG_LEVEL, \
+                      LOG_DATE_FORMAT
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(format=LOG_FORMAT, level=LOG_LEVEL, datefmt=LOG_DATE_FORMAT)
 
 slugs = []
 
