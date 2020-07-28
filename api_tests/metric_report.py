@@ -9,7 +9,6 @@ class MetricReport:
         self.query = query
         self.status = None
         self.error = {}
-        self.error_details = []
 
     def set_empty(self):
         self.status = 'empty'
@@ -51,7 +50,13 @@ class MetricReport:
     def summary_to_json(self, ignored_metrics_key):
         json_summary = {}
         if self.status:
-            json_summary = {'name': self.name, 'status': self.status, 'gql_query_url': self.generate_gql_url()}
+            json_summary = {
+                'name': self.name,
+                'status': self.status,
+                'gql_query_url': self.generate_gql_url()
+            }
+
+            if 'details' in self.error: json_summary['details'] = self.error['details']
         else:
             json_summary = {'name': self.name, 'status': 'passed'}
 

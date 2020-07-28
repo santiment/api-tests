@@ -172,7 +172,7 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
                 metric_report.set_empty()
             elif slug not in LEGACY_ASSET_SLUGS:
                 (dates, values) = transform_data_for_checks(result)
-                (is_delayed, delayed_since) = is_metric_delayed(metric, dates)
+                (is_delayed, delayed_since, acceptable_delay) = is_metric_delayed(metric, dates)
                 (is_incorrect, reason_incorrect) = is_data_incorrect(metric, values)
                 has_gaps = data_has_gaps(metric, interval, dates)
 
@@ -180,9 +180,10 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
                     metric_report.set_corrupted()
                 details = []
                 if is_delayed:
-                    details.append(f'delayed: {dt.strftime(delayed_since, DATETIME_PATTERN_METRIC)}')
+                    message = f'delayed: {dt_str(delayed_since)}, acceptable delay: {dt_str(acceptable_delay)}'
+                    details.append(message)
                 if is_incorrect:
-                    details.append(f'data has {reason_incorrect} values which is not allowed')
+                    details.append(f'data has {reason_incorrect} values')
                 if has_gaps:
                     details.append('data has gaps')
         if metric_report.is_corrupted():
@@ -274,9 +275,19 @@ def transform_data_for_checks(data):
     values = [float(x['value']) if x['value'] else x['value'] for x in data]
     return (dates, values)
 
-def is_metric_delayed(metric, dates):
+def is_delay(dates, acceptable_delayed_since):
+    last_date = dates[-1]
+    return (last_date < acceptable_delayed_since, last_date, acceptable_delayed_since)
+
+def delay_for_metric(metric):
     delay = td(hours=48) if metric in METRICS_WITH_LONGER_DELAY else td(hours=24)
-    return (dt.now() - dates[-1] > delay, dates[-1])
+    return delay
+
+def is_metric_delayed(metric, dates):
+    acceptable_delay = delay_for_metric(metric)
+    acceptable_delayed_since = dt.now() - acceptable_delay
+
+    return is_delay(dates, acceptable_delayed_since)
 
 def is_data_incorrect(metric, values):
     reason = ''
@@ -293,3 +304,6 @@ def data_has_gaps(metric, interval, dates):
     delta_result = max(delta, delta_metric)
     gaps = [dates[x] - dates[x-1] > delta_result for x in range(1, len(dates) - 1)]
     return True in gaps
+
+def dt_str(datetime):
+    return dt.strftime(datetime, DATETIME_PATTERN_METRIC)

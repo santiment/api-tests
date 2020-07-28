@@ -103,7 +103,7 @@ def generate_html_table_big_data(data):
             <tr>'''
             for value in values:
                 html += f'''
-                <th>{value['name']}</th>
+                <th><a href="{value['gql_query_url']}">{value['name']}</a></th>
                 '''
             html += '''
             </tr>
@@ -111,7 +111,9 @@ def generate_html_table_big_data(data):
             for value in values:
                 color = color_mapping[value['status'].split(':')[0]]
                 html += f'''
-                <td style="background-color:{color};text-align:center;"><a href="{value['gql_query_url']}">{value['status']}</a></td>
+                <td style="background-color:{color};text-align:center;">
+                    {''.join(value['details'])}
+                </td>
                 '''
             html += '''
             </tr>
@@ -194,7 +196,3 @@ def generate_html_table_merged(data):
     html += '</table></div>'
     return html
 
-
-
-if __name__ == '__main__':
-    generate_html_from_json('output_for_html', 'index')
