@@ -1,5 +1,9 @@
 import os
 from datetime import timedelta as td
+from dotenv import load_dotenv
+
+load_dotenv()
+
 API_KEY = os.getenv('API_KEY')
 DT_FORMAT = os.getenv("DT_FORMAT", "%Y-%m-%d")
 DATETIME_PATTERN_METRIC = os.getenv("DATETIME_PATTERN_METRIC", "%Y-%m-%dT%H:00:00Z")
@@ -13,9 +17,20 @@ HISTOGRAM_METRICS_LIMIT = int(os.getenv('HISTOGRAM_METRICS_LIMIT', 10))
 BATCH_SIZE = int(os.getenv('BATCH_SIZE', 50))
 DISCORD_WEBHOOK = os.getenv('DISCORD_WEBHOOK')
 DISCORD_USER_ID = os.getenv('DISCORD_USER_ID')
+S3_ACCESS_KEY = os.getenv('S3_ACCESS_KEY', '')
+S3_ACCESS_SECRET = os.getenv('S3_ACCESS_SECRET', '')
+S3_BUCKET_NAME = os.getenv('S3_BUCKET_NAME', '')
 NUMBER_OF_RETRIES = os.getenv('NUMBER_OF_RETRIES', 5)
 CALL_DELAY = float(os.getenv('CALL_DELAY', 0.09))
 ERRORS_IN_ROW = int(os.getenv('ERRORS_IN_ROW', 0))
+PYTHON_ENV = os.getenv('PYTHON_ENV', 'development')
+
+LOG_FORMAT = os.getenv(
+    'LOG_FORMAT',
+    '{"level": "%(levelname)s", "time": "%(asctime)s", "message": "%(message)s"}')
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 METRICS_WITH_LONGER_DELAY = [
     "network_growth",
     "amount_in_top_holders",

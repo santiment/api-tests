@@ -1,6 +1,7 @@
 import s3fs
 import json
 from slugs import slugs_sanity
+from file_utils import save_json_to_file
 
 def get_latest_files(n):
     fs = s3fs.S3FileSystem(anon=True)
@@ -9,6 +10,7 @@ def get_latest_files(n):
         filenames.remove('api-tests-json/latest_report.json')
     if 'api-tests-json/latest_report_stable.json' in filenames:
         filenames.remove('api-tests-json/latest_report_stable.json')
+
     latest_filenames = sorted(filenames, key=lambda x: int(x.split('-')[-1].replace('.json', '')))[-n:]
     latest_files = [json.loads(fs.cat(x)) for x in latest_filenames]
     return latest_files
@@ -39,7 +41,7 @@ def filter_only_repeating_failures(latest_files, failures):
         for query in file[slug]["errors_queries"]:
             n = failures[slug]["queries"].count(query["name"])
             if n > len(latest_files):
-                file[slug]["errors_queries"].remove(query)    
+                file[slug]["errors_queries"].remove(query)
                 file[slug]["number_of_errors_queries"] =- 1
     return file
 
@@ -47,6 +49,8 @@ def create_stable_json(errors_in_row):
     latest_files = get_latest_files(errors_in_row)
     failures = extract_all_failures(latest_files)
     result = filter_only_repeating_failures(latest_files, failures)
-    
-    with open('output/output_stable.json', 'w') as file:
-        json.dump(result, file)        
+
+    filename = 'output_stable.json'
+    save_json_to_file(result, filename)
+
+    return filename

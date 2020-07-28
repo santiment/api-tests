@@ -12,6 +12,8 @@ requests = "==2.22.0"
 "discord.py" = "==1.2.3"
 s3fs = "==0.4.2"
 fire = "==0.2.1"
+boto3 = "==1.14.25"
+python-dotenv = "==0.10.3"
 
 [requires]
 python_version = "3.8"

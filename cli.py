@@ -12,14 +12,19 @@ from constants import DAYS_BACK_TEST, \
                       INTERVAL_FRONTEND, \
                       API_KEY,\
                       TOP_PROJECTS_BY_MARKETCAP, \
-                      HOURS_BACK_TEST_FRONTEND
+                      HOURS_BACK_TEST_FRONTEND, \
+                      LOG_FORMAT, \
+                      LOG_LEVEL, \
+                      LOG_DATE_FORMAT
 
-if API_KEY:
-    san.ApiConfig.api_key = API_KEY
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(format=LOG_FORMAT, level=LOG_LEVEL, datefmt=LOG_DATE_FORMAT)
 
 slugs = []
+
+if API_KEY:
+    logging.info('Using API key')
+    san.ApiConfig.api_key = API_KEY
 
 def frontend():
     logging.info('Testing frontend...')
