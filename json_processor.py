@@ -1,11 +1,10 @@
-import s3fs
 import json
+from s3 import s3_list_files
 from slugs import slugs_sanity
 from file_utils import save_json_to_file
 
 def get_latest_files(n):
-    fs = s3fs.S3FileSystem(anon=True)
-    filenames = fs.ls('api-tests-json')
+    filenames = s3_list_files()
     if 'api-tests-json/latest_report.json' in filenames:
         filenames.remove('api-tests-json/latest_report.json')
     if 'api-tests-json/latest_report_stable.json' in filenames:
