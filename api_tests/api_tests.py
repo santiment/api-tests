@@ -5,33 +5,33 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 import san
 from san.error import SanError
-from api_helper import get_available_metrics_and_queries, \
-                       get_timeseries_metric_data, \
-                       get_histogram_metric_data, \
-                       get_query_data, \
-                       get_marketcap_batch, \
-                       get_min_interval, \
-                       build_histogram_gql_string, \
-                       build_query_gql_string, \
-                       build_timeseries_gql_string
-from html_reporter import generate_html_from_json
-from queries import special_queries
-from discord_bot import send_metric_alert
-from slugs import legacy_asset_slugs
-from json_processor import create_stable_json
-from metric_report import MetricReport
-from slug_report import SlugReport
-from file_utils import save_json_to_file
-from s3 import upload_to_s3
-from config import Config
-from constants import DATETIME_PATTERN_METRIC, \
-                      HISTOGRAM_METRICS_LIMIT, \
-                      BATCH_SIZE, \
-                      METRICS_WITH_LONGER_DELAY, \
-                      METRICS_WITH_ALLOWED_NEGATIVES, \
-                      INTERVAL_TIMEDELTA, \
-                      ERRORS_IN_ROW, \
-                      PYTHON_ENV
+from .api_helper import get_available_metrics_and_queries, \
+                        get_timeseries_metric_data, \
+                        get_histogram_metric_data, \
+                        get_query_data, \
+                        get_marketcap_batch, \
+                        get_min_interval, \
+                        build_histogram_gql_string, \
+                        build_query_gql_string, \
+                        build_timeseries_gql_string
+from .html_report import generate_html_from_json
+from .queries import special_queries
+from .discord_bot import send_metric_alert
+from .stability_report import create_stability_report
+from .metric_report import MetricReport
+from .slug_report import SlugReport
+from .utils.file_utils import save_json_to_file
+from .utils.s3 import upload_to_s3
+from .config import Config
+from .constants import DATETIME_PATTERN_METRIC, \
+                       HISTOGRAM_METRICS_LIMIT, \
+                       BATCH_SIZE, \
+                       METRICS_WITH_LONGER_DELAY, \
+                       METRICS_WITH_ALLOWED_NEGATIVES, \
+                       INTERVAL_TIMEDELTA, \
+                       ERRORS_IN_ROW, \
+                       PYTHON_ENV, \
+                       LEGACY_ASSET_SLUGS
 
 def run(slugs, days_back, interval):
     logging.info('PYTHON_ENV: %s', PYTHON_ENV)
@@ -83,7 +83,7 @@ def run(slugs, days_back, interval):
 
     if config.getboolean('build_stability_report'):
         logging.info('Generating stability json report...')
-        stability_json_filepath = create_stable_json(ERRORS_IN_ROW)
+        stability_json_filepath = create_stability_report(ERRORS_IN_ROW)
 
         if config.getboolean('upload_to_s3'):
             latest_json_stability_report_filename = 'latest-stability-report.json'
@@ -105,7 +105,7 @@ def test_all(slugs, last_days, interval):
     for slug in slugs:
         logging.info("Testing slug: %s", slug)
 
-        if slug in legacy_asset_slugs:
+        if slug in LEGACY_ASSET_SLUGS:
             (timeseries_metrics, histogram_metrics, queries) = (["price_usd"], [], [])
         else:
             (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
@@ -164,7 +164,7 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
         else:
             if not result:
                 metric_report.set_empty()
-            elif slug not in legacy_asset_slugs:
+            elif slug not in LEGACY_ASSET_SLUGS:
                 (dates, values) = transform_data_for_checks(result)
                 (is_delayed, delayed_since) = is_metric_delayed(metric, dates)
                 (is_incorrect, reason_incorrect) = is_data_incorrect(metric, values)

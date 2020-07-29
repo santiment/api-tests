@@ -4,18 +4,19 @@ import logging
 import fire
 from datetime import timedelta as td
 import san
-from slugs import slugs_sanity, legacy_asset_slugs
-from api_tests import run, filter_projects_by_marketcap
-from frontend import run as run_frontend_test
-from constants import DAYS_BACK_TEST, \
-                      INTERVAL, \
-                      INTERVAL_FRONTEND, \
-                      API_KEY,\
-                      TOP_PROJECTS_BY_MARKETCAP, \
-                      HOURS_BACK_TEST_FRONTEND, \
-                      LOG_FORMAT, \
-                      LOG_LEVEL, \
-                      LOG_DATE_FORMAT
+from api_tests.api_tests import run, filter_projects_by_marketcap
+from api_tests.frontend import run as run_frontend_test
+from api_tests.constants import DAYS_BACK_TEST, \
+                                INTERVAL, \
+                                INTERVAL_FRONTEND, \
+                                API_KEY,\
+                                TOP_PROJECTS_BY_MARKETCAP, \
+                                HOURS_BACK_TEST_FRONTEND, \
+                                LOG_FORMAT, \
+                                LOG_LEVEL, \
+                                LOG_DATE_FORMAT, \
+                                SLUGS_FOR_SANITY_CHECK, \
+                                LEGACY_ASSET_SLUGS
 
 
 logging.basicConfig(format=LOG_FORMAT, level=LOG_LEVEL, datefmt=LOG_DATE_FORMAT)
@@ -32,7 +33,7 @@ def frontend():
 
 def sanity():
     logging.info('Doing sanity check...')
-    slugs = slugs_sanity + legacy_asset_slugs
+    slugs = SLUGS_FOR_SANITY_CHECK + LEGACY_ASSET_SLUGS
     logging.info(f'Slugs: {slugs}')
     run(slugs, DAYS_BACK_TEST, INTERVAL)
 

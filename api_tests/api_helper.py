@@ -1,12 +1,11 @@
+import time
 import san
 from san.graphql import execute_gql
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, NUMBER_OF_RETRIES, CALL_DELAY
-from queries import queries, special_queries
-import time
-
+from .constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, NUMBER_OF_RETRIES, CALL_DELAY
+from .queries import queries, special_queries
 
 def get_available_metrics_and_queries(slug):
     gql_query = '''

@@ -1,7 +1,7 @@
 import json
-from s3 import s3_list_files
-from slugs import slugs_sanity
-from file_utils import save_json_to_file
+from .constants import SLUGS_FOR_SANITY_CHECK
+from .utils.s3 import s3_list_files
+from .utils.file_utils import save_json_to_file
 
 def get_latest_files(n):
     filenames = s3_list_files()
@@ -16,7 +16,7 @@ def get_latest_files(n):
 
 def extract_all_failures(latest_files):
     failures = {}
-    for slug in slugs_sanity:
+    for slug in SLUGS_FOR_SANITY_CHECK:
         failures[slug] = {"timeseries": [], "histogram": [], "queries": []}
         for file in latest_files:
             failures[slug]["timeseries"] += [metric["name"] for metric in file[slug]["errors_timeseries_metrics"]]
@@ -44,7 +44,7 @@ def filter_only_repeating_failures(latest_files, failures):
                 file[slug]["number_of_errors_queries"] =- 1
     return file
 
-def create_stable_json(errors_in_row):
+def create_stability_report(errors_in_row):
     latest_files = get_latest_files(errors_in_row)
     failures = extract_all_failures(latest_files)
     result = filter_only_repeating_failures(latest_files, failures)

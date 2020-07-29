@@ -2,9 +2,9 @@ import logging
 from datetime import datetime as dt
 from datetime import timedelta as td
 from san.error import SanError
-from exceptions import APIError
-from api_helper import get_query_data, build_query_gql_string
-from discord_bot import send_frontend_alert
+from .exceptions import APIError
+from .api_helper import get_query_data, build_query_gql_string
+from .discord_bot import send_frontend_alert
 
 def run(last_days, interval):
     try:
