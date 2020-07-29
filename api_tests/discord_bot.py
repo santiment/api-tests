@@ -4,7 +4,7 @@ import glob
 import sys, os
 import datetime
 from discord import Webhook, RequestsWebhookAdapter
-from constants import DISCORD_WEBHOOK, DISCORD_USER_ID
+from .constants import DISCORD_WEBHOOK, DISCORD_USER_ID
 
 if DISCORD_WEBHOOK:
     baseURL = "https://discordapp.com/api/webhooks/{}".format(DISCORD_WEBHOOK)

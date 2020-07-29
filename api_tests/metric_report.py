@@ -1,6 +1,6 @@
 import urllib.parse
 from san.env_vars import SANBASE_GQL_HOST
-from ignored_metrics import ignored_metrics
+from .ignored_metrics import ignored_metrics
 
 class MetricReport:
     def __init__(self, name, slug, query):
