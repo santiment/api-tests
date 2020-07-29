@@ -44,7 +44,7 @@ def filter_only_repeating_failures(latest_files, failures):
                 file[slug]["number_of_errors_queries"] =- 1
     return file
 
-def create_stable_json(errors_in_row):
+def create_stability_report(errors_in_row):
     latest_files = get_latest_files(errors_in_row)
     failures = extract_all_failures(latest_files)
     result = filter_only_repeating_failures(latest_files, failures)

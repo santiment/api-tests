@@ -14,11 +14,11 @@ from .api_helper import get_available_metrics_and_queries, \
                         build_histogram_gql_string, \
                         build_query_gql_string, \
                         build_timeseries_gql_string
-from .html_reporter import generate_html_from_json
+from .html_report import generate_html_from_json
 from .queries import special_queries
 from .discord_bot import send_metric_alert
 from .slugs import legacy_asset_slugs
-from .json_processor import create_stable_json
+from .stability_report import create_stable_json
 from .metric_report import MetricReport
 from .slug_report import SlugReport
 from .utils.file_utils import save_json_to_file
@@ -83,7 +83,7 @@ def run(slugs, days_back, interval):
 
     if config.getboolean('build_stability_report'):
         logging.info('Generating stability json report...')
-        stability_json_filepath = create_stable_json(ERRORS_IN_ROW)
+        stability_json_filepath = create_stability_report(ERRORS_IN_ROW)
 
         if config.getboolean('upload_to_s3'):
             latest_json_stability_report_filename = 'latest-stability-report.json'
