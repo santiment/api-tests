@@ -21,8 +21,8 @@ from .slugs import legacy_asset_slugs
 from .json_processor import create_stable_json
 from .metric_report import MetricReport
 from .slug_report import SlugReport
-from .file_utils import save_json_to_file
-from .s3 import upload_to_s3
+from .utils.file_utils import save_json_to_file
+from .utils.s3 import upload_to_s3
 from .config import Config
 from .constants import DATETIME_PATTERN_METRIC, \
                        HISTOGRAM_METRICS_LIMIT, \

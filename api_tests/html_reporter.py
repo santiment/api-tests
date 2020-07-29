@@ -1,6 +1,6 @@
 import sys, os
 import json
-from .file_utils import read_json_from_file, save_file
+from .utils.file_utils import read_json_from_file, save_file
 
 color_mapping = {
     "passed": "PaleGreen",

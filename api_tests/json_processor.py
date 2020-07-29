@@ -1,7 +1,7 @@
 import json
-from .s3 import s3_list_files
 from .slugs import slugs_sanity
-from .file_utils import save_json_to_file
+from .utils.s3 import s3_list_files
+from .utils.file_utils import save_json_to_file
 
 def get_latest_files(n):
     filenames = s3_list_files()

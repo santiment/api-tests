@@ -1,5 +1,5 @@
 import s3fs
-from .constants import S3_ACCESS_KEY, S3_ACCESS_SECRET, S3_BUCKET_NAME
+from ..constants import S3_ACCESS_KEY, S3_ACCESS_SECRET, S3_BUCKET_NAME
 
 fs = s3fs.S3FileSystem(key=S3_ACCESS_KEY, secret=S3_ACCESS_SECRET)
 
