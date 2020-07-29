@@ -72,6 +72,8 @@ METRICS_WITH_ALLOWED_NEGATIVES = [
     "bitmex_perpetual_basis_ratio"
 ]
 
+IGNORED_METRICS = []
+
 INTERVAL_TIMEDELTA = {
     '12h': td(hours=12),
     '1d': td(days=1),

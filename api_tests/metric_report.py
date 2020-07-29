@@ -1,6 +1,6 @@
 import urllib.parse
 from san.env_vars import SANBASE_GQL_HOST
-from .ignored_metrics import ignored_metrics
+from .constants import IGNORED_METRICS
 
 class MetricReport:
     def __init__(self, name, slug, query):
@@ -55,7 +55,7 @@ class MetricReport:
         else:
             json_summary = {'name': self.name, 'status': 'passed'}
 
-        if ignored_metrics and self.slug in ignored_metrics and self.name in ignored_metrics[self.slug][ignored_metrics_key]:
+        if self.slug in IGNORED_METRICS and self.name in IGNORED_METRICS[self.slug][ignored_metrics_key]:
             json_summary = {'name': self.name, 'status': 'ignored'}
 
         return json_summary
