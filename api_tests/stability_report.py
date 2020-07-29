@@ -1,5 +1,5 @@
 import json
-from .slugs import slugs_sanity
+from .constants import SLUGS_FOR_SANITY_CHECK
 from .utils.s3 import s3_list_files
 from .utils.file_utils import save_json_to_file
 
@@ -16,7 +16,7 @@ def get_latest_files(n):
 
 def extract_all_failures(latest_files):
     failures = {}
-    for slug in slugs_sanity:
+    for slug in SLUGS_FOR_SANITY_CHECK:
         failures[slug] = {"timeseries": [], "histogram": [], "queries": []}
         for file in latest_files:
             failures[slug]["timeseries"] += [metric["name"] for metric in file[slug]["errors_timeseries_metrics"]]

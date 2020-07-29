@@ -81,3 +81,39 @@ INTERVAL_TIMEDELTA = {
     '1h': td(hours=1),
     '8h': td(hours=8)
 }
+
+SLUGS_FOR_SANITY_CHECK = [
+    "bitcoin",
+    "litecoin",
+    "ripple",
+    "bitcoin-cash",
+    "eos",
+    "binance-coin",
+    "ethereum",
+    "multi-collateral-dai",
+    "aave",
+    "basic-attention-token",
+    "chainlink",
+    "enjin-coin",
+    "0x",
+    "rlc",
+    "omisego",
+    "crypto-com-coin",
+    "decentraland",
+    "nexo",
+    "matic-network",
+    "synthetix-network-token",
+    "kyber-network",
+    "augur",
+    "golem-network-tokens",
+    "crypto-com",
+    "ren",
+    "maker",
+    "status"
+]
+
+LEGACY_ASSET_SLUGS = [
+    "gold",
+    "s-and-p-500",
+    "crude-oil"
+]
