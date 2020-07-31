@@ -1,0 +1,97 @@
+{
+    "bitcoin": {
+        "number_of_errors_metrics": 1,
+        "number_of_timeseries_metrics": 189,
+        "errors_timeseries_metrics": [
+            {
+                "details": [
+                    "data has gaps"
+                ],
+                "name": "twitter_followers",
+                "reason": "corrupted"
+            }
+        ],
+        "number_of_histogram_metrics": 1,
+        "errors_histogram_metrics": [],
+        "number_of_errors_queries": 0,
+        "number_of_queries": 2,
+        "errors_queries": []
+    },
+    "litecoin": {
+        "number_of_errors_metrics": 8,
+        "number_of_timeseries_metrics": 180,
+        "errors_timeseries_metrics": [
+            {
+                "name": "dev_activity",
+                "reason": "empty",
+                "gql_query": "\n    {\n      getMetric(metric: \"dev_activity\"){\n        timeseriesData(\n          slug: \"litecoin\"\n          from: \"2020-07-01T11:00:00Z\"\n          to: \"2020-07-31T11:00:00Z\"\n          includeIncompleteData: true\n          interval: \"12h\"){\n            datetime\n            value\n          }\n      }\n    }\n    ",
+                "gql_query_url": "https://api.santiment.net/graphiql?query=%0A%20%20%20%20%7B%0A%20%20%20%20%20%20getMetric%28metric%3A%20%22dev_activity%22%29%7B%0A%20%20%20%20%20%20%20%20timeseriesData%28%0A%20%20%20%20%20%20%20%20%20%20slug%3A%20%22litecoin%22%0A%20%20%20%20%20%20%20%20%20%20from%3A%20%222020-07-01T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20to%3A%20%222020-07-31T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20includeIncompleteData%3A%20true%0A%20%20%20%20%20%20%20%20%20%20interval%3A%20%2212h%22%29%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20datetime%0A%20%20%20%20%20%20%20%20%20%20%20%20value%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20"
+            },
+            {
+                "name": "dev_activity_contributors_count",
+                "reason": "empty",
+                "gql_query": "\n    {\n      getMetric(metric: \"dev_activity_contributors_count\"){\n        timeseriesData(\n          slug: \"litecoin\"\n          from: \"2020-07-01T11:00:00Z\"\n          to: \"2020-07-31T11:00:00Z\"\n          includeIncompleteData: true\n          interval: \"12h\"){\n            datetime\n            value\n          }\n      }\n    }\n    ",
+                "gql_query_url": "https://api.santiment.net/graphiql?query=%0A%20%20%20%20%7B%0A%20%20%20%20%20%20getMetric%28metric%3A%20%22dev_activity_contributors_count%22%29%7B%0A%20%20%20%20%20%20%20%20timeseriesData%28%0A%20%20%20%20%20%20%20%20%20%20slug%3A%20%22litecoin%22%0A%20%20%20%20%20%20%20%20%20%20from%3A%20%222020-07-01T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20to%3A%20%222020-07-31T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20includeIncompleteData%3A%20true%0A%20%20%20%20%20%20%20%20%20%20interval%3A%20%2212h%22%29%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20datetime%0A%20%20%20%20%20%20%20%20%20%20%20%20value%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20"
+            },
+            {
+                "details": [
+                    "delayed: 2020-07-30T00:00:00Z"
+                ],
+                "name": "sentiment_balance_bitcointalk",
+                "reason": "corrupted",
+                "gql_query": "\n    {\n      getMetric(metric: \"sentiment_balance_bitcointalk\"){\n        timeseriesData(\n          slug: \"litecoin\"\n          from: \"2020-07-01T11:00:00Z\"\n          to: \"2020-07-31T11:00:00Z\"\n          includeIncompleteData: true\n          interval: \"12h\"){\n            datetime\n            value\n          }\n      }\n    }\n    ",
+                "gql_query_url": "https://api.santiment.net/graphiql?query=%0A%20%20%20%20%7B%0A%20%20%20%20%20%20getMetric%28metric%3A%20%22sentiment_balance_bitcointalk%22%29%7B%0A%20%20%20%20%20%20%20%20timeseriesData%28%0A%20%20%20%20%20%20%20%20%20%20slug%3A%20%22litecoin%22%0A%20%20%20%20%20%20%20%20%20%20from%3A%20%222020-07-01T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20to%3A%20%222020-07-31T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20includeIncompleteData%3A%20true%0A%20%20%20%20%20%20%20%20%20%20interval%3A%20%2212h%22%29%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20datetime%0A%20%20%20%20%20%20%20%20%20%20%20%20value%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20"
+            },
+            {
+                "details": [
+                    "delayed: 2020-07-30T00:00:00Z"
+                ],
+                "name": "sentiment_negative_bitcointalk",
+                "reason": "corrupted",
+                "gql_query": "\n    {\n      getMetric(metric: \"sentiment_negative_bitcointalk\"){\n        timeseriesData(\n          slug: \"litecoin\"\n          from: \"2020-07-01T11:00:00Z\"\n          to: \"2020-07-31T11:00:00Z\"\n          includeIncompleteData: true\n          interval: \"12h\"){\n            datetime\n            value\n          }\n      }\n    }\n    ",
+                "gql_query_url": "https://api.santiment.net/graphiql?query=%0A%20%20%20%20%7B%0A%20%20%20%20%20%20getMetric%28metric%3A%20%22sentiment_negative_bitcointalk%22%29%7B%0A%20%20%20%20%20%20%20%20timeseriesData%28%0A%20%20%20%20%20%20%20%20%20%20slug%3A%20%22litecoin%22%0A%20%20%20%20%20%20%20%20%20%20from%3A%20%222020-07-01T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20to%3A%20%222020-07-31T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20includeIncompleteData%3A%20true%0A%20%20%20%20%20%20%20%20%20%20interval%3A%20%2212h%22%29%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20datetime%0A%20%20%20%20%20%20%20%20%20%20%20%20value%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20"
+            },
+            {
+                "details": [
+                    "delayed: 2020-07-30T00:00:00Z"
+                ],
+                "name": "sentiment_negative_discord",
+                "reason": "corrupted",
+                "gql_query": "\n    {\n      getMetric(metric: \"sentiment_negative_discord\"){\n        timeseriesData(\n          slug: \"litecoin\"\n          from: \"2020-07-01T11:00:00Z\"\n          to: \"2020-07-31T11:00:00Z\"\n          includeIncompleteData: true\n          interval: \"12h\"){\n            datetime\n            value\n          }\n      }\n    }\n    ",
+                "gql_query_url": "https://api.santiment.net/graphiql?query=%0A%20%20%20%20%7B%0A%20%20%20%20%20%20getMetric%28metric%3A%20%22sentiment_negative_discord%22%29%7B%0A%20%20%20%20%20%20%20%20timeseriesData%28%0A%20%20%20%20%20%20%20%20%20%20slug%3A%20%22litecoin%22%0A%20%20%20%20%20%20%20%20%20%20from%3A%20%222020-07-01T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20to%3A%20%222020-07-31T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20includeIncompleteData%3A%20true%0A%20%20%20%20%20%20%20%20%20%20interval%3A%20%2212h%22%29%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20datetime%0A%20%20%20%20%20%20%20%20%20%20%20%20value%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20"
+            },
+            {
+                "details": [
+                    "delayed: 2020-07-30T00:00:00Z"
+                ],
+                "name": "sentiment_positive_bitcointalk",
+                "reason": "corrupted",
+                "gql_query": "\n    {\n      getMetric(metric: \"sentiment_positive_bitcointalk\"){\n        timeseriesData(\n          slug: \"litecoin\"\n          from: \"2020-07-01T11:00:00Z\"\n          to: \"2020-07-31T11:00:00Z\"\n          includeIncompleteData: true\n          interval: \"12h\"){\n            datetime\n            value\n          }\n      }\n    }\n    ",
+                "gql_query_url": "https://api.santiment.net/graphiql?query=%0A%20%20%20%20%7B%0A%20%20%20%20%20%20getMetric%28metric%3A%20%22sentiment_positive_bitcointalk%22%29%7B%0A%20%20%20%20%20%20%20%20timeseriesData%28%0A%20%20%20%20%20%20%20%20%20%20slug%3A%20%22litecoin%22%0A%20%20%20%20%20%20%20%20%20%20from%3A%20%222020-07-01T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20to%3A%20%222020-07-31T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20includeIncompleteData%3A%20true%0A%20%20%20%20%20%20%20%20%20%20interval%3A%20%2212h%22%29%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20datetime%0A%20%20%20%20%20%20%20%20%20%20%20%20value%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20"
+            },
+            {
+                "details": [
+                    "delayed: 2020-07-30T00:00:00Z"
+                ],
+                "name": "sentiment_volume_consumed_bitcointalk",
+                "reason": "corrupted",
+                "gql_query": "\n    {\n      getMetric(metric: \"sentiment_volume_consumed_bitcointalk\"){\n        timeseriesData(\n          slug: \"litecoin\"\n          from: \"2020-07-01T11:00:00Z\"\n          to: \"2020-07-31T11:00:00Z\"\n          includeIncompleteData: true\n          interval: \"12h\"){\n            datetime\n            value\n          }\n      }\n    }\n    ",
+                "gql_query_url": "https://api.santiment.net/graphiql?query=%0A%20%20%20%20%7B%0A%20%20%20%20%20%20getMetric%28metric%3A%20%22sentiment_volume_consumed_bitcointalk%22%29%7B%0A%20%20%20%20%20%20%20%20timeseriesData%28%0A%20%20%20%20%20%20%20%20%20%20slug%3A%20%22litecoin%22%0A%20%20%20%20%20%20%20%20%20%20from%3A%20%222020-07-01T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20to%3A%20%222020-07-31T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20includeIncompleteData%3A%20true%0A%20%20%20%20%20%20%20%20%20%20interval%3A%20%2212h%22%29%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20datetime%0A%20%20%20%20%20%20%20%20%20%20%20%20value%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20"
+            },
+            {
+                "details": [
+                    "delayed: 2020-07-30T00:00:00Z"
+                ],
+                "name": "sentiment_volume_consumed_discord",
+                "reason": "corrupted",
+                "gql_query": "\n    {\n      getMetric(metric: \"sentiment_volume_consumed_discord\"){\n        timeseriesData(\n          slug: \"litecoin\"\n          from: \"2020-07-01T11:00:00Z\"\n          to: \"2020-07-31T11:00:00Z\"\n          includeIncompleteData: true\n          interval: \"12h\"){\n            datetime\n            value\n          }\n      }\n    }\n    ",
+                "gql_query_url": "https://api.santiment.net/graphiql?query=%0A%20%20%20%20%7B%0A%20%20%20%20%20%20getMetric%28metric%3A%20%22sentiment_volume_consumed_discord%22%29%7B%0A%20%20%20%20%20%20%20%20timeseriesData%28%0A%20%20%20%20%20%20%20%20%20%20slug%3A%20%22litecoin%22%0A%20%20%20%20%20%20%20%20%20%20from%3A%20%222020-07-01T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20to%3A%20%222020-07-31T11%3A00%3A00Z%22%0A%20%20%20%20%20%20%20%20%20%20includeIncompleteData%3A%20true%0A%20%20%20%20%20%20%20%20%20%20interval%3A%20%2212h%22%29%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20datetime%0A%20%20%20%20%20%20%20%20%20%20%20%20value%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20"
+            }
+        ],
+        "number_of_histogram_metrics": 1,
+        "errors_histogram_metrics": [],
+        "number_of_errors_queries": 0,
+        "number_of_queries": 2,
+        "errors_queries": []
+    }
+}

@@ -8,3 +8,6 @@ def s3_list_files():
 
 def upload_to_s3(filepath, key):
     fs.put(filepath, f"{S3_BUCKET_NAME}/{key}")
+
+def s3_read_file_content(filename):
+    return fs.cat(filename)

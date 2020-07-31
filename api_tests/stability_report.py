@@ -1,22 +1,42 @@
 import json
+import re
 from .constants import SLUGS_FOR_SANITY_CHECK
-from .utils.s3 import s3_list_files
+from .utils.s3 import s3_list_files, s3_read_file_content
+from .constants import S3_BUCKET_NAME
 from .utils.file_utils import save_json_to_file
 
-def get_latest_files(n):
-    filenames = s3_list_files()
-    if 'api-tests-json/latest_report.json' in filenames:
-        filenames.remove('api-tests-json/latest_report.json')
-    if 'api-tests-json/latest_report_stable.json' in filenames:
-        filenames.remove('api-tests-json/latest_report_stable.json')
+def build_report_json_filename(bucket_name, dt_string):
+    return f'{bucket_name}/{dt_string}-report.json'
 
-    latest_filenames = sorted(filenames, key=lambda x: int(x.split('-')[-1].replace('.json', '')))[-n:]
-    latest_files = [json.loads(fs.cat(x)) for x in latest_filenames]
+def filter_json_filenames(filenames):
+    return [filename for filename in filenames if '.json' in filename]
+
+def extract_dt_strings_from_filenames(filenames, bucket_name):
+    split_names = list(map(lambda filename: filename.split(f'{bucket_name}/')[-1].split('-report')[0], filenames))
+    pattern = re.compile('^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}$')
+
+    return list(filter(pattern.match, split_names))
+
+def sort_and_limit_dt_strings(dt_strings, limit):
+    return sorted(dt_strings, key=lambda filename: filename, reverse=True)[:limit]
+
+def filter_latest_files(filenames, bucket_name, limit):
+    json_filenames = filter_json_filenames(filenames)
+    dt_strings = extract_dt_strings_from_filenames(json_filenames, bucket_name)
+    sorted_dt_strings = sort_and_limit_dt_strings(dt_strings, limit)
+
+    return list(map(lambda dt_string: build_report_json_filename(bucket_name, dt_string), sorted_dt_strings))
+
+def get_latest_files(last_reports_limit):
+    filenames = s3_list_files()
+
+    latest_filenames = filter_latest_files(filenames, S3_BUCKET_NAME, last_reports_limit)
+    latest_files = [json.loads(s3_read_file_content(filename)) for filename in latest_filenames]
     return latest_files
 
-def extract_all_failures(latest_files):
+def extract_all_failures(latest_files, slugs):
     failures = {}
-    for slug in SLUGS_FOR_SANITY_CHECK:
+    for slug in slugs:
         failures[slug] = {"timeseries": [], "histogram": [], "queries": []}
         for file in latest_files:
             failures[slug]["timeseries"] += [metric["name"] for metric in file[slug]["errors_timeseries_metrics"]]
@@ -46,10 +66,10 @@ def filter_only_repeating_failures(latest_files, failures):
 
 def create_stability_report(errors_in_row):
     latest_files = get_latest_files(errors_in_row)
-    failures = extract_all_failures(latest_files)
+    failures = extract_all_failures(latest_files, SLUGS_FOR_SANITY_CHECK)
     result = filter_only_repeating_failures(latest_files, failures)
 
-    filename = 'output_stable.json'
+    filename = 'lastest-stability-report.json'
     save_json_to_file(result, filename)
 
     return filename
