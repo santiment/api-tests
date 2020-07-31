@@ -1,4 +1,4 @@
 #! /bin/sh
 
-docker build --build-arg PYTHON_ENV=test -t api-test . &&
-docker run --rm -e API_KEY=$API_KEY -t api-test python cli.py projects bitcoin
+docker build --build-arg PYTHON_ENV=test -t api-tests-test -f Dockerfile-test . &&
+docker run --rm -t api-tests-test pytest

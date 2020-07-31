@@ -10,13 +10,15 @@ slaveTemplates.dockerTemplate { label ->
       def scmVars = checkout scm
       def imageName = "api-tests"
 
+      stage('Run tests') { sh "./bin/test.sh" }
+
       withCredentials([
         string(credentialsId: 'discord_webhook', variable: 'DISCORD_WEBHOOK'),
         string(credentialsId: 'sanbase_api_key', variable: 'API_KEY')
       ])
       {
-        stage('Run tests') {
-          RUN_STATUS = sh(script: "./bin/test.sh", returnStatus: true)
+        stage('Run simple sanity check') {
+          RUN_STATUS = sh(script: "./bin/sanity_check.sh", returnStatus: true)
 
           if (RUN_STATUS != 0) {
             discordSend (
