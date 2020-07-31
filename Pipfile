@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 pylint = "==2.3.1"
+pytest = "==5.4.2"
 
 [packages]
 sanpy = "==0.7.15"
