@@ -93,25 +93,13 @@ SLUGS_FOR_SANITY_CHECK = [
     "binance-coin",
     "ethereum",
     "multi-collateral-dai",
-    "aave",
     "basic-attention-token",
     "chainlink",
-    "enjin-coin",
     "0x",
-    "rlc",
-    "omisego",
-    "crypto-com-coin",
-    "decentraland",
-    "nexo",
-    "matic-network",
     "synthetix-network-token",
     "kyber-network",
     "augur",
-    "golem-network-tokens",
-    "crypto-com",
-    "ren",
-    "maker",
-    "status"
+    "maker"
 ]
 
 LEGACY_ASSET_SLUGS = [
