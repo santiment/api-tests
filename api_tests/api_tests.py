@@ -31,7 +31,8 @@ from .constants import DATETIME_PATTERN_METRIC, \
                        INTERVAL_TIMEDELTA, \
                        ERRORS_IN_ROW, \
                        PYTHON_ENV, \
-                       LEGACY_ASSET_SLUGS
+                       LEGACY_ASSET_SLUGS, \
+                       IGNORED_METRICS
 
 def run(slugs, days_back, interval):
     logging.info('PYTHON_ENV: %s', PYTHON_ENV)
@@ -162,8 +163,14 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
         to_dt = dt.now()
         gql_query = build_timeseries_gql_string(metric, slug, from_dt, to_dt, interval)
         metric_report = MetricReport(name=metric, slug=slug, query=gql_query)
+
+        if slug in IGNORED_METRICS and metric in IGNORED_METRICS[slug]['ignored_timeseries_metrics']:
+            metric_report.set_ignored()
+            pass
+
         try:
             result = get_timeseries_metric_data(gql_query, metric, slug)
+            metric_report.set_passed()
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -172,27 +179,23 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
                 metric_report.set_empty()
             elif slug not in LEGACY_ASSET_SLUGS:
                 (dates, values) = transform_data_for_checks(result)
-                (is_delayed, delayed_since) = is_metric_delayed(metric, dates)
+                (is_delayed, delayed_since, acceptable_delay) = is_metric_delayed(metric, dates)
                 (is_incorrect, reason_incorrect) = is_data_incorrect(metric, values)
                 has_gaps = data_has_gaps(metric, interval, dates)
 
-                if True in [is_delayed, is_incorrect, has_gaps]:
-                    metric_report.set_corrupted()
-                details = []
                 if is_delayed:
-                    details.append(f'delayed: {dt.strftime(delayed_since, DATETIME_PATTERN_METRIC)}')
+                    message = f'delayed: {dt_str(delayed_since)}, acceptable delay: {dt_str(acceptable_delay)}'
+                    metric_report.append_error_details(message)
                 if is_incorrect:
-                    details.append(f'data has {reason_incorrect} values which is not allowed')
+                    metric_report.append_error_details(f'data has {reason_incorrect} values')
                 if has_gaps:
-                    details.append('data has gaps')
-        if metric_report.is_corrupted():
-            metric_report.set_error_details(details)
+                    metric_report.append_error_details('data has gaps')
 
         if metric_report.has_errors():
             slug_report.errors_timeseries_metrics.append(metric_report.error_to_json())
             slug_report.inc_number_of_metric_errors()
 
-        metric_summary = metric_report.summary_to_json('ignored_timeseries_metrics')
+        metric_summary = metric_report.summary_to_json()
         slug_report.metric_states.append(metric_summary)
         slug_report.set_error_output(metric_report.error_output())
 
@@ -205,8 +208,14 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_re
         to_dt = dt.now()
         gql_query = build_histogram_gql_string(metric, slug, from_dt, to_dt, interval, HISTOGRAM_METRICS_LIMIT)
         metric_report = MetricReport(name=metric, slug=slug, query=gql_query)
+
+        if slug in IGNORED_METRICS and metric in IGNORED_METRICS[slug]['ignored_histogram_metrics']:
+            metric_report.set_ignored()
+            pass
+
         try:
             result = get_histogram_metric_data(gql_query, metric, slug)
+            metric_report.set_passed()
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -218,7 +227,7 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_re
             slug_report.errors_histogram_metrics.append(metric_report.error_to_json())
             slug_report.inc_number_of_metric_errors()
 
-        metric_summary = metric_report.summary_to_json('ignored_histogram_metrics')
+        metric_summary = metric_report.summary_to_json()
         slug_report.metric_states.append(metric_summary)
         slug_report.set_error_output(metric_report.error_output())
 
@@ -231,8 +240,14 @@ def test_queries(slug, queries, last_days, interval, slug_report):
         to_dt = dt.now()
         gql_query = build_query_gql_string(query, slug, from_dt, to_dt, interval)
         metric_report = MetricReport(name=query, slug=slug, query=gql_query)
+
+        if slug in IGNORED_METRICS and metric in IGNORED_METRICS[slug]['ignored_queries']:
+            metric_report.set_ignored()
+            pass
+
         try:
             result = get_query_data(gql_query, query, slug)
+            metric_report.set_passed()
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -244,7 +259,7 @@ def test_queries(slug, queries, last_days, interval, slug_report):
             slug_report.errors_queries.append(metric_report.error_to_json())
             slug_report.inc_number_of_query_errors()
 
-        metric_summary = metric_report.summary_to_json('ignored_queries')
+        metric_summary = metric_report.summary_to_json()
         slug_report.metric_states.append(metric_summary)
         slug_report.set_error_output(metric_report.error_output())
 
@@ -274,9 +289,19 @@ def transform_data_for_checks(data):
     values = [float(x['value']) if x['value'] else x['value'] for x in data]
     return (dates, values)
 
-def is_metric_delayed(metric, dates):
+def is_delay(dates, acceptable_delayed_since):
+    last_date = dates[-1]
+    return (last_date < acceptable_delayed_since, last_date, acceptable_delayed_since)
+
+def delay_for_metric(metric):
     delay = td(hours=48) if metric in METRICS_WITH_LONGER_DELAY else td(hours=24)
-    return (dt.now() - dates[-1] > delay, dates[-1])
+    return delay
+
+def is_metric_delayed(metric, dates):
+    acceptable_delay = delay_for_metric(metric)
+    acceptable_delayed_since = dt.now() - acceptable_delay
+
+    return is_delay(dates, acceptable_delayed_since)
 
 def is_data_incorrect(metric, values):
     reason = ''
@@ -293,3 +318,6 @@ def data_has_gaps(metric, interval, dates):
     delta_result = max(delta, delta_metric)
     gaps = [dates[x] - dates[x-1] > delta_result for x in range(1, len(dates) - 1)]
     return True in gaps
+
+def dt_str(datetime):
+    return dt.strftime(datetime, DATETIME_PATTERN_METRIC)
