@@ -66,7 +66,7 @@ def generate_html_from_json(input_file, output_file):
     '''
     html += generate_html_table_sorted(data)
     html += '''
-    <button type="button" class="collapsible">Big data view</button>
+    <button type="button" class="collapsible">Debug view</button>
     '''
     html += generate_html_table_big_data(data)
     html += '''
