@@ -49,7 +49,6 @@ class MetricReport:
     def error_to_json(self):
         self.error['name'] = self.name
         self.error['reason'] = self.status
-        self.error['gql_query'] = self.query
         self.error['gql_query_url'] = self.generate_gql_url()
         self.error['details'] = self.error_details
 
