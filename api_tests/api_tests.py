@@ -31,7 +31,8 @@ from .constants import DATETIME_PATTERN_METRIC, \
                        INTERVAL_TIMEDELTA, \
                        ERRORS_IN_ROW, \
                        PYTHON_ENV, \
-                       LEGACY_ASSET_SLUGS
+                       LEGACY_ASSET_SLUGS, \
+                       IGNORED_METRICS
 
 def run(slugs, days_back, interval):
     logging.info('PYTHON_ENV: %s', PYTHON_ENV)
@@ -162,8 +163,14 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
         to_dt = dt.now()
         gql_query = build_timeseries_gql_string(metric, slug, from_dt, to_dt, interval)
         metric_report = MetricReport(name=metric, slug=slug, query=gql_query)
+
+        if slug in IGNORED_METRICS and metric in IGNORED_METRICS[slug]['ignored_timeseries_metrics']:
+            metric_report.set_ignored()
+            pass
+
         try:
             result = get_timeseries_metric_data(gql_query, metric, slug)
+            metric_report.set_passed()
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -176,24 +183,19 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
                 (is_incorrect, reason_incorrect) = is_data_incorrect(metric, values)
                 has_gaps = data_has_gaps(metric, interval, dates)
 
-                if True in [is_delayed, is_incorrect, has_gaps]:
-                    metric_report.set_corrupted()
-                details = []
                 if is_delayed:
                     message = f'delayed: {dt_str(delayed_since)}, acceptable delay: {dt_str(acceptable_delay)}'
-                    details.append(message)
+                    metric_report.append_error_details(message)
                 if is_incorrect:
-                    details.append(f'data has {reason_incorrect} values')
+                    metric_report.append_error_details(f'data has {reason_incorrect} values')
                 if has_gaps:
-                    details.append('data has gaps')
-        if metric_report.is_corrupted():
-            metric_report.set_error_details(details)
+                    metric_report.append_error_details('data has gaps')
 
         if metric_report.has_errors():
             slug_report.errors_timeseries_metrics.append(metric_report.error_to_json())
             slug_report.inc_number_of_metric_errors()
 
-        metric_summary = metric_report.summary_to_json('ignored_timeseries_metrics')
+        metric_summary = metric_report.summary_to_json()
         slug_report.metric_states.append(metric_summary)
         slug_report.set_error_output(metric_report.error_output())
 
@@ -206,8 +208,14 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_re
         to_dt = dt.now()
         gql_query = build_histogram_gql_string(metric, slug, from_dt, to_dt, interval, HISTOGRAM_METRICS_LIMIT)
         metric_report = MetricReport(name=metric, slug=slug, query=gql_query)
+
+        if slug in IGNORED_METRICS and metric in IGNORED_METRICS[slug]['ignored_histogram_metrics']:
+            metric_report.set_ignored()
+            pass
+
         try:
             result = get_histogram_metric_data(gql_query, metric, slug)
+            metric_report.set_passed()
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -219,7 +227,7 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_re
             slug_report.errors_histogram_metrics.append(metric_report.error_to_json())
             slug_report.inc_number_of_metric_errors()
 
-        metric_summary = metric_report.summary_to_json('ignored_histogram_metrics')
+        metric_summary = metric_report.summary_to_json()
         slug_report.metric_states.append(metric_summary)
         slug_report.set_error_output(metric_report.error_output())
 
@@ -232,8 +240,14 @@ def test_queries(slug, queries, last_days, interval, slug_report):
         to_dt = dt.now()
         gql_query = build_query_gql_string(query, slug, from_dt, to_dt, interval)
         metric_report = MetricReport(name=query, slug=slug, query=gql_query)
+
+        if slug in IGNORED_METRICS and metric in IGNORED_METRICS[slug]['ignored_queries']:
+            metric_report.set_ignored()
+            pass
+
         try:
             result = get_query_data(gql_query, query, slug)
+            metric_report.set_passed()
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -245,7 +259,7 @@ def test_queries(slug, queries, last_days, interval, slug_report):
             slug_report.errors_queries.append(metric_report.error_to_json())
             slug_report.inc_number_of_query_errors()
 
-        metric_summary = metric_report.summary_to_json('ignored_queries')
+        metric_summary = metric_report.summary_to_json()
         slug_report.metric_states.append(metric_summary)
         slug_report.set_error_output(metric_report.error_output())
 

@@ -58,17 +58,13 @@ def generate_html_from_json(input_file, output_file):
     </style>
     	</head>
     	<body>
-        <button type="button" class="collapsible">Merged view</button>
+        <button type="button" class="collapsible">Classic view</button>
     '''
-    html += generate_html_table_merged(data)
-    html += '''
-    <button type="button" class="collapsible">Sorted view</button>
-    '''
-    html += generate_html_table_sorted(data)
+    html += generate_html_table_classic(data)
     html += '''
     <button type="button" class="collapsible">Debug view</button>
     '''
-    html += generate_html_table_big_data(data)
+    html += generate_html_table_debug(data)
     html += '''
     <script>
     var coll = document.getElementsByClassName("collapsible");
@@ -91,11 +87,12 @@ def generate_html_from_json(input_file, output_file):
 
     return save_file(filename = output_file, data=html)
 
-def generate_html_table_big_data(data):
+def generate_html_table_debug(data):
     html = '<div class="content">'
     for item in data:
         html += f'''<div style="text-align:left;">{item['slug'].upper()}</div>'''
-        values = list(filter(lambda value: value['status'] == 'corrupted', item['data']))
+        values = list(filter(lambda value: value['status'] in ['corrupted', 'empty'], item['data']))
+        values = sorted([x for x in values], key=lambda k: k['status'])
         if values:
             html += f'''
             <div class="scrolly">
@@ -112,43 +109,26 @@ def generate_html_table_big_data(data):
                 color = color_mapping[value['status'].split(':')[0]]
                 html += f'''
                 <td style="background-color:{color};text-align:center;">
-                    {''.join(value['details'])}
+                    {value['status']}
                 </td>
                 '''
             html += '''
             </tr>
-            </table>
-            </div>
-            <br/>
-            '''
-        else:
-            html += '<div><b>EMPTY</b></div><br/>'
-    html += '</div>'
-    return html
+            <tr>'''
+            for value in values:
+                color = color_mapping[value['status'].split(':')[0]]
+                if value['details']:
+                    html += f'''
+                    <td style="background-color:{color};text-align:center;">
+                        {''.join(value['details'])}
+                    </td>
+                    '''
+                else:
+                    html += f'''
+                    <td style="background-color:{color};text-align:center;">
+                    </td>
+                    '''
 
-def generate_html_table_sorted(data):
-    html = '<div class="content">'
-    for item in data:
-        html += f'''<div style="text-align:left;">{item['slug'].upper()}</div>'''
-        values = sorted([(x['name'], x['status']) for x in item['data']], key=lambda k: k[1])
-        if values:
-            html += f'''
-            <div class="scrolly">
-            <table>
-            <tr>'''
-            (names, statuses) = zip(*values)
-            for name in names:
-                html += f'''
-                <th>{name}</th>
-                '''
-            html += '''
-            </tr>
-            <tr>'''
-            for status in statuses:
-                color = color_mapping[status.split(':')[0]]
-                html += f'''
-                <td style="background-color:{color};text-align:center;">{status}</td>
-                '''
             html += '''
             </tr>
             </table>
@@ -160,7 +140,7 @@ def generate_html_table_sorted(data):
     html += '</div>'
     return html
 
-def generate_html_table_merged(data):
+def generate_html_table_classic(data):
     all_names = []
     for item in data:
         all_names += [x['name'] for x in item['data']]

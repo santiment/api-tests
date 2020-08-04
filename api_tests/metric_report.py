@@ -1,6 +1,5 @@
 import urllib.parse
 from san.env_vars import SANBASE_GQL_HOST
-from .constants import IGNORED_METRICS
 
 class MetricReport:
     def __init__(self, name, slug, query):
@@ -9,6 +8,13 @@ class MetricReport:
         self.query = query
         self.status = None
         self.error = {}
+        self.error_details = []
+
+    def set_passed(self):
+        self.status = 'passed'
+
+    def set_ignored(self):
+        self.status = 'ignored'
 
     def set_empty(self):
         self.status = 'empty'
@@ -31,8 +37,9 @@ class MetricReport:
         elif self.status == 'empty' or self.status == 'corrupted':
             return 'corrupted data'
 
-    def set_error_details(self, details):
-        self.error['details'] = details
+    def append_error_details(self, error_detail):
+        self.set_corrupted()
+        self.error_details.append(error_detail)
 
     def generate_gql_url(self):
         first_part = SANBASE_GQL_HOST.replace('graphql', 'graphiql?query=')
@@ -44,23 +51,15 @@ class MetricReport:
         self.error['reason'] = self.status
         self.error['gql_query'] = self.query
         self.error['gql_query_url'] = self.generate_gql_url()
+        self.error['details'] = self.error_details
 
         return self.error
 
-    def summary_to_json(self, ignored_metrics_key):
-        json_summary = {}
-        if self.status:
-            json_summary = {
-                'name': self.name,
-                'status': self.status,
-                'gql_query_url': self.generate_gql_url()
-            }
+    def summary_to_json(self):
+        return {
+            'name': self.name,
+            'status': self.status,
+            'gql_query_url': self.generate_gql_url(),
+            'details': self.error_details
+        }
 
-            if 'details' in self.error: json_summary['details'] = self.error['details']
-        else:
-            json_summary = {'name': self.name, 'status': 'passed'}
-
-        if self.slug in IGNORED_METRICS and self.name in IGNORED_METRICS[self.slug][ignored_metrics_key]:
-            json_summary = {'name': self.name, 'status': 'ignored'}
-
-        return json_summary

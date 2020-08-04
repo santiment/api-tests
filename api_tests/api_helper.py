@@ -190,7 +190,3 @@ def get_min_interval(metric):
             attempts += 1
             error = e
     raise SanError(f"Not able to get min interval for {metric} after 3 attempts. Reason: {str(error)}")
-
-
-if __name__ == '__main__':
-    print(get_query_data('priceVolumeDiff', 'ethereum', dt.now() - td(days=1), dt.now(), '1d'))
