@@ -104,8 +104,9 @@ def get_timeseries_metric_data(gql_query, metric, slug):
     raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts. Reason: {str(error)}")
 
 def get_marketcap_batch(slugs):
-    to_str = dt.strftime(dt.now(), DATETIME_PATTERN_QUERY)
-    from_str = dt.strftime(dt.now() - td(days=1), DATETIME_PATTERN_QUERY)
+    now = dt.utcnow()
+    to_str = dt.strftime(now, DATETIME_PATTERN_QUERY)
+    from_str = dt.strftime(now - td(days=1), DATETIME_PATTERN_QUERY)
     error = None
     gql_query = '{'
     i = 0
