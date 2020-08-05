@@ -299,7 +299,8 @@ def delay_for_metric(metric):
 
 def is_metric_delayed(metric, dates):
     acceptable_delay = delay_for_metric(metric)
-    acceptable_delayed_since = dt.now() - acceptable_delay
+    now = dt.now()
+    acceptable_delayed_since = now.replace(minute=00, second=00) - acceptable_delay
 
     return is_delay(dates, acceptable_delayed_since)
 
@@ -320,4 +321,4 @@ def data_has_gaps(metric, interval, dates):
     return True in gaps
 
 def dt_str(datetime):
-    return dt.strftime(datetime, DATETIME_PATTERN_METRIC)
+    return dt.strftime(datetime, "%Y-%m-%d %H:%M")
