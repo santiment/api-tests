@@ -28,11 +28,13 @@ if API_KEY:
     san.ApiConfig.api_key = API_KEY
 
 def frontend():
+    """Do frontend test"""
     logging.info('Testing frontend...')
     run_frontend_test(td(hours=HOURS_BACK_TEST_FRONTEND), INTERVAL_FRONTEND)
     logging.info('Done')
 
 def sanity():
+    """Do a sanity check on GraphQL API."""
     logging.info('Doing sanity check...')
     slugs = SLUGS_FOR_SANITY_CHECK + LEGACY_ASSET_SLUGS
     logging.info(f'Slugs: {slugs}')
@@ -40,6 +42,7 @@ def sanity():
     logging.info('Done')
 
 def top():
+    """Do a test against top projects by marketcap"""
     logging.info(f'Testing top {TOP_PROJECTS_BY_MARKETCAP} projects by marketcap...')
     slugs = filter_projects_by_marketcap(TOP_PROJECTS_BY_MARKETCAP)
     logging.info(f'Slugs: {slugs}')
@@ -47,15 +50,23 @@ def top():
     logging.info('Done')
 
 def projects(*items):
+    """Do a test against selected projects"""
     slugs = list(items)
     logging.info(f'Slugs: {slugs}')
     run(slugs, DAYS_BACK_TEST, INTERVAL)
     logging.info('Done')
 
 def generate_html_report():
+    """Generate HTML report"""
     logging.info('Generating HTML report...')
     generate_html_from_json('output_for_html.json', 'index.html')
     logging.info('Done')
 
 if __name__ == '__main__':
-    fire.Fire()
+    fire.Fire({
+      'frontend': frontend,
+      'sanity': sanity,
+      'top': top,
+      'projects': projects,
+      'generate_html_report': generate_html_report
+  })
