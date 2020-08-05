@@ -8,7 +8,7 @@ pylint = "==2.3.1"
 pytest = "==5.4.2"
 
 [packages]
-sanpy = "==0.7.15"
+sanpy = "==0.8.4"
 requests = "==2.22.0"
 "discord.py" = "==1.2.3"
 s3fs = "==0.4.2"
