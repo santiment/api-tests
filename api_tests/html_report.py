@@ -91,8 +91,7 @@ def generate_html_table_debug(data):
     html = '<div class="content">'
     for item in data:
         html += f'''<div style="text-align:left;">{item['slug'].upper()}</div>'''
-        values = list(filter(lambda value: value['status'] in ['corrupted', 'empty'], item['data']))
-        values = sorted([x for x in values], key=lambda k: k['status'])
+        values = sorted([x for x in item['data']], key=lambda k: k['status'])
         if values:
             html += f'''
             <div class="scrolly">

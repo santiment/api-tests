@@ -37,7 +37,7 @@ from .constants import DATETIME_PATTERN_METRIC, \
 def run(slugs, days_back, interval):
     logging.info('PYTHON_ENV: %s', PYTHON_ENV)
     config = Config(PYTHON_ENV)
-    started = dt.now()
+    started = dt.utcnow()
     started_string = started.strftime("%Y-%m-%d-%H-%M")
 
     logging.info('Testing...')
@@ -109,6 +109,11 @@ def test_all(slugs, last_days, interval):
     output = {}
     output_for_html = []
 
+    now = dt.utcnow()
+
+    from_dt = now - td(days=last_days)
+    to_dt = now
+
     for slug in slugs:
         logging.info("Testing slug: %s", slug)
 
@@ -128,7 +133,8 @@ def test_all(slugs, last_days, interval):
         test_timeseries_metrics(
             slug,
             timeseries_metrics,
-            last_days,
+            from_dt,
+            to_dt,
             interval,
             slug_report
         )
@@ -136,7 +142,8 @@ def test_all(slugs, last_days, interval):
         test_histogram_metrics(
             slug,
             histogram_metrics,
-            last_days,
+            from_dt,
+            to_dt,
             interval,
             slug_report
         )
@@ -144,7 +151,8 @@ def test_all(slugs, last_days, interval):
         test_queries(
             slug,
             queries,
-            last_days,
+            from_dt,
+            to_dt,
             interval,
             slug_report
         )
@@ -154,13 +162,11 @@ def test_all(slugs, last_days, interval):
 
     return output, output_for_html, slug_report.error_output
 
-def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_report):
+def test_timeseries_metrics(slug, timeseries_metrics, from_dt, to_dt, interval, slug_report):
     for metric in timeseries_metrics:
         metric_progress_string = build_progress_string('timeseries metric', metric, timeseries_metrics)
         logging.info("%s%s Testing metric: %s", slug_report.progress, metric_progress_string, metric)
 
-        from_dt = dt.now() - td(days=last_days)
-        to_dt = dt.now()
         gql_query = build_timeseries_gql_string(metric, slug, from_dt, to_dt, interval)
         metric_report = MetricReport(name=metric, slug=slug, query=gql_query)
 
@@ -199,13 +205,11 @@ def test_timeseries_metrics(slug, timeseries_metrics, last_days, interval, slug_
         slug_report.metric_states.append(metric_summary)
         slug_report.set_error_output(metric_report.error_output())
 
-def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_report):
+def test_histogram_metrics(slug, histogram_metrics, from_dt, to_dt, interval, slug_report):
     for metric in histogram_metrics:
         metric_progress_string = build_progress_string('histogram metric', metric, histogram_metrics)
         logging.info("%s%s Testing metric: %s", slug_report.progress, metric_progress_string, metric)
 
-        from_dt = dt.now() - td(days=last_days)
-        to_dt = dt.now()
         gql_query = build_histogram_gql_string(metric, slug, from_dt, to_dt, interval, HISTOGRAM_METRICS_LIMIT)
         metric_report = MetricReport(name=metric, slug=slug, query=gql_query)
 
@@ -231,13 +235,11 @@ def test_histogram_metrics(slug, histogram_metrics, last_days, interval, slug_re
         slug_report.metric_states.append(metric_summary)
         slug_report.set_error_output(metric_report.error_output())
 
-def test_queries(slug, queries, last_days, interval, slug_report):
+def test_queries(slug, queries, from_dt, to_dt, interval, slug_report):
     for query in queries:
         query_progress_string = build_progress_string('query', query, queries)
         logging.info("%s%s Testing query: %s", slug_report.progress, query_progress_string, query)
 
-        from_dt = dt.now() - td(days=last_days)
-        to_dt = dt.now()
         gql_query = build_query_gql_string(query, slug, from_dt, to_dt, interval)
         metric_report = MetricReport(name=query, slug=slug, query=gql_query)
 
@@ -299,7 +301,8 @@ def delay_for_metric(metric):
 
 def is_metric_delayed(metric, dates):
     acceptable_delay = delay_for_metric(metric)
-    acceptable_delayed_since = dt.now() - acceptable_delay
+    now = dt.utcnow()
+    acceptable_delayed_since = now.replace(minute=00, second=00) - acceptable_delay
 
     return is_delay(dates, acceptable_delayed_since)
 
@@ -320,4 +323,4 @@ def data_has_gaps(metric, interval, dates):
     return True in gaps
 
 def dt_str(datetime):
-    return dt.strftime(datetime, DATETIME_PATTERN_METRIC)
+    return dt.strftime(datetime, "%Y-%m-%d %H:%M")

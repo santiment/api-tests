@@ -39,7 +39,15 @@ METRICS_WITH_LONGER_DELAY = [
 ]
 
 METRICS_WITH_ALLOWED_NEGATIVES = [
+    "30d_moving_avg_dev_activity_change_1d",
+    "dev_activity_change_1d",
+    "dev_activity_change_7d",
+    "dev_activity_change_30d",
+    "marketcap_usd_change_1d",
+    "marketcap_usd_change_7d",
+    "marketcap_usd_change_30d",
     "exchange_balance",
+    "exchange_balance_per_exchange",
     "priceVolumeDiff",
     "price_usd_change_1d",
     "price_usd_change_30d",

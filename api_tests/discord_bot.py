@@ -16,31 +16,34 @@ else:
 report_url = "https://jenkins.internal.santiment.net/job/Santiment/job/api-tests/job/master/Test_20Report/"
 
 def send_frontend_alert(error_message):
+    now = datetime.datetime.utcnow()
+
     if error_message:
         message = f"""
 ++++++++++++++++++++++++++++++++++++++++++++++++
 {mention}
 Frontend API alert
-Triggered at {datetime.datetime.now()}
+Triggered at {now}
 Caused by: {error_message}
 ===============================================
 """
     else:
-        message = f"{datetime.datetime.now()} Frontend API check success!"
+        message = f"{now} Frontend API check success!"
     if DISCORD_WEBHOOK:
         webhook.send(message, username='API Alert Bot')
 
 def send_metric_alert(error=None):
+    now = datetime.datetime.utcnow()
     if error:
         message = f"""
 ++++++++++++++++++++++++++++++++++++++++++++++++
 {mention}
 Problem with API: {error}
-Triggered at {datetime.datetime.now()}
+Triggered at {now}
 See report at {report_url}
 ===============================================
 """
     else:
-        message = f"{datetime.datetime.now()} Metric API check success!"
+        message = f"{now} Metric API check success!"
     if DISCORD_WEBHOOK:
         webhook.send(message, username='API Alert Bot')
