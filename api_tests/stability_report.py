@@ -1,9 +1,13 @@
 import json
 import re
+import logging
+from datetime import datetime
+from .config import Config
 from .constants import SLUGS_FOR_SANITY_CHECK
 from .utils.s3 import s3_list_files, s3_read_file_content
-from .constants import S3_BUCKET_NAME
+from .constants import S3_BUCKET_NAME, ERRORS_IN_ROW, PYTHON_ENV
 from .utils.file_utils import save_json_to_file
+from .utils.s3 import upload_to_s3, set_json_content_type
 
 def build_report_json_filename(bucket_name, dt_string):
     return f'{bucket_name}/{dt_string}-report.json'
@@ -70,6 +74,23 @@ def create_stability_report(errors_in_row):
     result = filter_only_repeating_failures(latest_files, failures)
 
     filename = 'lastest-stability-report.json'
-    save_json_to_file(result, filename)
+    filepath = save_json_to_file(result, filename)
 
-    return filename
+    return filepath
+
+def run():
+    config = Config(PYTHON_ENV)
+    stability_json_filepath = create_stability_report(ERRORS_IN_ROW)
+
+    started_string = datetime.utcnow().strftime("%Y-%m-%d-%H-%M")
+
+    if config.getboolean('upload_to_s3'):
+        latest_json_stability_report_filename = 'latest-stability-report.json'
+        upload_to_s3(filepath=stability_json_filepath, key=latest_json_stability_report_filename)
+        set_json_content_type(latest_json_stability_report_filename)
+        logging.info('Uploaded %s', latest_json_stability_report_filename)
+
+        current_json_stability_report_filename = f'{started_string}-stability-report.json'
+        upload_to_s3(filepath=stability_json_filepath, key=current_json_stability_report_filename)
+        set_json_content_type(current_json_stability_report_filename)
+        logging.info('Uploaded %s', current_json_stability_report_filename)
