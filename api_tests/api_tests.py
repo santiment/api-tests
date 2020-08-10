@@ -34,9 +34,11 @@ from .constants import DATETIME_PATTERN_METRIC, \
                        LEGACY_ASSET_SLUGS, \
                        IGNORED_METRICS
 
+config = Config(PYTHON_ENV)
+
 def run(slugs, days_back, interval):
     logging.info('PYTHON_ENV: %s', PYTHON_ENV)
-    config = Config(PYTHON_ENV)
+
     started = dt.utcnow()
     started_string = started.strftime("%Y-%m-%d-%H-%M")
 
@@ -85,23 +87,6 @@ def run(slugs, days_back, interval):
         logging.info('Uploaded %s', current_json_report_filename)
     else:
         logging.info("Skipping publish reports to S3")
-
-    if config.getboolean('build_stability_report'):
-        logging.info('Generating stability json report...')
-        stability_json_filepath = create_stability_report(ERRORS_IN_ROW)
-
-        if config.getboolean('upload_to_s3'):
-            latest_json_stability_report_filename = 'latest-stability-report.json'
-            upload_to_s3(filepath=stability_json_filepath, key=latest_json_stability_report_filename)
-            set_json_content_type(latest_json_stability_report_filename)
-            logging.info('Uploaded %s', latest_json_stability_report_filename)
-
-            current_json_stability_report_filename = f'{started_string}-stability-report.json'
-            upload_to_s3(filepath=stability_json_filepath, key=current_json_stability_report_filename)
-            set_json_content_type(current_json_stability_report_filename)
-            logging.info('Uploaded %s', current_json_stability_report_filename)
-    else:
-        logging.info("Skipping generation of stability report")
 
     logging.info('Finished')
 

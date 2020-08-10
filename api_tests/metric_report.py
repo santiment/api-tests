@@ -29,7 +29,7 @@ class MetricReport:
         return self.error is not None and self.status == 'corrupted'
 
     def has_errors(self):
-        return bool(self.status)
+        return False if self.status in ['passed', 'ignored'] else True
 
     def error_output(self):
         if self.status == 'GraphQL error':

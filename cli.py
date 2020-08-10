@@ -7,6 +7,8 @@ import san
 from api_tests.api_tests import run, filter_projects_by_marketcap
 from api_tests.frontend import run as run_frontend_test
 from api_tests.html_report import generate_html_from_json
+from api_tests.stability_report import run as run_stability_report
+from api_tests.config import Config
 from api_tests.constants import DAYS_BACK_TEST, \
                                 INTERVAL, \
                                 INTERVAL_FRONTEND, \
@@ -17,9 +19,11 @@ from api_tests.constants import DAYS_BACK_TEST, \
                                 LOG_LEVEL, \
                                 LOG_DATE_FORMAT, \
                                 SLUGS_FOR_SANITY_CHECK, \
-                                LEGACY_ASSET_SLUGS
+                                LEGACY_ASSET_SLUGS, \
+                                PYTHON_ENV
 
 logging.basicConfig(format=LOG_FORMAT, level=LOG_LEVEL, datefmt=LOG_DATE_FORMAT)
+config = Config(PYTHON_ENV)
 
 slugs = []
 
@@ -39,6 +43,16 @@ def sanity():
     slugs = SLUGS_FOR_SANITY_CHECK + LEGACY_ASSET_SLUGS
     logging.info(f'Slugs: {slugs}')
     run(slugs, DAYS_BACK_TEST, INTERVAL)
+    logging.info('Done')
+
+def build_stability_report():
+    """Do a stability report based on the last X reports uploaded in S3"""
+    if config.getboolean('build_stability_report'):
+        logging.info('Generating stability json report...')
+        run_stability_report()
+    else:
+        logging.info("Skipping generation of stability report")
+
     logging.info('Done')
 
 def top():
@@ -68,5 +82,6 @@ if __name__ == '__main__':
       'sanity': sanity,
       'top': top,
       'projects': projects,
-      'generate_html_report': generate_html_report
+      'generate_html_report': generate_html_report,
+      'build_stability_report': build_stability_report
   })
