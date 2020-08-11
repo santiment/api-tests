@@ -281,7 +281,7 @@ def is_delay(dates, acceptable_delayed_since):
     return (last_date < acceptable_delayed_since, last_date, acceptable_delayed_since)
 
 def delay_for_metric(metric):
-    delay = td(hours=48) if metric in METRICS_WITH_LONGER_DELAY else td(hours=24)
+    delay = td(hours=48) if metric in METRICS_WITH_LONGER_DELAY else td(hours=36)
     return delay
 
 def is_metric_delayed(metric, dates):
