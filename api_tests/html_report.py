@@ -108,7 +108,7 @@ def generate_html_table_debug(data):
                 color = color_mapping[value['status'].split(':')[0]]
                 html += f'''
                 <td style="background-color:{color};text-align:center;">
-                    {value['status']}
+                    {value['status']} - {'{:.2f}'.format(value['elapsed_time'])}s
                 </td>
                 '''
             html += '''

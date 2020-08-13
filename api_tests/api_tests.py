@@ -161,8 +161,9 @@ def test_timeseries_metrics(slug, timeseries_metrics, from_dt, to_dt, interval, 
             pass
 
         try:
-            result = get_timeseries_metric_data(gql_query, metric, slug)
+            (result, elapsed_time) = get_timeseries_metric_data(gql_query, metric, slug)
             metric_report.set_passed()
+            metric_report.set_elapsed_time(elapsed_time)
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -204,8 +205,9 @@ def test_histogram_metrics(slug, histogram_metrics, from_dt, to_dt, interval, sl
             pass
 
         try:
-            result = get_histogram_metric_data(gql_query, metric, slug)
+            (result, elapsed_time) = get_histogram_metric_data(gql_query, metric, slug)
             metric_report.set_passed()
+            metric_report.set_elapsed_time(elapsed_time)
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -234,8 +236,9 @@ def test_queries(slug, queries, from_dt, to_dt, interval, slug_report):
             pass
 
         try:
-            result = get_query_data(gql_query, query, slug)
+            (result, elapsed_time) = get_query_data(gql_query, query, slug)
             metric_report.set_passed()
+            metric_report.set_elapsed_time(elapsed_time)
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()

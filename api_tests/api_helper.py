@@ -61,10 +61,13 @@ def build_query_gql_string(query, slug, dt_from, dt_to, interval):
 def get_query_data(gql_query, query_name, slug):
     error = None
     attempts = 0
+    started = time.time()
+
     while attempts < NUMBER_OF_RETRIES:
         try:
             response = execute_gql(gql_query)
-            return response[query_name]
+            elapsed_time = time.time() - started
+            return response[query_name], elapsed_time
         except SanError as e:
             attempts += 1
             error = e
@@ -94,10 +97,13 @@ def build_timeseries_gql_string(metric, slug, dt_from, dt_to, interval):
 def get_timeseries_metric_data(gql_query, metric, slug):
     error = None
     attempts = 0
+    started = time.time()
+
     while attempts < NUMBER_OF_RETRIES:
         try:
             response = execute_gql(gql_query)
-            return response['getMetric']['timeseriesData']
+            elapsed_time = time.time() - started
+            return response['getMetric']['timeseriesData'], elapsed_time
         except SanError as e:
             attempts += 1
             error = e
@@ -161,10 +167,13 @@ def build_histogram_gql_string(metric, slug, dt_from, dt_to, interval, limit):
 def get_histogram_metric_data(gql_query, metric, slug):
     error = None
     attempts = 0
+    started = time.time()
+
     while attempts < NUMBER_OF_RETRIES:
         try:
             response = execute_gql(gql_query)
-            return response['getMetric']['histogramData']
+            elapsed_time = time.time() - started
+            return response['getMetric']['histogramData'], elapsed_time
         except SanError as e:
             attempts += 1
             error = e
