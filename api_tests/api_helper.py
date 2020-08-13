@@ -6,6 +6,7 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 from .constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, NUMBER_OF_RETRIES, CALL_DELAY
 from .queries import queries, special_queries
+from functools import lru_cache
 
 def get_available_metrics_and_queries(slug):
     gql_query = '''
@@ -170,6 +171,7 @@ def get_histogram_metric_data(gql_query, metric, slug):
             error = e
     raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts. Reason: {str(error)}")
 
+@lru_cache()
 def get_min_interval(metric):
     gql_query = '''
     {
