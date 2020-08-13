@@ -146,7 +146,7 @@ def generate_html_table_debug(data):
 def generate_html_table_performance(data):
     html = '<div class="content">'
     for item in data:
-        html += f'''<div style="text-align:left;">{item['slug'].upper()}</div>'''
+        html += f'''<div style="text-align:left;">{item['slug'].upper()} ({'{:.2f}'.format(item['elapsed_time'])}s)</div>'''
         values = sorted([x for x in item['data']], key=lambda k: k['elapsed_time'], reverse=True)
         if values:
             html += f'''

@@ -3,6 +3,7 @@ import json
 import logging
 from datetime import datetime as dt
 from datetime import timedelta as td
+import time
 import san
 from san.error import SanError
 from .api_helper import get_available_metrics_and_queries, \
@@ -101,6 +102,7 @@ def test_all(slugs, last_days, interval):
     to_dt = now
 
     for slug in slugs:
+        started = time.time()
         logging.info("Testing slug: %s", slug)
 
         if slug in LEGACY_ASSET_SLUGS:
@@ -143,8 +145,9 @@ def test_all(slugs, last_days, interval):
             slug_report
         )
 
+        elapsed_time = time.time() - started
         output[slug] = slug_report.to_json()
-        output_for_html.append({'slug': slug, 'data': slug_report.metric_states})
+        output_for_html.append({'slug': slug, 'data': slug_report.metric_states, 'elapsed_time': elapsed_time})
 
     return output, output_for_html, slug_report.error_output
 
