@@ -77,7 +77,14 @@ METRICS_WITH_ALLOWED_NEGATIVES = [
     "sentiment_volume_consumed_twitter",
     "sentiment_volume_consumed_total",
     "bitmex_perpetual_basis",
-    "bitmex_perpetual_basis_ratio"
+    "bitmex_perpetual_basis_ratio",
+    "network_growth_change_1d",
+    "network_growth_change_7d",
+    "network_growth_change_30d"
+]
+
+METRICS_WITH_ALLOWED_GAPS = [
+    "twitter_followers"
 ]
 
 IGNORED_METRICS = []

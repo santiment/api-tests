@@ -28,6 +28,7 @@ from .constants import DATETIME_PATTERN_METRIC, \
                        BATCH_SIZE, \
                        METRICS_WITH_LONGER_DELAY, \
                        METRICS_WITH_ALLOWED_NEGATIVES, \
+                       METRICS_WITH_ALLOWED_GAPS, \
                        INTERVAL_TIMEDELTA, \
                        ERRORS_IN_ROW, \
                        PYTHON_ENV, \
@@ -301,10 +302,12 @@ def is_data_incorrect(metric, values):
     return (bool(reason), reason)
 
 def data_has_gaps(metric, interval, dates):
-    delta = INTERVAL_TIMEDELTA[interval]
-    delta_metric = INTERVAL_TIMEDELTA[get_min_interval(metric)]
-    delta_result = max(delta, delta_metric)
-    gaps = [dates[x] - dates[x-1] > delta_result for x in range(1, len(dates) - 1)]
+    gaps = []
+    if metric not in METRICS_WITH_ALLOWED_GAPS:
+        delta = INTERVAL_TIMEDELTA[interval]
+        delta_metric = INTERVAL_TIMEDELTA[get_min_interval(metric)]
+        delta_result = max(delta, delta_metric)
+        gaps = [dates[x] - dates[x-1] > delta_result for x in range(1, len(dates) - 1)]
     return True in gaps
 
 def dt_str(datetime):
