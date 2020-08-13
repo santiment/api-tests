@@ -21,7 +21,7 @@ S3_ACCESS_KEY = os.getenv('S3_ACCESS_KEY', '')
 S3_ACCESS_SECRET = os.getenv('S3_ACCESS_SECRET', '')
 S3_BUCKET_NAME = os.getenv('S3_BUCKET_NAME', '')
 NUMBER_OF_RETRIES = os.getenv('NUMBER_OF_RETRIES', 5)
-CALL_DELAY = float(os.getenv('CALL_DELAY', 0.09))
+RETRY_DELAY = float(os.getenv('RETRY_DELAY', 0.1))
 ERRORS_IN_ROW = int(os.getenv('ERRORS_IN_ROW', 5))
 PYTHON_ENV = os.getenv('PYTHON_ENV', 'development')
 

@@ -4,7 +4,7 @@ from san.graphql import execute_gql
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from .constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, NUMBER_OF_RETRIES, CALL_DELAY
+from .constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, NUMBER_OF_RETRIES, RETRY_DELAY
 from .queries import queries, special_queries
 from functools import lru_cache
 
@@ -22,7 +22,6 @@ def get_available_metrics_and_queries(slug):
     error = None
     while attempts < NUMBER_OF_RETRIES:
         try:
-            time.sleep(CALL_DELAY)
             response = execute_gql(gql_query)
             timeseries_metrics = response['projectBySlug']['availableTimeseriesMetrics']
             histogram_metrics = response['projectBySlug']['availableHistogramMetrics']
@@ -33,6 +32,7 @@ def get_available_metrics_and_queries(slug):
         except SanError as e:
             attempts += 1
             error = e
+            time.sleep(RETRY_DELAY)
     raise SanError(f"Not able to get availableMetrics for {slug} after multiple attempts. Reason: {str(error)}")
 
 def build_query_gql_string(query, slug, dt_from, dt_to, interval):
@@ -63,12 +63,12 @@ def get_query_data(gql_query, query_name, slug):
     attempts = 0
     while attempts < NUMBER_OF_RETRIES:
         try:
-            time.sleep(CALL_DELAY)
             response = execute_gql(gql_query)
             return response[query_name]
         except SanError as e:
             attempts += 1
             error = e
+            time.sleep(RETRY_DELAY)
     raise SanError(f"Not able to fetch {query_name} query for {slug} after 3 attempts. Reason: {str(error)}")
 
 def build_timeseries_gql_string(metric, slug, dt_from, dt_to, interval):
@@ -96,12 +96,12 @@ def get_timeseries_metric_data(gql_query, metric, slug):
     attempts = 0
     while attempts < NUMBER_OF_RETRIES:
         try:
-            time.sleep(CALL_DELAY)
             response = execute_gql(gql_query)
             return response['getMetric']['timeseriesData']
         except SanError as e:
             attempts += 1
             error = e
+            time.sleep(RETRY_DELAY)
     raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts. Reason: {str(error)}")
 
 def get_marketcap_batch(slugs):
@@ -125,12 +125,12 @@ def get_marketcap_batch(slugs):
     attempts = 0
     while attempts < NUMBER_OF_RETRIES:
         try:
-            time.sleep(CALL_DELAY)
             response = execute_gql(gql_query)
             return [response[f"query_{x}"][0]['marketcap'] if response[f"query_{x}"] else 0 for x in range(len(slugs))]
         except SanError as e:
             attempts += 1
             error = e
+            time.sleep(RETRY_DELAY)
     raise SanError(f"Not able to fetcha batch of marketcaps after 3 attempts. Reason: {str(error)}")
 
 def build_histogram_gql_string(metric, slug, dt_from, dt_to, interval, limit):
@@ -163,12 +163,12 @@ def get_histogram_metric_data(gql_query, metric, slug):
     attempts = 0
     while attempts < NUMBER_OF_RETRIES:
         try:
-            time.sleep(CALL_DELAY)
             response = execute_gql(gql_query)
             return response['getMetric']['histogramData']
         except SanError as e:
             attempts += 1
             error = e
+            time.sleep(RETRY_DELAY)
     raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts. Reason: {str(error)}")
 
 @lru_cache()
@@ -186,10 +186,10 @@ def get_min_interval(metric):
     error = None
     while attempts < NUMBER_OF_RETRIES:
         try:
-            time.sleep(CALL_DELAY)
             response = execute_gql(gql_query)
             return response['getMetric']['metadata']['minInterval']
         except SanError as e:
             attempts += 1
             error = e
+            time.sleep(RETRY_DELAY)
     raise SanError(f"Not able to get min interval for {metric} after 3 attempts. Reason: {str(error)}")
