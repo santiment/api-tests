@@ -62,6 +62,10 @@ def generate_html_from_json(input_file, output_file):
     '''
     html += generate_html_table_classic(data)
     html += '''
+    <button type="button" class="collapsible">Performance view</button>
+    '''
+    html += generate_html_table_performance(data)
+    html += '''
     <button type="button" class="collapsible">Debug view</button>
     '''
     html += generate_html_table_debug(data)
@@ -138,6 +142,42 @@ def generate_html_table_debug(data):
             html += '<div><b>EMPTY</b></div><br/>'
     html += '</div>'
     return html
+
+def generate_html_table_performance(data):
+    html = '<div class="content">'
+    for item in data:
+        html += f'''<div style="text-align:left;">{item['slug'].upper()}</div>'''
+        values = sorted([x for x in item['data']], key=lambda k: k['elapsed_time'], reverse=True)
+        if values:
+            html += f'''
+            <div class="scrolly">
+            <table>
+            <tr>'''
+            for value in values:
+                html += f'''
+                <th><a href="{value['gql_query_url']}">{value['name']}</a></th>
+                '''
+            html += '''
+            </tr>
+            <tr>'''
+            for value in values:
+                color = color_mapping[value['status'].split(':')[0]]
+                html += f'''
+                <td style="background-color:{color};text-align:center;">
+                    {value['status']} - {'{:.2f}'.format(value['elapsed_time'])}s
+                </td>
+                '''
+            html += '''
+            </tr>
+            </table>
+            </div>
+            <br/>
+            '''
+        else:
+            html += '<div><b>EMPTY</b></div><br/>'
+    html += '</div>'
+    return html
+
 
 def generate_html_table_classic(data):
     all_names = []
