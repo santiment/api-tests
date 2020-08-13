@@ -33,7 +33,7 @@ def get_available_metrics_and_queries(slug):
             attempts += 1
             error = e
             time.sleep(RETRY_DELAY)
-    raise SanError(f"Not able to get availableMetrics for {slug} after multiple attempts. Reason: {str(error)}")
+    raise SanError(f"Not able to get availableMetrics for {slug} after {NUMBER_OF_RETRIES} attempts. Reason: {str(error)}")
 
 def build_query_gql_string(query, slug, dt_from, dt_to, interval):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_QUERY)
@@ -69,7 +69,7 @@ def get_query_data(gql_query, query_name, slug):
             attempts += 1
             error = e
             time.sleep(RETRY_DELAY)
-    raise SanError(f"Not able to fetch {query_name} query for {slug} after 3 attempts. Reason: {str(error)}")
+    raise SanError(f"Not able to fetch {query_name} query for {slug} after {NUMBER_OF_RETRIES} attempts. Reason: {str(error)}")
 
 def build_timeseries_gql_string(metric, slug, dt_from, dt_to, interval):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_METRIC)
@@ -102,7 +102,7 @@ def get_timeseries_metric_data(gql_query, metric, slug):
             attempts += 1
             error = e
             time.sleep(RETRY_DELAY)
-    raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts. Reason: {str(error)}")
+    raise SanError(f"Not able to fetch {metric} metric for {slug} after {NUMBER_OF_RETRIES} attempts. Reason: {str(error)}")
 
 def get_marketcap_batch(slugs):
     now = dt.utcnow()
@@ -131,7 +131,7 @@ def get_marketcap_batch(slugs):
             attempts += 1
             error = e
             time.sleep(RETRY_DELAY)
-    raise SanError(f"Not able to fetcha batch of marketcaps after 3 attempts. Reason: {str(error)}")
+    raise SanError(f"Not able to fetcha batch of marketcaps after {NUMBER_OF_RETRIES} attempts. Reason: {str(error)}")
 
 def build_histogram_gql_string(metric, slug, dt_from, dt_to, interval, limit):
     str_from = dt.strftime(dt_from, DATETIME_PATTERN_METRIC)
@@ -169,7 +169,7 @@ def get_histogram_metric_data(gql_query, metric, slug):
             attempts += 1
             error = e
             time.sleep(RETRY_DELAY)
-    raise SanError(f"Not able to fetch {metric} metric for {slug} after 3 attempts. Reason: {str(error)}")
+    raise SanError(f"Not able to fetch {metric} metric for {slug} after {NUMBER_OF_RETRIES} attempts. Reason: {str(error)}")
 
 @lru_cache()
 def get_min_interval(metric):
@@ -192,4 +192,4 @@ def get_min_interval(metric):
             attempts += 1
             error = e
             time.sleep(RETRY_DELAY)
-    raise SanError(f"Not able to get min interval for {metric} after 3 attempts. Reason: {str(error)}")
+    raise SanError(f"Not able to get min interval for {metric} after {NUMBER_OF_RETRIES} attempts. Reason: {str(error)}")
