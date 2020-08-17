@@ -4,18 +4,29 @@ from datetime import timedelta as td
 from san.error import SanError
 from .exceptions import APIError
 from .api_helper import get_query_data, build_query_gql_string
-from .discord_bot import send_frontend_alert
+from .discord_bot import publish_frontend_alert
+from .config import Config
+
 
 def run(last_days, interval):
+    config = Config(PYTHON_ENV)
+
+    logging.info('Testing frontend...')
+
     try:
         test_frontend_api(last_days, interval)
     except (SanError, APIError, KeyError) as e:
         message = str(e)
         logging.error(message)
-        send_frontend_alert(message)
     else:
         logging.info('Success')
-        send_frontend_alert(None)
+        message = None
+
+    if config.getboolean('send_discord_notification'):
+        logging.info('Sending discord notification...')
+        publish_frontend_alert(message)
+    else:
+        logging.info('Skipping discord notification')
 
 def test_frontend_api(back_test_period, interval):
     test_data = [
