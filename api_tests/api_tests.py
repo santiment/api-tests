@@ -17,7 +17,7 @@ from .api_helper import get_available_metrics_and_queries, \
                         build_timeseries_gql_string
 from .html_report import generate_html_from_json
 from .queries import special_queries
-from .discord_bot import send_metric_alert
+from .discord_bot import publish_graphql_alert
 from .stability_report import create_stability_report
 from .metric_report import MetricReport
 from .slug_report import SlugReport
@@ -44,7 +44,7 @@ def run(slugs, days_back, interval):
     started = dt.utcnow()
     started_string = started.strftime("%Y-%m-%d-%H-%M")
 
-    logging.info('Testing...')
+    logging.info('Testing GraphQL API...')
     (output, output_for_html, error_output) = test_all(slugs, days_back, interval)
 
     logging.info('Saving JSON output...')
@@ -59,8 +59,11 @@ def run(slugs, days_back, interval):
     html_filepath = generate_html_from_json('output_for_html.json', 'index.html')
     logging.info('Saved to %s', html_filepath)
 
-    logging.info('Sending alerts...')
-    send_metric_alert(error_output)
+    if config.getboolean('send_discord_notification'):
+        logging.info('Sending discord notification...')
+        publish_graphql_alert(error_output)
+    else:
+        logging.info('Skipping discord notification')
 
     final_status = 'passed' if not error_output else error_output
     logging.info(f'Final status: {final_status}')
