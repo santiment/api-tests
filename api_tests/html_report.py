@@ -164,7 +164,6 @@ def generate_html_table_performance(data):
             </tr>
             <tr>'''
             for value in values:
-                print(value)
                 color = color_mapping[value['performance_result']]
                 html += f'''
                 <td style="background-color:{color};text-align:center;">
