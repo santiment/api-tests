@@ -6,7 +6,7 @@ from .exceptions import APIError
 from .api_helper import get_query_data, build_query_gql_string
 from .discord_bot import publish_frontend_alert
 from .config import Config
-
+from .constants import PYTHON_ENV
 
 def run(last_days, interval):
     config = Config(PYTHON_ENV)
