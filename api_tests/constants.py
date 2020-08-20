@@ -29,6 +29,12 @@ LONGER_ALLOWED_DELAY = td(hours=48)
 NUMBER_OF_RUNS_FOR_TIMING_TEST = 5
 ACCEPTABLE_RESPONSE_TIME = 10
 
+DATABASE_HOST = os.getenv('DATABASE_HOST', 'localhost')
+DATABASE_PORT = os.getenv('DATABASE_PORT', 5432)
+DATABASE_USER = os.getenv('DATABASE_USER', 'postgres')
+DATABASE_PASSWORD = os.getenv('DATABASE_PASSWORD', 'postgres')
+DATABASE_DB = os.getenv('DATABASE_DB', 'api-tests')
+
 LOG_FORMAT = os.getenv(
     'LOG_FORMAT',
     '{"level": "%(levelname)s", "time": "%(asctime)s", "message": "%(message)s"}')

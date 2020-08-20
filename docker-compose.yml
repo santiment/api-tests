@@ -22,3 +22,5 @@ services:
       DATABASE_PASSWORD: postgres
       DATABASE_DB: api-tests
       SANBASE_GQL_HOST: https://api-stage.santiment.net/graphql
+    volumes:
+      - ./output:/app/output
