@@ -8,6 +8,8 @@ ENV API_KEY=${API_KEY}
 
 WORKDIR /app
 
+RUN apt update && apt install gcc libpq-dev -y
+
 COPY requirements.txt /app/requirements.txt
 RUN pip3 wheel -r requirements.txt -w /wheels
 
