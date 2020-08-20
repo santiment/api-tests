@@ -22,8 +22,8 @@ Install dependencies:
 * `DAYS_BACK_TEST` - amount many days back from now to fetch metric data, default=30
 * `TOP_PROJECTS_BY_MARKETCAP` - amount of projects from top of the list by marketcap to test metrics against, default=100
 * `HISTOGRAM_METRICS_LIMIT` - limit for historgam-type metrics data, default=10
-* `PERFORMANCE_TIME_RANGE_LOW` - time below which the performance of a metric is considered fast
-* `PERFORMANCE_TIME_RANGE_HIGH` - time above which the performance of a metric is considered slow
+* `ELAPSED_TIME_FAST_THRESHOLD` - time below which the performance of a metric is considered fast
+* `ELAPSED_TIME_SLOW_THRESHOLD` - time above which the performance of a metric is considered slow
 
 Also, there's a variable to configure sanpy:
 
