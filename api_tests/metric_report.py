@@ -10,6 +10,7 @@ class MetricReport:
         self.error = {}
         self.error_details = []
         self.elapsed_time = 0.0
+        self.performance_result = "N/A"
 
     def set_passed(self):
         self.status = 'passed'
@@ -28,6 +29,9 @@ class MetricReport:
 
     def set_elapsed_time(self, duration):
         self.elapsed_time = duration
+
+    def set_performance_result(self, result):
+        self.performance_result = result
 
     def is_corrupted(self):
         return self.error is not None and self.status == 'corrupted'
@@ -64,6 +68,7 @@ class MetricReport:
             'status': self.status,
             'gql_query_url': self.generate_gql_url(),
             'elapsed_time': self.elapsed_time,
-            'details': self.error_details
+            'details': self.error_details,
+            'performance_result': self.performance_result
         }
 

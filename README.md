@@ -22,6 +22,8 @@ Install dependencies:
 * `DAYS_BACK_TEST` - amount many days back from now to fetch metric data, default=30
 * `TOP_PROJECTS_BY_MARKETCAP` - amount of projects from top of the list by marketcap to test metrics against, default=100
 * `HISTOGRAM_METRICS_LIMIT` - limit for historgam-type metrics data, default=10
+* `ELAPSED_TIME_FAST_THRESHOLD` - time below which the performance of a metric is considered fast
+* `ELAPSED_TIME_SLOW_THRESHOLD` - time above which the performance of a metric is considered slow
 
 Also, there's a variable to configure sanpy:
 
@@ -53,3 +55,9 @@ To run the test for metrics against key projects, run:
 ```
 python cli.py sanity
 ```
+
+## Maintenance
+By default, metric is not allowed to have negative values or gaps, and the delay between current time and the last available data point is allowed no more than `REGULAR_ALLOWED_DELAY`. 
+However, some metrics are different by design. So, if a new metric has been added to the API, and it can have negatives, add it to `METRICS_WITH_ALLOWED_NEGATIVES`.
+Same with gaps - add that metric to `METRICS_WITH_ALLOWED_GAPS`.
+If a metric can have longer delay - add it to `METRICS_WITH_LONGER_DELAY`.
