@@ -24,6 +24,8 @@ NUMBER_OF_RETRIES = os.getenv('NUMBER_OF_RETRIES', 5)
 RETRY_DELAY = float(os.getenv('RETRY_DELAY', 0.1))
 ERRORS_IN_ROW = int(os.getenv('ERRORS_IN_ROW', 5))
 PYTHON_ENV = os.getenv('PYTHON_ENV', 'development')
+REGULAR_ALLOWED_DELAY = td(hours=36)
+LONGER_ALLOWED_DELAY = td(hours=48)
 
 LOG_FORMAT = os.getenv(
     'LOG_FORMAT',
@@ -122,3 +124,6 @@ LEGACY_ASSET_SLUGS = [
     "s-and-p-500",
     "crude-oil"
 ]
+
+PERFORMANCE_TIME_RANGE_LOW = 1.0
+PERFORMANCE_TIME_RANGE_HIGH = 3.0

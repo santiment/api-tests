@@ -34,7 +34,11 @@ from .constants import DATETIME_PATTERN_METRIC, \
                        ERRORS_IN_ROW, \
                        PYTHON_ENV, \
                        LEGACY_ASSET_SLUGS, \
-                       IGNORED_METRICS
+                       IGNORED_METRICS, \
+                       PERFORMANCE_TIME_RANGE_HIGH, \
+                       PERFORMANCE_TIME_RANGE_LOW, \
+                       REGULAR_ALLOWED_DELAY, \
+                       LONGER_ALLOWED_DELAY
 
 config = Config(PYTHON_ENV)
 
@@ -170,6 +174,7 @@ def test_timeseries_metrics(slug, timeseries_metrics, from_dt, to_dt, interval, 
             (result, elapsed_time) = get_timeseries_metric_data(gql_query, metric, slug)
             metric_report.set_passed()
             metric_report.set_elapsed_time(elapsed_time)
+            metric_report.set_performance_result(time_to_performance_result(elapsed_time))
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -214,6 +219,7 @@ def test_histogram_metrics(slug, histogram_metrics, from_dt, to_dt, interval, sl
             (result, elapsed_time) = get_histogram_metric_data(gql_query, metric, slug)
             metric_report.set_passed()
             metric_report.set_elapsed_time(elapsed_time)
+            metric_report.set_performance_result(time_to_performance_result(elapsed_time))
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -245,6 +251,7 @@ def test_queries(slug, queries, from_dt, to_dt, interval, slug_report):
             (result, elapsed_time) = get_query_data(gql_query, query, slug)
             metric_report.set_passed()
             metric_report.set_elapsed_time(elapsed_time)
+            metric_report.set_performance_result(time_to_performance_result(elapsed_time))
         except SanError as error:
             logging.info(str(error))
             metric_report.set_graphql_error()
@@ -291,7 +298,7 @@ def is_delay(dates, acceptable_delayed_since):
     return (last_date < acceptable_delayed_since, last_date, acceptable_delayed_since)
 
 def delay_for_metric(metric):
-    delay = td(hours=48) if metric in METRICS_WITH_LONGER_DELAY else td(hours=36)
+    delay = LONGER_ALLOWED_DELAY if metric in METRICS_WITH_LONGER_DELAY else REGULAR_ALLOWED_DELAY
     return delay
 
 def is_metric_delayed(metric, dates):
@@ -321,3 +328,13 @@ def data_has_gaps(metric, interval, dates):
 
 def dt_str(datetime):
     return dt.strftime(datetime, "%Y-%m-%d %H:%M")
+
+def time_to_performance_result(elapsed_time):
+    result = ""
+    if elapsed_time < PERFORMANCE_TIME_RANGE_LOW:
+        result = "fast"
+    elif elapsed_time < PERFORMANCE_TIME_RANGE_HIGH:
+        result = "medium"
+    else:
+        result = "slow"
+    return result

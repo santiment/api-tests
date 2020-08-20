@@ -11,6 +11,9 @@ color_mapping = {
     "ignored": "LemonChiffon",
     "changed": "LemonChiffon",
     "corrupted": "LightSalmon",
+    "fast": "PaleGreen",
+    "medium": "LightSalmon",
+    "slow": "LightCoral",
     "N/A": "LightGray"
 }
 
@@ -161,10 +164,11 @@ def generate_html_table_performance(data):
             </tr>
             <tr>'''
             for value in values:
-                color = color_mapping[value['status'].split(':')[0]]
+                print(value)
+                color = color_mapping[value['performance_result']]
                 html += f'''
                 <td style="background-color:{color};text-align:center;">
-                    {value['status']} - {'{:.2f}'.format(value['elapsed_time'])}s
+                    {value['performance_result']} - {'{:.2f}'.format(value['elapsed_time'])}s
                 </td>
                 '''
             html += '''
@@ -206,7 +210,7 @@ def generate_html_table_classic(data):
                 status = values[name]
             else:
                 status = 'N/A'
-            color = color_mapping[status.split(':')[0]]
+            color = color_mapping[status]
             html += f'''
             <td title="{item['slug'].upper()} {name}" style="background-color:{color};text-align:center;">{status}</td>
             '''
