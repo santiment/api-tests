@@ -35,8 +35,8 @@ from .constants import DATETIME_PATTERN_METRIC, \
                        PYTHON_ENV, \
                        LEGACY_ASSET_SLUGS, \
                        IGNORED_METRICS, \
-                       PERFORMANCE_TIME_RANGE_HIGH, \
-                       PERFORMANCE_TIME_RANGE_LOW, \
+                       ELAPSED_TIME_FAST_THRESHOLD, \
+                       ELAPSED_TIME_SLOW_THRESHOLD, \
                        REGULAR_ALLOWED_DELAY, \
                        LONGER_ALLOWED_DELAY
 
@@ -331,9 +331,9 @@ def dt_str(datetime):
 
 def time_to_performance_result(elapsed_time):
     result = ""
-    if elapsed_time < PERFORMANCE_TIME_RANGE_LOW:
+    if elapsed_time < ELAPSED_TIME_FAST_THRESHOLD:
         result = "fast"
-    elif elapsed_time < PERFORMANCE_TIME_RANGE_HIGH:
+    elif elapsed_time < ELAPSED_TIME_SLOW_THRESHOLD:
         result = "medium"
     else:
         result = "slow"
