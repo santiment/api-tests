@@ -38,7 +38,7 @@ DATABASE_DB = os.getenv('DATABASE_DB', 'api-tests')
 LOG_FORMAT = os.getenv(
     'LOG_FORMAT',
     '{"level": "%(levelname)s", "time": "%(asctime)s", "message": "%(message)s"}')
-LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG')
 LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 METRICS_WITH_LONGER_DELAY = [
@@ -135,3 +135,14 @@ SPECIAL_METRICS_AND_QUERIES = [
     "shareOfDeposits",
     "social_active_users"
 ]
+COLOR_MAPPING = {
+    "passed": "PaleGreen",
+    "fixed": "PaleGreen",
+    "empty": "LightCoral",
+    "GraphQL error": "Crimson",
+    "emerged": "Crimson",
+    "ignored": "LemonChiffon",
+    "changed": "LemonChiffon",
+    "corrupted": "LightSalmon",
+    "N/A": "LightGray"
+}

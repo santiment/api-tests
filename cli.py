@@ -23,6 +23,9 @@ from api_tests.constants import DAYS_BACK_TEST, \
                                 LEGACY_ASSET_SLUGS, \
                                 PYTHON_ENV
 
+logger = logging.getLogger('peewee')
+logger.addHandler(logging.StreamHandler())
+logger.setLevel(logging.DEBUG)
 logging.basicConfig(format=LOG_FORMAT, level=LOG_LEVEL, datefmt=LOG_DATE_FORMAT)
 config = Config(PYTHON_ENV)
 

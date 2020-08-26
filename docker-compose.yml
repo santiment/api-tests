@@ -21,6 +21,14 @@ services:
       DATABASE_USER: postgres
       DATABASE_PASSWORD: postgres
       DATABASE_DB: api-tests
-      SANBASE_GQL_HOST: https://api-stage.santiment.net/graphql
+      # SANBASE_GQL_HOST: https://api-stage.santiment.net/graphql
+      # FLASK_APP: server.py
+      API_KEY: ynkxeigdmsk2z25o_nmlcb6doznx3xsaz
+      FLASK_ENV: development
+      FLASK_DEBUG: 1
     volumes:
       - ./output:/app/output
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres

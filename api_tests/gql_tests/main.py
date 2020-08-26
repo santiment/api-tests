@@ -1,22 +1,23 @@
 import logging
 from datetime import datetime as dt
 import san
-from .api_helper import get_available_metrics_and_queries, \
-                        get_marketcap_batch
-from .html_report import generate_html_from_json
-from .discord_bot import publish_graphql_alert
-from .utils.file_utils import save_json_to_file
-from .utils.s3 import upload_to_s3, set_json_content_type, set_html_content_type
-from .config import Config
-from .constants import BATCH_SIZE, PYTHON_ENV, LEGACY_ASSET_SLUGS
-from .models.base_model import db
-from .models.gql_test_case import GqlTestCase
-from .models.gql_slug_test_suite import GqlSlugTestSuite
-from .models.gql_test_suite import GqlTestSuite
-from .gql_tests.timeseries import test_timeseries_metrics
-from .gql_tests.histogram import test_histogram_metrics
-from .gql_tests.queries import test_queries
-from .utils.helper import build_progress_string
+from ..api_helper import get_available_metrics_and_queries, \
+                         get_marketcap_batch
+from ..html_report import generate_html_from_json
+from ..queries import special_queries
+from ..discord_bot import publish_graphql_alert
+from ..utils.file_utils import save_json_to_file
+from ..utils.s3 import upload_to_s3, set_json_content_type, set_html_content_type
+from ..config import Config
+from ..constants import BATCH_SIZE, PYTHON_ENV, LEGACY_ASSET_SLUGS
+from ..models.base_model import db
+from ..models.gql_test_case import GqlTestCase
+from ..models.gql_slug_test_suite import GqlSlugTestSuite
+from ..models.gql_test_suite import GqlTestSuite
+from .timeseries import test_timeseries_metrics
+from .histogram import test_histogram_metrics
+from .queries import test_queries
+from ..utils.helper import build_progress_string
 
 config = Config(PYTHON_ENV)
 
@@ -26,7 +27,6 @@ def run(slugs, days_back, interval):
     logging.info('Connecting to database...')
     db.connect()
     models = [GqlTestCase, GqlSlugTestSuite, GqlTestSuite]
-    db.drop_tables(models, cascade=True)
     db.create_tables(models)
 
     started = dt.utcnow()

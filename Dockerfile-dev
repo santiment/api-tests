@@ -34,4 +34,4 @@ ENV PYTHONPATH /app
 
 WORKDIR /app
 
-CMD ["python", "cli.py", "projects", "ethereum", "bitcoin"]
+CMD ["flask", "run", "--host=0.0.0.0"]

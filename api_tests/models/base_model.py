@@ -17,5 +17,8 @@ class BaseModel(Model):
     def elapsed_time(self):
         return (self.finished_at - self.started_at).total_seconds()
 
+    def started_at_short(self):
+        return self.started_at.strftime("%Y-%m-%d %H:%M")
+
     class Meta:
         database = db

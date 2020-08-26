@@ -1,0 +1,22 @@
+{% extends "menu.html" %}
+
+{% block content %}
+  {% for project in data %}
+    <table>
+      <tr>
+        <th></th>
+        {% for query_result in project['data'] %}
+          <th><a href="{{query_result['gql_query_url']}}" target="_blank">{{query_result['name']}}</a></th>
+        {% endfor %}
+      </tr>
+
+      <tr>
+        <td style="text-align:center;"><b>{{project['slug'].upper()}}</b></td>
+        {% for query_result in project['data'] %}
+          <td title="{{project['slug'].upper()}} {{query_result['name']}}" style='background-color:{{query_result["color"]}};text-align:center;'>{{query_result['status']}} - {{query_result['elapsed_time']}}</td>
+        {% endfor %}
+      </tr>
+    </table>
+    <br/>
+  {% endfor %}
+{% endblock %}
