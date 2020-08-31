@@ -40,8 +40,7 @@ def publish_graphql_alert(error=None):
 
 def publish_response_time_alert(time, errors):
     now = datetime.datetime.utcnow()
-    errors_str = ' '.join(map(str, errors))
-    message = build_response_time_error_message(mention, time, errors_str, now)
+    message = build_response_time_error_message(mention, time, errors, now)
     publish_message(message)
 
 def build_frontend_error_message(mention, error, triggered_at):
@@ -71,13 +70,13 @@ See report at {report_url}
 def build_graphql_success_message(triggered_at):
     return f"{triggered_at} GraphQL API check success!"
 
-def build_response_time_error_message(mention, time, errors_str, triggered_at):
+def build_response_time_error_message(mention, time, errors, triggered_at):
     return f"""
 +++++++++++++++++++++++++++++++++++++++++++++++++
 {mention}
 API response time is slow!
-Expected {ACCEPTABLE_RESPONSE_TIME} s, actual {time} s
-Errors encountered: {errors_str}
+Acceptable: {ACCEPTABLE_RESPONSE_TIME} s, actual {time} s
+Errors encountered: {' '.join(map(str, errors))}
 Triggered at {triggered_at}
 ===============================================
 """

@@ -15,7 +15,7 @@ def get_response_time():
     gql_query = '''
     {
         projectBySlug(slug: "bitcoin"){
-            availableMetrics
+            availableMetricss
         }
     }
     '''
@@ -42,5 +42,5 @@ def run():
         publish_time_response_alert(elapsed_time, errors)
     else:
         logging.info('Skipping discord notification')
-    logging.info(f"Finished test of {NUMBER_OF_RUNS_FOR_TIMING_TEST} runs, total time {elapsed_time}, errors during the run: {bool(errors)}")
+    logging.info(f"Finished test of {NUMBER_OF_RUNS_FOR_TIMING_TEST} runs, total time {elapsed_time}, errors during the run: {' '.join(map(str, errors))}")
     logging.info('Finished!')
