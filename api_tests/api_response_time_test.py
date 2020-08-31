@@ -15,7 +15,7 @@ def get_response_time():
     gql_query = '''
     {
         projectBySlug(slug: "bitcoin"){
-            availableMetricss
+            availableMetrics
         }
     }
     '''
