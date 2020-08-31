@@ -26,6 +26,7 @@ ERRORS_IN_ROW = int(os.getenv('ERRORS_IN_ROW', 5))
 PYTHON_ENV = os.getenv('PYTHON_ENV', 'development')
 REGULAR_ALLOWED_DELAY = td(hours=36)
 LONGER_ALLOWED_DELAY = td(hours=48)
+NUMBER_OF_RUNS_FOR_TIMING_TEST = 5
 
 LOG_FORMAT = os.getenv(
     'LOG_FORMAT',

@@ -5,6 +5,7 @@ import fire
 from datetime import timedelta as td
 import san
 from api_tests.api_tests import run, filter_projects_by_marketcap
+from api_tests.api_response_time_test import run as run_response_time_test
 from api_tests.frontend import run as run_frontend_test
 from api_tests.html_report import generate_html_from_json
 from api_tests.stability_report import run as run_stability_report
@@ -76,6 +77,12 @@ def generate_html_report():
     generate_html_from_json('output_for_html.json', 'index.html')
     logging.info('Done')
 
+def test_response_time():
+    """Test API response time"""
+    logging.info("Testing API response time...")
+    run_response_time_test()
+    logging.info('Done')
+
 if __name__ == '__main__':
     fire.Fire({
       'frontend': frontend,
@@ -83,5 +90,6 @@ if __name__ == '__main__':
       'top': top,
       'projects': projects,
       'generate_html_report': generate_html_report,
-      'build_stability_report': build_stability_report
+      'build_stability_report': build_stability_report,
+      'test_response_time': test_response_time
   })

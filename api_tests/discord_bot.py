@@ -38,6 +38,13 @@ def publish_graphql_alert(error=None):
 
     publish_message(message)
 
+def publish_response_time_alert(time, errors_str):
+    now = datetime.datetime.utcnow()
+
+    if time:
+        message = build_response_time_error_message(mention, time, errors_str, now)
+        publish_message(message)
+
 def build_frontend_error_message(mention, error, triggered_at):
     return f"""
 +++++++++++++++++++++++++++++++++++++++++++++++++
@@ -64,3 +71,15 @@ See report at {report_url}
 
 def build_graphql_success_message(triggered_at):
     return f"{triggered_at} GraphQL API check success!"
+
+def build_response_time_error_message(mention, time, errors_str, triggered_at):
+    report_url = "TBD"
+    return f"""
++++++++++++++++++++++++++++++++++++++++++++++++++
+{mention}
+API response time is slow: {time}!
+Errors encountered: {errors_str}
+Triggered at {triggered_at}
+See report at {report_url}
+===============================================
+"""
