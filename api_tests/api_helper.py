@@ -4,7 +4,7 @@ from san.graphql import execute_gql
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from .constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, NUMBER_OF_RETRIES, RETRY_DELAY, NUMBER_OF_RUNS_FOR_TIMING_TEST
+from .constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, NUMBER_OF_RETRIES, RETRY_DELAY
 from .queries import queries, special_queries
 from functools import lru_cache
 
@@ -202,24 +202,3 @@ def get_min_interval(metric):
             error = e
             time.sleep(RETRY_DELAY)
     raise SanError(f"Not able to get min interval for {metric} after {NUMBER_OF_RETRIES} attempts. Reason: {str(error)}")
-
-def get_response_time():
-    gql_query = '''
-    {
-        projectBySlug(slug: "bitcoin"){
-            availableMetrics
-        }
-    }
-    '''
-    errors = []
-    runs = 0
-    started = time.time()
-    while runs < NUMBER_OF_RUNS_FOR_TIMING_TEST:
-        runs += 1
-        try:
-            response = execute_gql(gql_query)
-        except SanError as e:
-            errors.append(e)
-            time.sleep(RETRY_DELAY)
-    elapsed_time = time.time() - started
-    return (elapsed_time, errors)

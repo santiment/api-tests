@@ -4,7 +4,7 @@ import glob
 import sys, os
 import datetime
 from discord import Webhook, RequestsWebhookAdapter
-from .constants import DISCORD_WEBHOOK, DISCORD_USER_ID
+from .constants import DISCORD_WEBHOOK, DISCORD_USER_ID, ACCEPTABLE_RESPONSE_TIME
 
 DISCORD_USERNAME = 'API Alert Bot'
 
@@ -38,11 +38,11 @@ def publish_graphql_alert(error=None):
 
     publish_message(message)
 
-def publish_response_time_alert(is_response_slow, errors_str=None):
+def publish_response_time_alert(time, errors):
     now = datetime.datetime.utcnow()
-    if is_response_slow:
-        message = build_response_time_error_message(mention, time, errors_str, now)
-        publish_message(message)
+    errors_str = ' '.join(map(str, errors))
+    message = build_response_time_error_message(mention, time, errors_str, now)
+    publish_message(message)
 
 def build_frontend_error_message(mention, error, triggered_at):
     return f"""
@@ -71,12 +71,13 @@ See report at {report_url}
 def build_graphql_success_message(triggered_at):
     return f"{triggered_at} GraphQL API check success!"
 
-def build_response_time_error_message(mention, errors_str, triggered_at):
+def build_response_time_error_message(mention, time, errors_str, triggered_at):
     report_url = "TBD"
     return f"""
 +++++++++++++++++++++++++++++++++++++++++++++++++
 {mention}
 API response time is slow!
+Expected {ACCEPTABLE_RESPONSE_TIME} s, actual {time} s
 Errors encountered: {errors_str}
 Triggered at {triggered_at}
 See report at {report_url}
