@@ -1,7 +1,7 @@
 from .api_helper import get_response_time
 from .discord_bot import publish_response_time_alert
 from .config import Config
-from .constants import PYTHON_ENV, NUMBER_OF_RUNS_FOR_TIMING_TEST
+from .constants import PYTHON_ENV, NUMBER_OF_RUNS_FOR_TIMING_TEST, ACCEPTABLE_RESPONSE_TIME
 import logging
 
 config = Config(PYTHON_ENV)
@@ -11,7 +11,7 @@ def run():
     logging.info('Starting time response test...')
     (elapsed_time, errors) = get_response_time()
     errors_str = ""
-    is_response_slow = elapsed_time > 10
+    is_response_slow = elapsed_time > ACCEPTABLE_RESPONSE_TIME
     if errors:
         errors_str = ' '.join(map(str, errors))
     if config.getboolean('send_discord_notification'):
