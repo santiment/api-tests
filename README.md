@@ -56,6 +56,12 @@ To run the test for metrics against key projects, run:
 python cli.py sanity
 ```
 
+To run the test for API response time, run:
+
+```
+python cli.py test_response_time
+```
+
 ## Maintenance
 By default, metric is not allowed to have negative values or gaps, and the delay between current time and the last available data point is allowed no more than `REGULAR_ALLOWED_DELAY`. 
 However, some metrics are different by design. So, if a new metric has been added to the API, and it can have negatives, add it to `METRICS_WITH_ALLOWED_NEGATIVES`.
