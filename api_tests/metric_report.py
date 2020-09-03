@@ -66,6 +66,7 @@ class MetricReport:
         return {
             'name': self.name,
             'status': self.status,
+            'gql_query': self.query,
             'gql_query_url': self.generate_gql_url(),
             'elapsed_time': self.elapsed_time,
             'details': self.error_details,
