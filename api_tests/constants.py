@@ -121,7 +121,16 @@ METRICS_WITH_ALLOWED_NEGATIVES = [
     "mvrv_usd_365d_change_30d",
     "mvrv_usd_change_1d",
     "mvrv_usd_change_7d",
-    "mvrv_usd_change_30d"
+    "mvrv_usd_change_30d",
+    "defi_exchange_balance",
+    "dex_traders_cex_balance",
+    "dex_traders_defi_balance",
+    "dex_traders_dex_balance",
+    "dex_traders_exchange_balance",
+    "genesis_exchange_balance",
+    "miners_exchange_balance",
+    "whales_exchange_balance",
+    "other_exhange_balance"
 ]
 
 METRICS_WITH_ALLOWED_GAPS = [
