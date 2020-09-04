@@ -53,7 +53,7 @@ def test_frontend_api(back_test_period, interval):
 
 def test_frontend_query(query, back_test_period, interval, key, key_values):
     now = dt.utcnow()
-    gql_query = build_query_gql_string(query, _from=now - back_test_period, to=now, interval=interval)
+    gql_query = build_query_gql_string(query, **{'from': now - back_test_period}, to=now, interval=interval)
     (data, elapsed_time) = get_query_data(gql_query, query, None)
     if not data:
         raise APIError(f"{query} returns empty array")

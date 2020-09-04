@@ -240,7 +240,7 @@ def test_queries(slug, queries, from_dt, to_dt, interval, slug_report):
         query_progress_string = build_progress_string('query', query, queries)
         logging.info("%s%s Testing query: %s", slug_report.progress, query_progress_string, query)
 
-        gql_query = build_query_gql_string(query, slug=slug, _from=from_dt, to=to_dt, interval=interval)
+        gql_query = build_query_gql_string(query, slug=slug, **{'from': from_dt}, to=to_dt, interval=interval)
         metric_report = MetricReport(name=query, slug=slug, query=gql_query)
 
         if slug in IGNORED_METRICS and metric in IGNORED_METRICS[slug]['ignored_queries']:
