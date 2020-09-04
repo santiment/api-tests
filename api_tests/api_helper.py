@@ -37,8 +37,8 @@ def get_available_metrics_and_queries(slug):
 
 def build_query_gql_string(query, **kwargs):
     kwargs = {x.replace('_', ''): kwargs[x] for x in kwargs} #to deal with naming conflict with from
-    kwargs['from'] = dt.strftime(kwargs['from'], DATETIME_PATTERN_QUERY)
-    kwargs['to'] = dt.strftime(kwargs['to'], DATETIME_PATTERN_QUERY)
+    kwargs['from'] = dt.strftime(kwargs['from'], DATETIME_PATTERN_QUERY) if 'from' in kwargs else None
+    kwargs['to'] = dt.strftime(kwargs['to'], DATETIME_PATTERN_QUERY) if 'to' in kwargs else None
     if query in queries:
         query_template = queries[query]
         query_args_str = ''
