@@ -4,12 +4,12 @@ import glob
 import sys, os
 import datetime
 from discord import Webhook, RequestsWebhookAdapter
-from .constants import DISCORD_WEBHOOK, DISCORD_USER_ID, ACCEPTABLE_RESPONSE_TIME
+from .constants import DISCORD_WEBHOOK, DISCORD_MENTION, ACCEPTABLE_RESPONSE_TIME
 
 DISCORD_USERNAME = 'API Alert Bot'
 
-if DISCORD_USER_ID:
-    mention = f"<@{DISCORD_USER_ID}>"
+if DISCORD_MENTION:
+    mention = f"<{DISCORD_MENTION}>"
 else:
     mention = ""
 
