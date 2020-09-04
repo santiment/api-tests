@@ -35,17 +35,17 @@ def get_available_metrics_and_queries(slug):
             time.sleep(RETRY_DELAY)
     raise SanError(f"Not able to get availableMetrics for {slug} after {NUMBER_OF_RETRIES} attempts. Reason: {str(error)}")
 
-def build_query_gql_string(query, slug, dt_from, dt_to, interval):
-    str_from = dt.strftime(dt_from, DATETIME_PATTERN_QUERY)
-    str_to = dt.strftime(dt_to, DATETIME_PATTERN_QUERY)
-    args = {'slug': slug, 'from': str_from, 'to': str_to, 'interval': interval}
+def build_query_gql_string(query, **kwargs):
+    kwargs = {x.replace('_', ''): kwargs[x] for x in kwargs} #to deal with naming conflict with from
+    kwargs['from'] = dt.strftime(kwargs['from'], DATETIME_PATTERN_QUERY)
+    kwargs['to'] = dt.strftime(kwargs['to'], DATETIME_PATTERN_QUERY)
     if query in queries:
         query_template = queries[query]
         query_args_str = ''
         args_template = query_template['arguments']
         for arg in args_template:
-            if arg in args:
-                query_args_str += f"{arg}: {args_template[arg] % (args[arg])},\n"
+            if arg in kwargs:
+                query_args_str += f"{arg}: {args_template[arg] % (kwargs[arg])},\n"
             else:
                 query_args_str += f"{arg}: {args_template[arg]},\n"
         query_fields_str = '{' + ' '.join(query_template['fields']) + '}' if query_template['fields'] else ''
