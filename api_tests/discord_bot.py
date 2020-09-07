@@ -18,33 +18,10 @@ def publish_message(message):
     webhook = Webhook.from_url(baseURL, adapter=RequestsWebhookAdapter())
     webhook.send(message, username=DISCORD_USERNAME)
 
+
 def publish_frontend_alert(error):
     now = datetime.datetime.utcnow()
-
-    if error:
-        message = build_frontend_error_message(mention, error, now)
-    else:
-        message = build_frontend_success_message(now)
-
-    publish_message(message)
-
-def publish_graphql_alert(error=None):
-    now = datetime.datetime.utcnow()
-
-    if error:
-        message = build_graphql_error_message(mention, error, now)
-    else:
-        message = build_graphql_success_message(now)
-
-    publish_message(message)
-
-def publish_response_time_alert(time, errors):
-    now = datetime.datetime.utcnow()
-    message = build_response_time_error_message(mention, time, errors, now)
-    publish_message(message)
-
-def build_frontend_error_message(mention, error, triggered_at):
-    return f"""
+    message = f"""
 +++++++++++++++++++++++++++++++++++++++++++++++++
 {mention}
 Frontend API alert
@@ -52,13 +29,13 @@ Triggered at {triggered_at}
 Caused by: {error}
 ===============================================
 """
+    publish_message(message)
 
-def build_frontend_success_message(triggered_at):
-    return f"{triggered_at} Frontend API check success!"
-
-def build_graphql_error_message(mention, error, triggered_at):
+    
+def publish_graphql_alert(error):
+    now = datetime.datetime.utcnow()
     report_url = "TBD"
-    return f"""
+    message = f"""
 +++++++++++++++++++++++++++++++++++++++++++++++++
 {mention}
 Problem with GraphQL API: {error}
@@ -66,12 +43,12 @@ Triggered at {triggered_at}
 See report at {report_url}
 ===============================================
 """
+    publish_message(message)
 
-def build_graphql_success_message(triggered_at):
-    return f"{triggered_at} GraphQL API check success!"
-
-def build_response_time_error_message(mention, time, errors, triggered_at):
-    return f"""
+    
+def publish_response_time_alert(time, errors):
+    now = datetime.datetime.utcnow()
+    message = f"""
 +++++++++++++++++++++++++++++++++++++++++++++++++
 {mention}
 API response time is slow!
@@ -80,3 +57,4 @@ Errors encountered: {' '.join(map(str, errors))}
 Triggered at {triggered_at}
 ===============================================
 """
+    publish_message(message)

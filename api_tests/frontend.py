@@ -22,7 +22,7 @@ def run(last_days, interval):
         logging.info('Success')
         message = None
 
-    if config.getboolean('send_discord_notification'):
+    if config.getboolean('send_discord_notification') and message:
         logging.info('Sending discord notification...')
         publish_frontend_alert(message)
     else:
