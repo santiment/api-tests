@@ -4,7 +4,6 @@ import glob
 import sys, os
 import datetime
 from discord import Webhook, RequestsWebhookAdapter
-import logging
 from .constants import DISCORD_WEBHOOK, DISCORD_MENTION, ACCEPTABLE_RESPONSE_TIME
 
 DISCORD_USERNAME = 'API Alert Bot'
