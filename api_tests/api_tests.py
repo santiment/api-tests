@@ -63,7 +63,7 @@ def run(slugs, days_back, interval):
     html_filepath = generate_html_from_json('output_for_html.json', 'index.html')
     logging.info('Saved to %s', html_filepath)
 
-    if config.getboolean('send_discord_notification'):
+    if config.getboolean('send_discord_notification') and error_output:
         logging.info('Sending discord notification...')
         publish_graphql_alert(error_output)
     else:
