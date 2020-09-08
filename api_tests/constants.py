@@ -132,7 +132,23 @@ METRICS_WITH_ALLOWED_NEGATIVES = [
     "genesis_exchange_balance",
     "miners_exchange_balance",
     "whales_exchange_balance",
-    "other_exchange_balance"
+    "other_exchange_balance",
+    "age_destroyed_change_1d",
+    "age_destroyed_change_30d",
+    "age_destroyed_change_7d",
+    "circulation_usd_180d_change_1d",
+    "circulation_usd_180d_change_30d",
+    "circulation_usd_180d_change_7d",
+    "dormant_circulation_usd_180d_change_1d",
+    "dormant_circulation_usd_180d_change_30d",
+    "dormant_circulation_usd_180d_change_7d",
+    "exchange_inflow_usd_change_1d",
+    "exchange_inflow_usd_change_7d",
+    "exchange_outflow_usd_change_1d",
+    "exchange_outflow_usd_change_7d",
+    "mean_dollar_invested_age_change_1d",
+    "mean_dollar_invested_age_change_30d",
+    "social_volume_change_1d"
 ]
 
 METRICS_WITH_ALLOWED_GAPS = [
