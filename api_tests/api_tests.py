@@ -16,7 +16,6 @@ from .api_helper import get_available_metrics_and_queries, \
                         build_query_gql_string, \
                         build_timeseries_gql_string
 from .html_report import generate_html_from_json
-from .queries import special_queries
 from .discord_bot import publish_graphql_alert
 from .stability_report import create_stability_report
 from .metric_report import MetricReport
@@ -38,7 +37,8 @@ from .constants import DATETIME_PATTERN_METRIC, \
                        ELAPSED_TIME_FAST_THRESHOLD, \
                        ELAPSED_TIME_SLOW_THRESHOLD, \
                        REGULAR_ALLOWED_DELAY, \
-                       LONGER_ALLOWED_DELAY
+                       LONGER_ALLOWED_DELAY, \
+                       SPECIAL_METRICS_AND_QUERIES
 
 config = Config(PYTHON_ENV)
 
@@ -116,7 +116,9 @@ def test_all(slugs, last_days, interval):
             (timeseries_metrics, histogram_metrics, queries) = (["price_usd"], [], [])
         else:
             (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
-            queries = exclude_metrics(queries, special_queries)
+            queries = exclude_metrics(queries, SPECIAL_METRICS_AND_QUERIES)
+            timeseries_metrics = exclude_metrics(timeseries_metrics, SPECIAL_METRICS_AND_QUERIES)
+            histogram_metrics = exclude_metrics(histogram_metrics, SPECIAL_METRICS_AND_QUERIES)
 
         slug_progress_string = build_progress_string('slug', slug, slugs)
 
@@ -279,11 +281,7 @@ def filter_projects_by_marketcap(number):
     return [x[0] for x in sorted(results, key=lambda k: k[1], reverse=True)[:number]]
 
 def exclude_metrics(metrics, metrics_to_exclude):
-    result = list(metrics)
-    for metric in metrics_to_exclude:
-        if metric in result:
-            result.remove(metric)
-    return result
+    return [x for list in metrics if x not in metrics_to_exclude]
 
 def build_progress_string(name, current, total):
     return f"[{name} {total.index(current) + 1}/{len(total)}]"

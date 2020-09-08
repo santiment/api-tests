@@ -177,3 +177,28 @@ LEGACY_ASSET_SLUGS = [
 
 ELAPSED_TIME_FAST_THRESHOLD = 1.0
 ELAPSED_TIME_SLOW_THRESHOLD = 3.0
+
+SPECIAL_METRICS_AND_QUERIES = [
+    "averageDevActivity",
+    "averageGithubActivity",
+    "tokenTopTransactions",
+    "ethSpentOverTime",
+    "ethTopTransactions",
+    "ethBalance",
+    "usdBalance",
+    "icos",
+    "icoPrice",
+    "initialIco",
+    "fundsRaisedUsdIcoEndPrice",
+    "fundsRaisedEthIcoEndPrice",
+    "fundsRaisedBtcIcoEndPrice",
+    "tokenAgeConsumed",
+    "ethSpent",
+    "socialGainersLosersStatus",
+    "exchangeWallets",
+    "allExchanges",
+    "percentOfTokenSupplyOnExchanges",
+    "dailyActiveDeposits",
+    "shareOfDeposits",
+    "social_active_users"
+]
