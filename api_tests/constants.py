@@ -132,7 +132,7 @@ METRICS_WITH_ALLOWED_NEGATIVES = [
     "genesis_exchange_balance",
     "miners_exchange_balance",
     "whales_exchange_balance",
-    "other_exhange_balance"
+    "other_exchange_balance"
 ]
 
 METRICS_WITH_ALLOWED_GAPS = [
