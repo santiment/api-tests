@@ -493,5 +493,6 @@ special_queries = [
     "allExchanges",
     "percentOfTokenSupplyOnExchanges",
     "dailyActiveDeposits",
-    "shareOfDeposits"
+    "shareOfDeposits",
+    "social_active_users"
 ]
