@@ -38,7 +38,8 @@ from .constants import DATETIME_PATTERN_METRIC, \
                        ELAPSED_TIME_SLOW_THRESHOLD, \
                        REGULAR_ALLOWED_DELAY, \
                        LONGER_ALLOWED_DELAY, \
-                       SPECIAL_METRICS_AND_QUERIES
+                       SPECIAL_METRICS_AND_QUERIES, \
+                       ALLOWED_NEGATIVES_KEYWORDS
 
 config = Config(PYTHON_ENV)
 
@@ -281,7 +282,7 @@ def filter_projects_by_marketcap(number):
     return [x[0] for x in sorted(results, key=lambda k: k[1], reverse=True)[:number]]
 
 def exclude_metrics(metrics, metrics_to_exclude):
-    return [x for list in metrics if x not in metrics_to_exclude]
+    return [x for x in metrics if x not in metrics_to_exclude]
 
 def build_progress_string(name, current, total):
     return f"[{name} {total.index(current) + 1}/{len(total)}]"
@@ -310,7 +311,7 @@ def is_data_incorrect(metric, values):
     reason = ''
     if None in values:
         reason = 'None'
-    elif metric not in METRICS_WITH_ALLOWED_NEGATIVES:
+    elif not are_negatives_allowed(metric):
         if list(filter(lambda x: x < 0, values)):
             reason = 'negative'
     return (bool(reason), reason)
@@ -336,3 +337,7 @@ def time_to_performance_result(elapsed_time):
     else:
         result = "slow"
     return result
+
+def are_negatives_allowed(metric):
+    contains_keyword = [x in metric for x in ALLOWED_NEGATIVES_KEYWORDS]
+    return (metric in METRICS_WITH_ALLOWED_NEGATIVES) or (True in contains_keyword)
