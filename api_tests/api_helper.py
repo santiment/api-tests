@@ -4,8 +4,8 @@ from san.graphql import execute_gql
 from san.error import SanError
 from datetime import datetime as dt
 from datetime import timedelta as td
-from .constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, NUMBER_OF_RETRIES, RETRY_DELAY
-from .queries import queries, special_queries
+from .queries import queries
+from .constants import DATETIME_PATTERN_METRIC, DATETIME_PATTERN_QUERY, DT_FORMAT, NUMBER_OF_RETRIES, RETRY_DELAY, SPECIAL_METRICS_AND_QUERIES
 from functools import lru_cache
 
 def get_available_metrics_and_queries(slug):
@@ -51,7 +51,7 @@ def build_query_gql_string(query, **kwargs):
         query_args_str = '(' + query_args_str + ')' if query_args_str else ''
         gql_query = '{' + query + query_args_str + query_fields_str + '}'
         return gql_query
-    elif query in special_queries:
+    elif query in SPECIAL_METRICS_AND_QUERIES:
         raise SanError(f"Query {query} is used in other format.")
     else:
         raise SanError(f"Unknown query: {query}")

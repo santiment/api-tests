@@ -16,7 +16,6 @@ from .api_helper import get_available_metrics_and_queries, \
                         build_query_gql_string, \
                         build_timeseries_gql_string
 from .html_report import generate_html_from_json
-from .queries import special_queries
 from .discord_bot import publish_graphql_alert
 from .stability_report import create_stability_report
 from .metric_report import MetricReport
@@ -38,7 +37,9 @@ from .constants import DATETIME_PATTERN_METRIC, \
                        ELAPSED_TIME_FAST_THRESHOLD, \
                        ELAPSED_TIME_SLOW_THRESHOLD, \
                        REGULAR_ALLOWED_DELAY, \
-                       LONGER_ALLOWED_DELAY
+                       LONGER_ALLOWED_DELAY, \
+                       SPECIAL_METRICS_AND_QUERIES, \
+                       ALLOWED_NEGATIVES_KEYWORDS
 
 config = Config(PYTHON_ENV)
 
@@ -116,7 +117,9 @@ def test_all(slugs, last_days, interval):
             (timeseries_metrics, histogram_metrics, queries) = (["price_usd"], [], [])
         else:
             (timeseries_metrics, histogram_metrics, queries) = get_available_metrics_and_queries(slug)
-            queries = exclude_metrics(queries, special_queries)
+            queries = exclude_metrics(queries, SPECIAL_METRICS_AND_QUERIES)
+            timeseries_metrics = exclude_metrics(timeseries_metrics, SPECIAL_METRICS_AND_QUERIES)
+            histogram_metrics = exclude_metrics(histogram_metrics, SPECIAL_METRICS_AND_QUERIES)
 
         slug_progress_string = build_progress_string('slug', slug, slugs)
 
@@ -279,11 +282,7 @@ def filter_projects_by_marketcap(number):
     return [x[0] for x in sorted(results, key=lambda k: k[1], reverse=True)[:number]]
 
 def exclude_metrics(metrics, metrics_to_exclude):
-    result = list(metrics)
-    for metric in metrics_to_exclude:
-        if metric in result:
-            result.remove(metric)
-    return result
+    return [x for x in metrics if x not in metrics_to_exclude]
 
 def build_progress_string(name, current, total):
     return f"[{name} {total.index(current) + 1}/{len(total)}]"
@@ -312,7 +311,7 @@ def is_data_incorrect(metric, values):
     reason = ''
     if None in values:
         reason = 'None'
-    elif metric not in METRICS_WITH_ALLOWED_NEGATIVES:
+    elif not are_negatives_allowed(metric):
         if list(filter(lambda x: x < 0, values)):
             reason = 'negative'
     return (bool(reason), reason)
@@ -338,3 +337,7 @@ def time_to_performance_result(elapsed_time):
     else:
         result = "slow"
     return result
+
+def are_negatives_allowed(metric):
+    contains_keyword = [x in metric for x in ALLOWED_NEGATIVES_KEYWORDS]
+    return (metric in METRICS_WITH_ALLOWED_NEGATIVES) or (True in contains_keyword)

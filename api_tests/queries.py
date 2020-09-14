@@ -471,27 +471,3 @@ queries = {
         ]
     }
 }
-
-special_queries = [
-    "averageDevActivity",
-    "averageGithubActivity",
-    "tokenTopTransactions",
-    "ethSpentOverTime",
-    "ethTopTransactions",
-    "ethBalance",
-    "usdBalance",
-    "icos",
-    "icoPrice",
-    "initialIco",
-    "fundsRaisedUsdIcoEndPrice",
-    "fundsRaisedEthIcoEndPrice",
-    "fundsRaisedBtcIcoEndPrice",
-    "tokenAgeConsumed",
-    "ethSpent",
-    "socialGainersLosersStatus",
-    "exchangeWallets",
-    "allExchanges",
-    "percentOfTokenSupplyOnExchanges",
-    "dailyActiveDeposits",
-    "shareOfDeposits"
-]
