@@ -48,7 +48,6 @@ METRICS_WITH_ALLOWED_NEGATIVES = [
     "bitmex_perpetual_funding_rate",
     "bitmex_perpetual_basis",
     "bitmex_perpetual_basis_ratio",
-    "holders_distribution_combined_balance_10M_to_inf"
 ]
 
 ALLOWED_NEGATIVES_KEYWORDS = [
