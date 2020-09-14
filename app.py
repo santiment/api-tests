@@ -2,6 +2,7 @@ import os
 import logging
 from flask import Flask, request, send_from_directory, jsonify, render_template, url_for
 from flask.logging import create_logger
+from flask_bootstrap import Bootstrap
 from api_tests.models.gql_test_suite import GqlTestSuite
 from api_tests.models.gql_slug_test_suite import GqlSlugTestSuite
 from api_tests.models.gql_test_case import GqlTestCase
@@ -15,6 +16,8 @@ APP = Flask('api-tests', static_url_path='', static_folder='server/static', temp
 LOG = create_logger(APP)
 LOG.setLevel(logging.DEBUG)
 FLASK_ENV = os.getenv('FLASK_ENV', 'dev')
+
+Bootstrap(APP)
 
 print(APP.static_url_path)
 
