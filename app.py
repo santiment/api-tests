@@ -36,6 +36,7 @@ def index():
     test_suites = (
         GqlTestSuite.
         select().
+        where(GqlTestSuite.state == 'finished').
         order_by(GqlTestSuite.id.desc())
     )
 
@@ -189,6 +190,7 @@ def _get_latest_test_suite():
         select().
         join(GqlSlugTestSuite, on=(GqlTestSuite.id == GqlSlugTestSuite.test_suite_id)).
         join(GqlTestCase, on=(GqlSlugTestSuite.id == GqlTestCase.slug_test_suite_id)).
+        where(GqlTestSuite.state == 'finished').
         order_by(GqlTestSuite.id.desc()).
         get()
     )
