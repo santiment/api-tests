@@ -4,7 +4,7 @@ import logging
 import fire
 from datetime import timedelta as td
 import san
-from api_tests.api_tests import run, filter_projects_by_marketcap
+from api_tests.gql_tests.main import run, filter_projects_by_marketcap
 from api_tests.api_response_time_test import run as run_response_time_test
 from api_tests.gql_tests.main import run, filter_projects_by_marketcap
 from api_tests.frontend import run as run_frontend_tes
@@ -75,6 +75,6 @@ if __name__ == '__main__':
       'frontend': frontend,
       'sanity': sanity,
       'top': top,
-      'test_response_time': test_response_time
+      'test_response_time': test_response_time,
       'projects': projects
   })

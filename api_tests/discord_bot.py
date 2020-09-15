@@ -63,3 +63,19 @@ Triggered at {triggered_at}
 ===============================================
 """
     publish_message(message)
+
+def publish_response_time_alert(time, errors):
+    now = datetime.datetime.utcnow()
+    message = build_response_time_error_message(mention, time, errors, now)
+    publish_message(message)
+
+def build_response_time_error_message(mention, time, errors, triggered_at):
+    return f"""
++++++++++++++++++++++++++++++++++++++++++++++++++
+{mention}
+API response time is slow!
+Acceptable: {ACCEPTABLE_RESPONSE_TIME} s, actual {time} s
+Errors encountered: {' '.join(map(str, errors))}
+Triggered at {triggered_at}
+===============================================
+"""

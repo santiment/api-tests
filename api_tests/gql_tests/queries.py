@@ -12,10 +12,10 @@ def test_queries(slug_test_suite, queries, slug_progress):
 
         gql_query = build_query_gql_string(
             query,
-            slug_test_suite.slug,
-            slug_test_suite.from_dt(),
-            slug_test_suite.to_dt(),
-            slug_test_suite.interval()
+            slug=slug_test_suite.slug,
+            **{'from': slug_test_suite.from_dt()},
+            to=slug_test_suite.to_dt(),
+            interval=slug_test_suite.interval()
         )
 
         test_case = GqlTestCase(

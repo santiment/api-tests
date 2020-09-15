@@ -3,10 +3,10 @@ from datetime import datetime as dt
 import san
 from ..api_helper import get_available_metrics_and_queries, \
                          get_marketcap_batch
-from ..queries import special_queries
+from ..queries import queries
 from ..discord_bot import publish_graphql_alert
 from ..config import Config
-from ..constants import BATCH_SIZE, PYTHON_ENV, LEGACY_ASSET_SLUGS
+from ..constants import BATCH_SIZE, PYTHON_ENV, LEGACY_ASSET_SLUGS, SPECIAL_METRICS_AND_QUERIES
 from ..models.base_model import db
 from ..models.gql_test_case import GqlTestCase
 from ..models.gql_slug_test_suite import GqlSlugTestSuite
