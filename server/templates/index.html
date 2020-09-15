@@ -10,13 +10,15 @@
           <th>Classic</th>
           <th>Performance</th>
           <th>Debug</th>
+          <th>JSON</th>
         </tr>
         {% for test_suite in test_suites %}
           <tr>
             <td>{{ test_suite.started_at_short() }}
-            <td><a href="classic/{{ test_suite.id }}">view</a></td>
-            <td><a href="performance/{{ test_suite.id }}">view</a></td>
-            <td><a href="debug/{{ test_suite.id }}">view</a></td>
+            <td><a href="/gql_test_suite/{{ test_suite.id }}/classic">view</a></td>
+            <td><a href="/gql_test_suite/{{ test_suite.id }}/performance">view</a></td>
+            <td><a href="/gql_test_suite/{{ test_suite.id }}/debug">view</a></td>
+            <td><a href="/gql_test_suite/{{ test_suite.id }}.json">view</a></td>
           </tr>
         {% endfor %}
       </table>

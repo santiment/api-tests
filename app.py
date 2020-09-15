@@ -30,20 +30,6 @@ def favicon():
 def status():
     return jsonify(status='ok')
 
-@APP.route('/latest.json')
-def latest_json():
-
-    suite = (
-        GqlTestSuite.
-        select().
-        join(GqlSlugTestSuite, on=(GqlTestSuite.id == GqlSlugTestSuite.test_suite_id)).
-        join(GqlTestCase, on=(GqlSlugTestSuite.id == GqlTestCase.slug_test_suite_id)).
-        order_by(GqlTestSuite.id.desc()).
-        get()
-    )
-
-    return jsonify(suite.to_json())
-
 @APP.route('/')
 @APP.route('/index')
 def index():
@@ -56,24 +42,95 @@ def index():
     return render_template('index.html', title='Test suites', test_suites=test_suites)
 
 
-@APP.route('/test_suite/<int:id>.json')
-def test_suite_json(id):
-    suite = _get_test_suite(id)
+@APP.route('/gql_test_suite/<int:test_suite_id>/classic')
+def gql_test_suite_classic(test_suite_id):
+    test_suite = _get_test_suite(test_suite_id)
+    (data, all_query_names) = gql_test_suite_classic_data(test_suite)
+
+    return render_template(
+        'classic.html',
+        title=f"GraphQL test suite: {test_suite.started_at_short()}",
+        data=data,
+        all_query_names=all_query_names
+    )
+
+@APP.route('/gql_test_suite/latest/classic')
+def gql_test_suite_latest_classic():
+    test_suite = _get_latest_test_suite()
+    (data, all_query_names) = gql_test_suite_classic_data(test_suite)
+
+    return render_template(
+        'classic.html',
+        title=f"GraphQL test suite: {test_suite.started_at_short()}",
+        data=data,
+        all_query_names=all_query_names
+    )
+
+@APP.route('/gql_test_suite/<int:test_suite_id>/debug')
+def gql_test_suite_debug(test_suite_id):
+    test_suite = _get_test_suite(test_suite_id)
+    data = gql_test_suite_debug_data(test_suite)
+
+    return render_template(
+        'debug.html',
+        title=f"GraphQL test suite: {test_suite.started_at_short()}",
+        data=data
+    )
+
+@APP.route('/gql_test_suite/latest/debug')
+def gql_test_suite_latest_debugl():
+    test_suite = _get_latest_test_suite()
+    data = gql_test_suite_debug_data(test_suite)
+
+    return render_template(
+        'debug.html',
+        title=f"GraphQL test suite: {test_suite.started_at_short()}",
+        data=data
+    )
+
+@APP.route('/gql_test_suite/<int:test_suite_id>/performance')
+def gql_test_suite_performance(test_suite_id):
+    test_suite = _get_test_suite(test_suite_id)
+    data = gql_test_suite_performance_data(test_suite)
+
+    return render_template(
+        'performance.html',
+        title=f"GraphQL test suite: {test_suite.started_at_short()}",
+        data=data
+    )
+
+@APP.route('/gql_test_suite/latest/performance')
+def gql_test_suite_latest_performance():
+    test_suite = _get_latest_test_suite()
+    data = gql_test_suite_performance_data(test_suite)
+
+    return render_template(
+        'performance.html',
+        title=f"GraphQL test suite: {test_suite.started_at_short()}",
+        data=data
+    )
+
+@APP.route('/gql_test_suite/latest.json')
+def latest_json():
+    test_suite = _get_latest_test_suite()
+    return jsonify(test_suite.to_json())
+
+@APP.route('/gql_test_suite/<int:test_suite_id>.json')
+def test_suite_json(test_suite_id):
+    suite = _get_test_suite(test_suite_id)
 
     return jsonify(suite.to_json())
 
-@APP.route('/classic/<int:id>')
-def classic_html(id):
-    suite = _get_test_suite(id)
 
-    data = suite.output_for_html()
+def gql_test_suite_classic_data(test_suite):
+    data = test_suite.output_for_html()
 
-    all_metrics_names = []
+    all_query_names = []
 
     for project in data:
-        all_metrics_names += [x['name'] for x in project['data']]
+        all_query_names += [x['name'] for x in project['data']]
 
-    all_metrics_names = sorted(list(set(all_metrics_names)))
+    all_query_names = sorted(list(set(all_query_names)))
 
     view_data = []
 
@@ -81,7 +138,7 @@ def classic_html(id):
         view_data_project = {'slug': project['slug'], 'queries': []}
         values = {project_data['name']: project_data['status'] for project_data in project['data']}
 
-        for metric_name in all_metrics_names:
+        for metric_name in all_query_names:
             status = values[metric_name] if metric_name in values else 'N/A'
             color = COLOR_MAPPING[status.split(':')[0]]
 
@@ -89,12 +146,10 @@ def classic_html(id):
 
         view_data.append(view_data_project)
 
-    return render_template('classic.html', title='Test suite', data=view_data, all_query_names=all_metrics_names)
+    return view_data, all_query_names
 
-@APP.route('/debug/<int:id>')
-def debug_html(id):
-    suite = _get_test_suite(id)
-    data = suite.output_for_html()
+def gql_test_suite_debug_data(test_suite):
+    data = test_suite.output_for_html()
 
     for project in data:
         project['data'] = sorted([x for x in project['data']], key=lambda k: k['status'])
@@ -102,13 +157,10 @@ def debug_html(id):
         for item in project['data']:
             item['color'] = COLOR_MAPPING[item['status'].split(':')[0]]
 
+    return data
 
-    return render_template('debug.html', title='Test suite', data=data)
-
-@APP.route('/performance/<int:id>')
-def performance_html(id):
-    suite = _get_test_suite(id)
-    data = suite.output_for_html()
+def gql_test_suite_performance_data(test_suite):
+    data = test_suite.output_for_html()
 
     for project in data:
         project['data'] = sorted([x for x in project['data']], key=lambda k: k['elapsed_time'], reverse=True)
@@ -117,7 +169,7 @@ def performance_html(id):
             item['color'] = COLOR_MAPPING[item['status'].split(':')[0]]
             item['elapsed_time'] = round(item['elapsed_time'], 2)
 
-    return render_template('performance.html', title='Test suite', data=data)
+    return data
 
 def _get_test_suite(id):
     return (
@@ -126,5 +178,15 @@ def _get_test_suite(id):
         join(GqlSlugTestSuite, on=(GqlTestSuite.id == GqlSlugTestSuite.test_suite_id)).
         join(GqlTestCase, on=(GqlSlugTestSuite.id == GqlTestCase.slug_test_suite_id)).
         where(GqlTestSuite.id == id).
+        get()
+    )
+
+def _get_latest_test_suite():
+    return (
+        GqlTestSuite.
+        select().
+        join(GqlSlugTestSuite, on=(GqlTestSuite.id == GqlSlugTestSuite.test_suite_id)).
+        join(GqlTestCase, on=(GqlSlugTestSuite.id == GqlTestCase.slug_test_suite_id)).
+        order_by(GqlTestSuite.id.desc()).
         get()
     )
