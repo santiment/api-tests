@@ -29,15 +29,15 @@ class GqlSlugTestSuite(BaseModel):
         filtered_by_type = self.filter_tests_by_type(query_type)
         filtered_by_errors = self.filter_tests_by_errors(filtered_by_type)
 
-        return list(map(lambda test: test.error_to_json(), filtered_by_errors))
+        return list(map(lambda test: test.to_json(), filtered_by_errors))
 
-    def metric_states(self):
-        return list(map(lambda test: test.summary_to_json(), self.tests))
+    def test_results(self):
+        return list(map(lambda test: test.to_json(), self.tests))
 
     def output_for_html(self):
         return  {
             'slug': self.slug,
-            'data': self.metric_states(),
+            'data': self.test_results(),
             'elapsed_time': self.elapsed_time()
         }
 

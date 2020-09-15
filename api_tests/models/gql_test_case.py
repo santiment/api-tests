@@ -44,15 +44,7 @@ class GqlTestCase(BaseModel):
         elif self.status == 'empty' or self.status == 'corrupted':
             return 'corrupted data'
 
-    def error_to_json(self):
-        return {
-            'name': self.query_name,
-            'reason': self.status,
-            'gql_query_url': self.generate_gql_url(),
-            'details': self.error_details
-        }
-
-    def summary_to_json(self):
+    def to_json(self):
         return {
             'name': self.query_name,
             'status': self.status,

@@ -121,7 +121,7 @@ def test_suite_json(test_suite_id):
 
     return jsonify(suite.to_json())
 
-
+# TODO That can be further cleaned, leftover prior of refactoring
 def gql_test_suite_classic_data(test_suite):
     data = test_suite.output_for_html()
 
@@ -148,6 +148,7 @@ def gql_test_suite_classic_data(test_suite):
 
     return view_data, all_query_names
 
+# TODO That can be further cleaned, leftover prior of refactoring
 def gql_test_suite_debug_data(test_suite):
     data = test_suite.output_for_html()
 
@@ -159,6 +160,7 @@ def gql_test_suite_debug_data(test_suite):
 
     return data
 
+# TODO That can be further cleaned, leftover prior of refactoring
 def gql_test_suite_performance_data(test_suite):
     data = test_suite.output_for_html()
 
