@@ -27,4 +27,4 @@ ENV PYTHONPATH /app
 
 WORKDIR /app
 
-CMD ["python", "cli.py", "top"]
+CMD ["gunicorn", "app:APP", "--worker-class=gevent", "--workers=2", "-b=0.0.0.0:3000", "--log-level=info"]
