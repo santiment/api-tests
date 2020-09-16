@@ -59,7 +59,8 @@ ALLOWED_NEGATIVES_KEYWORDS = [
     "cex_balance",
     "whale_balance",
     "defi_balance",
-    "trader_balance"
+    "trader_balance",
+    "price_daa_divergence"
 ]
 
 METRICS_WITH_ALLOWED_GAPS = [
