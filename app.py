@@ -6,11 +6,11 @@ from flask_bootstrap import Bootstrap
 from api_tests.models.gql_test_suite import GqlTestSuite
 from api_tests.models.gql_slug_test_suite import GqlSlugTestSuite
 from api_tests.models.gql_test_case import GqlTestCase
-from api_tests.constants import COLOR_MAPPING
+from api_tests.constants import COLOR_MAPPING, LOG_FORMAT, LOG_LEVEL, LOG_DATE_FORMAT
 
+logging.basicConfig(format=LOG_FORMAT, level=LOG_LEVEL, datefmt=LOG_DATE_FORMAT)
 logger = logging.getLogger('peewee')
 logger.addHandler(logging.StreamHandler())
-logger.setLevel(logging.DEBUG)
 
 APP = Flask('api-tests', static_url_path='', static_folder='server/static', template_folder='server/templates')
 LOG = create_logger(APP)
