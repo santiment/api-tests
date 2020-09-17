@@ -12,30 +12,6 @@ slaveTemplates.dockerTemplate { label ->
 
       stage('Run tests') { sh "./bin/test.sh" }
 
-      withCredentials([
-        string(credentialsId: 'discord_webhook', variable: 'DISCORD_WEBHOOK'),
-        string(credentialsId: 'sanbase_api_key', variable: 'API_KEY')
-      ])
-      {
-        stage('Run simple sanity check') {
-          RUN_STATUS = sh(script: "./bin/sanity_check.sh", returnStatus: true)
-
-          if (RUN_STATUS != 0) {
-            discordSend (
-              description: 'API tests build failed.',
-              footer: '',
-              image: '',
-              link: 'https://jenkins.internal.santiment.net/job/Santiment/job/api-tests/job/master/',
-              result: 'FAILURE',
-              thumbnail: '',
-              title: 'Click here for details',
-              webhookURL: DISCORD_WEBHOOK
-            )
-            currentBuild.result = 'FAILURE'
-          }
-        }
-      }
-
       stage('Build image') {
         withCredentials([string(credentialsId: 'aws_account_id', variable: 'aws_account_id')]) {
           def awsRegistry = "${env.aws_account_id}.dkr.ecr.eu-central-1.amazonaws.com"
