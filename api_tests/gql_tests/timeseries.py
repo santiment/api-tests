@@ -10,7 +10,9 @@ from ..constants import LEGACY_ASSET_SLUGS, \
                        METRICS_WITH_ALLOWED_NEGATIVES, \
                        METRICS_WITH_ALLOWED_GAPS, \
                        DATETIME_PATTERN_METRIC, \
-                       INTERVAL_TIMEDELTA
+                       INTERVAL_TIMEDELTA, \
+                       REGULAR_ALLOWED_DELAY, \
+                       LONGER_ALLOWED_DELAY
 
 def test_timeseries_metrics(slug_test_suite, timeseries_metrics, slug_progress):
     for metric in timeseries_metrics:
@@ -111,6 +113,6 @@ def is_delay(dates, acceptable_delayed_since):
     return (last_date < acceptable_delayed_since, last_date, acceptable_delayed_since)
 
 def delay_for_metric(metric):
-    delay = td(hours=48) if metric in METRICS_WITH_LONGER_DELAY else td(hours=36)
+    delay = LONGER_ALLOWED_DELAY if metric in METRICS_WITH_LONGER_DELAY else REGULAR_ALLOWED_DELAY
     return delay
 
