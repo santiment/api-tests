@@ -141,5 +141,8 @@ COLOR_MAPPING = {
     "ignored": "LemonChiffon",
     "changed": "LemonChiffon",
     "corrupted": "LightSalmon",
-    "N/A": "LightGray"
+    "N/A": "LightGray",
+    "fast": "PaleGreen",
+    "medium": "LightSalmon",
+    "slow": "LightCoral",
 }

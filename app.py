@@ -6,7 +6,12 @@ from flask_bootstrap import Bootstrap
 from api_tests.models.gql_test_suite import GqlTestSuite
 from api_tests.models.gql_slug_test_suite import GqlSlugTestSuite
 from api_tests.models.gql_test_case import GqlTestCase
-from api_tests.constants import COLOR_MAPPING, LOG_FORMAT, LOG_LEVEL, LOG_DATE_FORMAT
+from api_tests.constants import COLOR_MAPPING, \
+                                LOG_FORMAT, \
+                                LOG_LEVEL, \
+                                LOG_DATE_FORMAT, \
+                                ELAPSED_TIME_FAST_THRESHOLD, \
+                                ELAPSED_TIME_SLOW_THRESHOLD
 
 logging.basicConfig(format=LOG_FORMAT, level=LOG_LEVEL, datefmt=LOG_DATE_FORMAT)
 logger = logging.getLogger('peewee')
@@ -141,8 +146,7 @@ def gql_test_suite_classic_data(test_suite):
 
         for metric_name in all_query_names:
             status = values[metric_name] if metric_name in values else 'N/A'
-            color = COLOR_MAPPING[status.split(':')[0]]
-
+            color = _color_mapping(status)
             view_data_project['queries'].append({'name': metric_name, 'status': status, 'color': color})
 
         view_data.append(view_data_project)
@@ -157,7 +161,7 @@ def gql_test_suite_debug_data(test_suite):
         project['data'] = sorted([x for x in project['data']], key=lambda k: k['status'])
 
         for item in project['data']:
-            item['color'] = COLOR_MAPPING[item['status'].split(':')[0]]
+            item['color'] = _color_mapping(item['status'])
 
     return data
 
@@ -169,7 +173,7 @@ def gql_test_suite_performance_data(test_suite):
         project['data'] = sorted([x for x in project['data']], key=lambda k: k['elapsed_time'], reverse=True)
 
         for item in project['data']:
-            item['color'] = COLOR_MAPPING[item['status'].split(':')[0]]
+            item['color'] = _color_mapping(_elapsed_time_category(item['elapsed_time']))
             item['elapsed_time'] = round(item['elapsed_time'], 2)
 
     return data
@@ -194,3 +198,15 @@ def _get_latest_test_suite():
         order_by(GqlTestSuite.id.desc()).
         get()
     )
+
+
+def _elapsed_time_category(elapsed_time):
+    if elapsed_time < ELAPSED_TIME_FAST_THRESHOLD:
+        return "fast"
+    elif elapsed_time < ELAPSED_TIME_SLOW_THRESHOLD:
+        return "medium"
+    else:
+        return "slow"
+
+def _color_mapping(key):
+    return COLOR_MAPPING[key.split(':')[0]]
