@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime as dt
 import san
+from san.env_vars import SANBASE_GQL_HOST
 from ..api_helper import get_available_metrics_and_queries, \
                          get_marketcap_batch
 from ..queries import queries
@@ -43,7 +44,8 @@ def test_all(slugs, days_back, interval):
         started_at=dt.utcnow(),
         state='running',
         interval=interval,
-        days_back=days_back
+        days_back=days_back,
+        sanbase_gql_host=SANBASE_GQL_HOST
     )
 
     for slug in slugs:

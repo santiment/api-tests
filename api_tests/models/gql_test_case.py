@@ -3,7 +3,6 @@ from peewee import *
 from playhouse.postgres_ext import *
 from .base_model import BaseModel
 from .gql_slug_test_suite import GqlSlugTestSuite
-from san.env_vars import SANBASE_GQL_HOST
 
 class GqlTestCase(BaseModel):
     slug = CharField()
@@ -31,7 +30,7 @@ class GqlTestCase(BaseModel):
         self.status = 'GraphQL error'
 
     def generate_gql_url(self):
-        first_part = SANBASE_GQL_HOST.replace('graphql', 'graphiql?query=')
+        first_part = self.slug_test_suite.test_suite.sanbase_gql_host.replace('graphql', 'graphiql?query=')
         second_part = urllib.parse.quote(self.query)
         return first_part + second_part
 

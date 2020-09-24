@@ -4,29 +4,20 @@ import logging
 import fire
 from datetime import timedelta as td
 import san
+import boot
 from api_tests.gql_tests.main import run, filter_projects_by_marketcap
 from api_tests.api_response_time_test import run as run_response_time_test
 from api_tests.gql_tests.main import run, filter_projects_by_marketcap
-from api_tests.frontend import run as run_frontend_tes
-from api_tests.config import Config
+from api_tests.frontend import run as run_frontend_test
+from api_tests.db.migrations import run_migrations
 from api_tests.constants import DAYS_BACK_TEST, \
                                 INTERVAL, \
                                 INTERVAL_FRONTEND, \
                                 API_KEY,\
                                 TOP_PROJECTS_BY_MARKETCAP, \
                                 HOURS_BACK_TEST_FRONTEND, \
-                                LOG_FORMAT, \
-                                LOG_LEVEL, \
-                                LOG_DATE_FORMAT, \
                                 SLUGS_FOR_SANITY_CHECK, \
-                                LEGACY_ASSET_SLUGS, \
-                                PYTHON_ENV
-
-logger = logging.getLogger('peewee')
-logger.addHandler(logging.StreamHandler())
-logger.setLevel(logging.DEBUG)
-logging.basicConfig(format=LOG_FORMAT, level=LOG_LEVEL, datefmt=LOG_DATE_FORMAT)
-config = Config(PYTHON_ENV)
+                                LEGACY_ASSET_SLUGS
 
 slugs = []
 
@@ -70,11 +61,19 @@ def test_response_time():
     run_response_time_test()
     logging.info('Done')
 
+
+def migrate_db():
+    """Run DB migrations"""
+    logging.info("Running migrations...")
+    run_migrations()
+    logging.info("Done")
+
 if __name__ == '__main__':
     fire.Fire({
       'frontend': frontend,
       'sanity': sanity,
       'top': top,
       'test_response_time': test_response_time,
-      'projects': projects
+      'projects': projects,
+      'migrate_db': migrate_db
   })

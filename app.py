@@ -3,19 +3,13 @@ import logging
 from flask import Flask, request, send_from_directory, jsonify, render_template, url_for
 from flask.logging import create_logger
 from flask_bootstrap import Bootstrap
+import boot
 from api_tests.models.gql_test_suite import GqlTestSuite
 from api_tests.models.gql_slug_test_suite import GqlSlugTestSuite
 from api_tests.models.gql_test_case import GqlTestCase
 from api_tests.constants import COLOR_MAPPING, \
-                                LOG_FORMAT, \
-                                LOG_LEVEL, \
-                                LOG_DATE_FORMAT, \
                                 ELAPSED_TIME_FAST_THRESHOLD, \
                                 ELAPSED_TIME_SLOW_THRESHOLD
-
-logging.basicConfig(format=LOG_FORMAT, level=LOG_LEVEL, datefmt=LOG_DATE_FORMAT)
-logger = logging.getLogger('peewee')
-logger.addHandler(logging.StreamHandler())
 
 APP = Flask('api-tests', static_url_path='', static_folder='server/static', template_folder='server/templates')
 LOG = create_logger(APP)
@@ -23,8 +17,6 @@ LOG.setLevel(logging.DEBUG)
 FLASK_ENV = os.getenv('FLASK_ENV', 'dev')
 
 Bootstrap(APP)
-
-print(APP.static_url_path)
 
 @APP.route('/favicon.ico')
 def favicon():
