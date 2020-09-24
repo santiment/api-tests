@@ -28,14 +28,7 @@ def run(slugs, days_back, interval):
     db.create_tables(models)
 
     logging.info('Testing GraphQL API...')
-    result = test_all(slugs, days_back, interval)
-
-    if config.getboolean('send_discord_notification') and error_output:
-        logging.info('Sending discord notification...')
-        # TODO Rework alerting
-        publish_graphql_alert(None)
-    else:
-        logging.info('Skipping discord notification')
+    test_all(slugs, days_back, interval)
 
     logging.info('Finished')
 
