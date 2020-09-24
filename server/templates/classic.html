@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ title }}
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <tr>
+              <th></th>
+              {% for query_name in all_query_names %}
+                <th>{{ query_name }}</th>
+              {% endfor %}
+            </tr>
+
+            {% for item in data %}
+              <tr>
+                <td style="text-align:center;"><b>{{item['slug'].upper()}}</b></td>
+                {% for query_result in item['queries'] %}
+                  <td title="{{item['slug'].upper()}} {{query_result['name']}}" style='background-color:{{query_result["color"]}};text-align:center;'>{{query_result['status']}}</td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

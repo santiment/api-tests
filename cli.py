@@ -4,27 +4,20 @@ import logging
 import fire
 from datetime import timedelta as td
 import san
-from api_tests.api_tests import run, filter_projects_by_marketcap
+import boot
+from api_tests.gql_tests.main import run, filter_projects_by_marketcap
 from api_tests.api_response_time_test import run as run_response_time_test
+from api_tests.gql_tests.main import run, filter_projects_by_marketcap
 from api_tests.frontend import run as run_frontend_test
-from api_tests.html_report import generate_html_from_json
-from api_tests.stability_report import run as run_stability_report
-from api_tests.config import Config
+from api_tests.db.migrations import run_migrations
 from api_tests.constants import DAYS_BACK_TEST, \
                                 INTERVAL, \
                                 INTERVAL_FRONTEND, \
                                 API_KEY,\
                                 TOP_PROJECTS_BY_MARKETCAP, \
                                 HOURS_BACK_TEST_FRONTEND, \
-                                LOG_FORMAT, \
-                                LOG_LEVEL, \
-                                LOG_DATE_FORMAT, \
                                 SLUGS_FOR_SANITY_CHECK, \
-                                LEGACY_ASSET_SLUGS, \
-                                PYTHON_ENV
-
-logging.basicConfig(format=LOG_FORMAT, level=LOG_LEVEL, datefmt=LOG_DATE_FORMAT)
-config = Config(PYTHON_ENV)
+                                LEGACY_ASSET_SLUGS
 
 slugs = []
 
@@ -46,16 +39,6 @@ def sanity():
     run(slugs, DAYS_BACK_TEST, INTERVAL)
     logging.info('Done')
 
-def build_stability_report():
-    """Do a stability report based on the last X reports uploaded in S3"""
-    if config.getboolean('build_stability_report'):
-        logging.info('Generating stability json report...')
-        run_stability_report()
-    else:
-        logging.info("Skipping generation of stability report")
-
-    logging.info('Done')
-
 def top():
     """Do a test against top projects by marketcap"""
     logging.info(f'Testing top {TOP_PROJECTS_BY_MARKETCAP} projects by marketcap...')
@@ -71,11 +54,6 @@ def projects(*items):
     run(slugs, DAYS_BACK_TEST, INTERVAL)
     logging.info('Done')
 
-def generate_html_report():
-    """Generate HTML report"""
-    logging.info('Generating HTML report...')
-    generate_html_from_json('output_for_html.json', 'index.html')
-    logging.info('Done')
 
 def test_response_time():
     """Test API response time"""
@@ -83,13 +61,19 @@ def test_response_time():
     run_response_time_test()
     logging.info('Done')
 
+
+def migrate_db():
+    """Run DB migrations"""
+    logging.info("Running migrations...")
+    run_migrations()
+    logging.info("Done")
+
 if __name__ == '__main__':
     fire.Fire({
       'frontend': frontend,
       'sanity': sanity,
       'top': top,
+      'test_response_time': test_response_time,
       'projects': projects,
-      'generate_html_report': generate_html_report,
-      'build_stability_report': build_stability_report,
-      'test_response_time': test_response_time
+      'migrate_db': migrate_db
   })

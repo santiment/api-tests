@@ -1,4 +1,4 @@
-from api_tests.api_tests import is_delay
+from api_tests.gql_tests.timeseries import is_delay
 from datetime import datetime, timedelta
 
 def test_is_delay_when_delayed():

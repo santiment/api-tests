@@ -31,7 +31,7 @@ Caused by: {error}
 """
     publish_message(message)
 
-    
+
 def publish_graphql_alert(error):
     now = datetime.datetime.utcnow()
     report_url = "TBD"
@@ -45,8 +45,13 @@ See report at {report_url}
 """
     publish_message(message)
 
-    
-def publish_response_time_alert(time, errors):
+def build_graphql_success_message(triggered_at):
+    return f"{triggered_at} GraphQL API check success!"
+
+
+# TODO need to rework alerting
+def publish_graphql_alert(error=None):
+    report_url = "https://jenkins.internal.santiment.net/job/Santiment/job/api-tests/job/master/Test_20Report/"
     now = datetime.datetime.utcnow()
     message = f"""
 +++++++++++++++++++++++++++++++++++++++++++++++++
@@ -58,3 +63,19 @@ Triggered at {triggered_at}
 ===============================================
 """
     publish_message(message)
+
+def publish_response_time_alert(time, errors):
+    now = datetime.datetime.utcnow()
+    message = build_response_time_error_message(mention, time, errors, now)
+    publish_message(message)
+
+def build_response_time_error_message(mention, time, errors, triggered_at):
+    return f"""
++++++++++++++++++++++++++++++++++++++++++++++++++
+{mention}
+API response time is slow!
+Acceptable: {ACCEPTABLE_RESPONSE_TIME} s, actual {time} s
+Errors encountered: {' '.join(map(str, errors))}
+Triggered at {triggered_at}
+===============================================
+"""

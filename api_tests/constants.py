@@ -17,9 +17,6 @@ HISTOGRAM_METRICS_LIMIT = int(os.getenv('HISTOGRAM_METRICS_LIMIT', 10))
 BATCH_SIZE = int(os.getenv('BATCH_SIZE', 50))
 DISCORD_WEBHOOK = os.getenv('DISCORD_WEBHOOK')
 DISCORD_MENTION = os.getenv('DISCORD_MENTION')
-S3_ACCESS_KEY = os.getenv('S3_ACCESS_KEY', '')
-S3_ACCESS_SECRET = os.getenv('S3_ACCESS_SECRET', '')
-S3_BUCKET_NAME = os.getenv('S3_BUCKET_NAME', '')
 NUMBER_OF_RETRIES = os.getenv('NUMBER_OF_RETRIES', 5)
 RETRY_DELAY = float(os.getenv('RETRY_DELAY', 0.1))
 ERRORS_IN_ROW = int(os.getenv('ERRORS_IN_ROW', 5))
@@ -29,10 +26,16 @@ LONGER_ALLOWED_DELAY = td(hours=48)
 NUMBER_OF_RUNS_FOR_TIMING_TEST = 5
 ACCEPTABLE_RESPONSE_TIME = 10
 
+DATABASE_HOST = os.getenv('DATABASE_HOST', 'localhost')
+DATABASE_PORT = os.getenv('DATABASE_PORT', 5432)
+DATABASE_USER = os.getenv('DATABASE_USER', 'postgres')
+DATABASE_PASSWORD = os.getenv('DATABASE_PASSWORD', 'postgres')
+DATABASE_DB = os.getenv('DATABASE_DB', 'api-tests')
+
 LOG_FORMAT = os.getenv(
     'LOG_FORMAT',
     '{"level": "%(levelname)s", "time": "%(asctime)s", "message": "%(message)s"}')
-LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG')
 LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 METRICS_WITH_LONGER_DELAY = [
@@ -130,3 +133,17 @@ SPECIAL_METRICS_AND_QUERIES = [
     "shareOfDeposits",
     "social_active_users"
 ]
+COLOR_MAPPING = {
+    "passed": "PaleGreen",
+    "fixed": "PaleGreen",
+    "empty": "LightCoral",
+    "GraphQL error": "Crimson",
+    "emerged": "Crimson",
+    "ignored": "LemonChiffon",
+    "changed": "LemonChiffon",
+    "corrupted": "LightSalmon",
+    "N/A": "LightGray",
+    "fast": "PaleGreen",
+    "medium": "LightSalmon",
+    "slow": "LightCoral",
+}
