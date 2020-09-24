@@ -12,7 +12,8 @@ from ..constants import LEGACY_ASSET_SLUGS, \
                        DATETIME_PATTERN_METRIC, \
                        INTERVAL_TIMEDELTA, \
                        REGULAR_ALLOWED_DELAY, \
-                       LONGER_ALLOWED_DELAY
+                       LONGER_ALLOWED_DELAY, \
+                       ALLOWED_NEGATIVES_KEYWORDS
 
 def test_timeseries_metrics(slug_test_suite, timeseries_metrics, slug_progress):
     for metric in timeseries_metrics:
@@ -86,7 +87,7 @@ def is_data_incorrect(metric, values):
     reason = ''
     if None in values:
         reason = 'None'
-    elif metric not in METRICS_WITH_ALLOWED_NEGATIVES:
+    elif not are_negatives_allowed(metric):
         if list(filter(lambda x: x < 0, values)):
             reason = 'negative'
     return (bool(reason), reason)
@@ -116,3 +117,6 @@ def delay_for_metric(metric):
     delay = LONGER_ALLOWED_DELAY if metric in METRICS_WITH_LONGER_DELAY else REGULAR_ALLOWED_DELAY
     return delay
 
+def are_negatives_allowed(metric):
+    contains_allowed_keyword = [x in metric for x in ALLOWED_NEGATIVES_KEYWORDS]
+    return (metric in METRICS_WITH_ALLOWED_NEGATIVES) or (True in contains_allowed_keyword)
