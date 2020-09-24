@@ -66,9 +66,9 @@ def test_all(slugs, days_back, interval):
 
         slug_progress_string = build_progress_string('slug', slug, slugs)
 
-        test_timeseries_metrics(slug_test_suite, timeseries_metrics, slug_progress_string)
-        test_histogram_metrics(slug_test_suite, histogram_metrics, slug_progress_string)
-        test_queries(slug_test_suite, queries, slug_progress_string)
+        test_timeseries_metrics(slug_test_suite, timeseries_metrics, slug_progress_string, SANBASE_GQL_HOST)
+        test_histogram_metrics(slug_test_suite, histogram_metrics, slug_progress_string, SANBASE_GQL_HOST)
+        test_queries(slug_test_suite, queries, slug_progress_string, SANBASE_GQL_HOST)
 
         GqlSlugTestSuite.update(
             {
