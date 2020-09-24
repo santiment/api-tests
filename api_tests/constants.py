@@ -64,6 +64,9 @@ ALLOWED_NEGATIVES_KEYWORDS = [
     "defi_balance",
     "trader_balance",
     "price_daa_divergence"
+    "price_daa_divergence",
+    "traders_balance",
+    "unlabeled_balance"
 ]
 
 METRICS_WITH_ALLOWED_GAPS = [
