@@ -45,9 +45,6 @@ See report at {report_url}
 """
     publish_message(message)
 
-def build_graphql_success_message(triggered_at):
-    return f"{triggered_at} GraphQL API check success!"
-
 
 def publish_response_time_alert(time, errors):
     now = datetime.datetime.utcnow()
