@@ -25,7 +25,7 @@ def publish_frontend_alert(error):
 +++++++++++++++++++++++++++++++++++++++++++++++++
 {mention}
 Frontend API alert
-Triggered at {triggered_at}
+Triggered at {now}
 Caused by: {error}
 ===============================================
 """
@@ -39,7 +39,7 @@ def publish_graphql_alert(error):
 +++++++++++++++++++++++++++++++++++++++++++++++++
 {mention}
 Problem with GraphQL API: {error}
-Triggered at {triggered_at}
+Triggered at {now}
 See report at {report_url}
 ===============================================
 """
@@ -51,16 +51,13 @@ def build_graphql_success_message(triggered_at):
 
 def publish_response_time_alert(time, errors):
     now = datetime.datetime.utcnow()
-    message = build_response_time_error_message(mention, time, errors, now)
-    publish_message(message)
-
-def build_response_time_error_message(mention, time, errors, triggered_at):
-    return f"""
+    message = f"""
 +++++++++++++++++++++++++++++++++++++++++++++++++
 {mention}
 API response time is slow!
 Acceptable: {ACCEPTABLE_RESPONSE_TIME} s, actual {time} s
 Errors encountered: {' '.join(map(str, errors))}
-Triggered at {triggered_at}
+Triggered at {now}
 ===============================================
 """
+    publish_message(message)
