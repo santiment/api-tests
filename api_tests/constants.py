@@ -63,7 +63,6 @@ ALLOWED_NEGATIVES_KEYWORDS = [
     "whale_balance",
     "defi_balance",
     "trader_balance",
-    "price_daa_divergence"
     "price_daa_divergence",
     "traders_balance",
     "unlabeled_balance"
