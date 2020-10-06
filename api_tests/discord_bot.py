@@ -46,12 +46,12 @@ See report at {report_url}
     publish_message(message)
 
 
-def publish_response_time_alert(time, errors):
+def publish_response_time_alert(query_name, time, errors):
     now = datetime.datetime.utcnow()
     message = f"""
 +++++++++++++++++++++++++++++++++++++++++++++++++
 {mention}
-API response time is slow!
+API response time is slow for query {query_name}!
 Acceptable: {ACCEPTABLE_RESPONSE_TIME} s, actual {time} s
 Errors encountered: {' '.join(map(str, errors))}
 Triggered at {now}
