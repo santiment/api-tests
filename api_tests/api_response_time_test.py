@@ -20,7 +20,6 @@ def get_response_time(gql_query):
         try:
             response = execute_gql(gql_query)
         except SanError as e:
-            print(e)
             errors.append(e)
             time.sleep(RETRY_DELAY)
     elapsed_time = time.time() - started
