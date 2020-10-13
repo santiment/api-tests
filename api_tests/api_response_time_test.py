@@ -3,7 +3,8 @@ from .config import Config
 from .constants import PYTHON_ENV, \
                        NUMBER_OF_RUNS_FOR_TIMING_TEST, \
                        ACCEPTABLE_RESPONSE_TIME, \
-                       RETRY_DELAY
+                       RETRY_DELAY, \
+                       RESPONSE_TIME_TEST_PAUSE
 import logging
 import time
 from san.error import SanError
@@ -56,11 +57,17 @@ def run():
     logging.info('PYTHON_ENV: %s', PYTHON_ENV)
     logging.info('Starting time response test...')
     for query_name in gql_queries:
-        (elapsed_time, errors) = get_response_time(gql_queries[query_name])
-        is_response_slow = elapsed_time > ACCEPTABLE_RESPONSE_TIME
+        is_response_slow = True
+        elapsed_times = []
+        for i in range(NUMBER_OF_RUNS_FOR_TIMING_TEST):
+            (elapsed_time, errors) = get_response_time(gql_queries[query_name])
+            is_response_slow = is_response_slow and elapsed_time > ACCEPTABLE_RESPONSE_TIME
+            elapsed_times.append(elapsed_time)
+            time.sleep(RESPONSE_TIME_TEST_PAUSE)
         if config.getboolean('send_discord_notification') and is_response_slow:
             logging.info('Sending discord notification...')
-            publish_response_time_alert(query_name, elapsed_time, errors)
+            avg_elapsed_time = sum(elapsed_times)/len(elapsed_times)
+            publish_response_time_alert(query_name, avg_elapsed_time, errors)
         else:
             logging.info('Skipping discord notification')
         logging.info(f"Finished test for query {query_name} of {NUMBER_OF_RUNS_FOR_TIMING_TEST} runs, total time {elapsed_time}, errors during the run: {' '.join(map(str, errors))}")
