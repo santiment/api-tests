@@ -60,9 +60,12 @@ def run():
         is_response_slow = True
         elapsed_times = []
         for i in range(NUMBER_OF_RUNS_FOR_TIMING_TEST):
+            logging.info(f'Testing: {gql_queries[query_name]} for {i} time...')
             (elapsed_time, errors) = get_response_time(gql_queries[query_name])
             is_response_slow = is_response_slow and elapsed_time > ACCEPTABLE_RESPONSE_TIME
             elapsed_times.append(elapsed_time)
+            logging.info(f'Elapsed time: {elapsed_time}s')
+            logging.info(f'Sleeping for: {RESPONSE_TIME_TEST_PAUSE}s ...')
             time.sleep(RESPONSE_TIME_TEST_PAUSE)
         if config.getboolean('send_discord_notification') and is_response_slow:
             logging.info('Sending discord notification...')
