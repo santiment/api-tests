@@ -52,6 +52,7 @@ METRICS_WITH_ALLOWED_NEGATIVES = [
     "bitmex_perpetual_funding_rate",
     "bitmex_perpetual_basis",
     "bitmex_perpetual_basis_ratio",
+    "network_profit_loss"
 ]
 
 ALLOWED_NEGATIVES_KEYWORDS = [
