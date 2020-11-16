@@ -165,7 +165,8 @@ def gql_test_suite_performance_data(test_suite):
         project['data'] = sorted([x for x in project['data']], key=lambda k: k['elapsed_time'], reverse=True)
 
         for item in project['data']:
-            item['color'] = _color_mapping(_elapsed_time_category(item['elapsed_time']))
+            item['status'] = _elapsed_time_category(item['elapsed_time'])
+            item['color'] = _color_mapping(item['status'])
             item['elapsed_time'] = round(item['elapsed_time'], 2)
 
     return data
