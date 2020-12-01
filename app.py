@@ -4,6 +4,7 @@ from flask import Flask, request, send_from_directory, jsonify, render_template,
 from flask.logging import create_logger
 from flask_bootstrap import Bootstrap
 import boot
+from datetime import datetime as dt
 from api_tests.models.gql_test_suite import GqlTestSuite
 from api_tests.models.gql_slug_test_suite import GqlSlugTestSuite
 from api_tests.models.gql_test_case import GqlTestCase
@@ -119,6 +120,24 @@ def test_suite_json(test_suite_id):
 
     return jsonify(suite.to_json())
 
+@APP.route('/aggregate')
+def aggregate():
+    start_date_str = request.args.get('startDate')
+    end_date_str = request.args.get('endDate')
+    if not (start_date_str and end_date_str):
+        response = 'Please specify start and end dates'
+    else:
+        start_date = dt.strptime(start_date_str, '%Y-%m-%d')
+        end_date = dt.strptime(end_date_str, '%Y-%m-%d')
+        suites = _get_test_suites_in_range(start_date, end_date)
+        data = gql_test_suite_aggregate_data(suites)
+        response = render_template(
+            'aggregated.html',
+            title=f"Aggregared report for period {start_date_str} - {end_date_str}",
+            data=data
+        )
+    return response
+
 # TODO That can be further cleaned, leftover prior of refactoring
 def gql_test_suite_classic_data(test_suite):
     data = test_suite.output_for_html()
@@ -171,6 +190,42 @@ def gql_test_suite_performance_data(test_suite):
 
     return data
 
+def gql_test_suite_aggregate_data(test_suites):
+    data = [test_suite.output_for_html() for test_suite in test_suites]
+    data_flat = [x for sublist in data for x in sublist]
+    output_data = {}
+
+    for project in data_flat:
+        for x in project['data']:
+            if x['status'] != 'N/A':
+                if x['name'] not in output_data:
+                    output_data[x['name']] = {
+                        'error': _is_error(x['status']),
+                        'total': 1
+                    }
+                else:
+                    output_data[x['name']]['error'] += _is_error(x['status'])
+                    output_data[x['name']]['total'] += 1
+    for item in output_data:
+        output_data[item]['ratio'] = round(100*(1-output_data[item]['error']/output_data[item]['total']), 2)
+        output_data[item]['stability'] = _stability_category(output_data[item]['ratio'])
+        output_data[item]['color'] = _color_mapping(output_data[item]['stability'])
+    return output_data
+
+def _is_error(status):
+    return int(status in ['empty', 'corrupted', 'GraphQL error'])
+
+def _get_test_suites_in_range(start_date, end_date):
+    return (
+        GqlTestSuite.
+        select().
+        where(
+            (GqlTestSuite.started_at > start_date) &
+            (GqlTestSuite.started_at < end_date)
+        ).
+        order_by(GqlTestSuite.id.desc())
+    )
+
 def _get_test_suite(id):
     return (
         GqlTestSuite.
@@ -200,6 +255,16 @@ def _elapsed_time_category(elapsed_time):
         return "medium"
     else:
         return "slow"
+
+def _stability_category(ratio):
+    if ratio > 98:
+        return "stable"
+    elif ratio > 95:
+        return "less stable"
+    elif ratio > 80:
+        return "unstable"
+    else:
+        return "very unstable"
 
 def _color_mapping(key):
     return COLOR_MAPPING[key.split(':')[0]]
