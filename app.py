@@ -125,7 +125,7 @@ def aggregate():
     start_date_str = request.args.get('start_date')
     end_date_str = request.args.get('end_date')
     if not (start_date_str and end_date_str):
-        response = {'error': 'Please specify start_date and end_date in the request URL'}, 422
+        response = {'error': 'Please specify start_date and end_date with the following format: "%Y-%m-%d" in the request URL'}, 422
     else:
         start_date = dt.strptime(start_date_str, '%Y-%m-%d')
         end_date = dt.strptime(end_date_str, '%Y-%m-%d')
@@ -192,7 +192,9 @@ def gql_test_suite_performance_data(test_suite):
 
 def gql_test_suite_aggregate_data(test_suites):
     data = [test_suite.output_for_html() for test_suite in test_suites]
-    data_flat = [project for suite in data for project in suite] #this turns a list of lists into a flat list
+    data_flat = []
+    for suite in data:
+        data_flat += suite
     output_data = {}
 
     for project in data_flat:
