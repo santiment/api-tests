@@ -1,4 +1,4 @@
-from app import _append_or_update
+from app import _update_data
 
 def test_update_data_existing_name():
     output_data = {
@@ -12,7 +12,7 @@ def test_update_data_existing_name():
         'name': 'test_metric',
         'status': 'corrupted'
     }
-    _append_or_update(output_data, result)
+    _update_data(output_data, result)
     assert output_data == {
         'test_metric':
         {
@@ -33,7 +33,7 @@ def test_update_data_new_name():
         'name': 'test_metric_2',
         'status': 'passed'
     }
-    _append_or_update(output_data, result)
+    _update_data(output_data, result)
     assert output_data == {
         'test_metric':
         {
@@ -59,7 +59,7 @@ def test_update_data_NA():
         'name': 'test_metric',
         'status': 'N/A'
     }
-    _append_or_update(output_data, result)
+    _update_data(output_data, result)
     assert output_data == {
         'test_metric':
         {
