@@ -1,4 +1,4 @@
-from app import _calculate_uptime
+from api_tests.uptime_report import calculate_uptime
 
 def test_uptime_calculation():
     test_data = [
@@ -33,5 +33,5 @@ def test_uptime_calculation():
 
     ]
     for data in test_data:
-        uptime = _calculate_uptime(data[0])
+        uptime = calculate_uptime(data[0])
         assert uptime == data[1]

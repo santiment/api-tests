@@ -1,4 +1,4 @@
-from app import _update_data
+from api_tests.uptime_report import update_data
 
 def test_update_data_existing_name():
     output_data = {
@@ -12,7 +12,7 @@ def test_update_data_existing_name():
         'name': 'test_metric',
         'status': 'corrupted'
     }
-    _update_data(output_data, result)
+    update_data(output_data, result)
     assert output_data == {
         'test_metric':
         {
@@ -33,7 +33,7 @@ def test_update_data_new_name():
         'name': 'test_metric_2',
         'status': 'passed'
     }
-    _update_data(output_data, result)
+    update_data(output_data, result)
     assert output_data == {
         'test_metric':
         {
@@ -59,7 +59,7 @@ def test_update_data_NA():
         'name': 'test_metric',
         'status': 'N/A'
     }
-    _update_data(output_data, result)
+    update_data(output_data, result)
     assert output_data == {
         'test_metric':
         {

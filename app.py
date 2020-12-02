@@ -5,11 +5,12 @@ from flask.logging import create_logger
 from flask_bootstrap import Bootstrap
 import boot
 from datetime import datetime as dt
+from api_tests.uptime_report import gql_test_suite_uptime_data
 from api_tests.models.gql_test_suite import GqlTestSuite
 from api_tests.models.gql_slug_test_suite import GqlSlugTestSuite
 from api_tests.models.gql_test_case import GqlTestCase
-from api_tests.constants import COLOR_MAPPING, \
-                                ELAPSED_TIME_FAST_THRESHOLD, \
+from api_tests.utils.helper import color_mapping
+from api_tests.constants import ELAPSED_TIME_FAST_THRESHOLD, \
                                 ELAPSED_TIME_SLOW_THRESHOLD
 
 APP = Flask('api-tests', static_url_path='', static_folder='server/static', template_folder='server/templates')
@@ -157,7 +158,7 @@ def gql_test_suite_classic_data(test_suite):
 
         for metric_name in all_query_names:
             status = values[metric_name] if metric_name in values else 'N/A'
-            color = _color_mapping(status)
+            color = color_mapping(status)
             view_data_project['queries'].append({'name': metric_name, 'status': status, 'color': color})
 
         view_data.append(view_data_project)
@@ -172,7 +173,7 @@ def gql_test_suite_debug_data(test_suite):
         project['data'] = sorted([x for x in project['data']], key=lambda k: k['status'])
 
         for item in project['data']:
-            item['color'] = _color_mapping(item['status'])
+            item['color'] = color_mapping(item['status'])
 
     return data
 
@@ -185,45 +186,10 @@ def gql_test_suite_performance_data(test_suite):
 
         for item in project['data']:
             item['status'] = _elapsed_time_category(item['elapsed_time'])
-            item['color'] = _color_mapping(item['status'])
+            item['color'] = color_mapping(item['status'])
             item['elapsed_time'] = round(item['elapsed_time'], 2)
 
     return data
-
-def gql_test_suite_uptime_data(test_suites):
-    data = [test_suite.output_for_html() for test_suite in test_suites]
-    data_flat = [project for suite in data for project in suite]
-    output_data = {}
-
-    for project in data_flat:
-        for result in project['data']:
-            _update_data(output_data, result)
-    for metric in output_data:
-        output_data[metric]['uptime'] = _calculate_uptime(output_data[metric])
-        output_data[metric]['stability'] = _stability_category(output_data[metric]['uptime'])
-        output_data[metric]['color'] = _color_mapping(output_data[metric]['stability'])
-    return dict(sorted(output_data.items(), key=lambda x: x[1]['uptime']))
-
-def _update_data(output_data, result):
-    if result['status'] != 'N/A':
-        if result['name'] not in output_data:
-            output_data[result['name']] = {
-                'error': _is_error(result['status']),
-                'total': 1
-            }
-        else:
-            output_data[result['name']]['error'] += _is_error(result['status'])
-            output_data[result['name']]['total'] += 1
-
-def _calculate_uptime(metric_data):
-    if metric_data['total'] == 0:
-        result = 0
-    else:
-        result = round(100*(1-metric_data['error']/metric_data['total']), 2)
-    return result
-
-def _is_error(status):
-    return int(status in ['empty', 'corrupted', 'GraphQL error'])
 
 def _get_test_suites_in_range(start_date, end_date):
     return (
@@ -266,15 +232,3 @@ def _elapsed_time_category(elapsed_time):
     else:
         return "slow"
 
-def _stability_category(uptime):
-    if uptime > 98:
-        return "stable"
-    elif uptime > 95:
-        return "less stable"
-    elif uptime > 80:
-        return "unstable"
-    else:
-        return "very unstable"
-
-def _color_mapping(key):
-    return COLOR_MAPPING[key.split(':')[0]]
