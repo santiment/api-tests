@@ -122,10 +122,10 @@ def test_suite_json(test_suite_id):
 
 @APP.route('/aggregate')
 def aggregate():
-    start_date_str = request.args.get('startDate')
-    end_date_str = request.args.get('endDate')
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
     if not (start_date_str and end_date_str):
-        response = 'Please specify start and end dates'
+        response = {'error': 'Please specify start_date and end_date in the request URL'}, 422
     else:
         start_date = dt.strptime(start_date_str, '%Y-%m-%d')
         end_date = dt.strptime(end_date_str, '%Y-%m-%d')
@@ -192,25 +192,32 @@ def gql_test_suite_performance_data(test_suite):
 
 def gql_test_suite_aggregate_data(test_suites):
     data = [test_suite.output_for_html() for test_suite in test_suites]
-    data_flat = [x for sublist in data for x in sublist]
+    data_flat = [project for suite in data for project in suite] #this turns a list of lists into a flat list
     output_data = {}
 
     for project in data_flat:
-        for x in project['data']:
-            if x['status'] != 'N/A':
-                if x['name'] not in output_data:
-                    output_data[x['name']] = {
-                        'error': _is_error(x['status']),
+        for result in project['data']:
+            if result['status'] != 'N/A':
+                if result['name'] not in output_data:
+                    output_data[result['name']] = {
+                        'error': _is_error(result['status']),
                         'total': 1
                     }
                 else:
-                    output_data[x['name']]['error'] += _is_error(x['status'])
-                    output_data[x['name']]['total'] += 1
-    for item in output_data:
-        output_data[item]['ratio'] = round(100*(1-output_data[item]['error']/output_data[item]['total']), 2)
-        output_data[item]['stability'] = _stability_category(output_data[item]['ratio'])
-        output_data[item]['color'] = _color_mapping(output_data[item]['stability'])
-    return output_data
+                    output_data[result['name']]['error'] += _is_error(result['status'])
+                    output_data[result['name']]['total'] += 1
+    for metric in output_data:
+        output_data[metric]['uptime'] = _calculate_uptime(output_data[metric])
+        output_data[metric]['stability'] = _stability_category(output_data[metric]['uptime'])
+        output_data[metric]['color'] = _color_mapping(output_data[metric]['stability'])
+    return dict(sorted(output_data.items(), key=lambda x: x[1]['uptime']))
+
+def _calculate_uptime(metric_data):
+    if metric_data['total'] == 0:
+        result = 0
+    else:
+        result = round(100*(1-metric_data['error']/metric_data['total']), 2)
+    return result
 
 def _is_error(status):
     return int(status in ['empty', 'corrupted', 'GraphQL error'])
@@ -220,8 +227,8 @@ def _get_test_suites_in_range(start_date, end_date):
         GqlTestSuite.
         select().
         where(
-            (GqlTestSuite.started_at > start_date) &
-            (GqlTestSuite.started_at < end_date)
+            (GqlTestSuite.started_at >= start_date) &
+            (GqlTestSuite.started_at <= end_date)
         ).
         order_by(GqlTestSuite.id.desc())
     )
@@ -256,12 +263,12 @@ def _elapsed_time_category(elapsed_time):
     else:
         return "slow"
 
-def _stability_category(ratio):
-    if ratio > 98:
+def _stability_category(uptime):
+    if uptime > 98:
         return "stable"
-    elif ratio > 95:
+    elif uptime > 95:
         return "less stable"
-    elif ratio > 80:
+    elif uptime > 80:
         return "unstable"
     else:
         return "very unstable"
