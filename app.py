@@ -192,27 +192,28 @@ def gql_test_suite_performance_data(test_suite):
 
 def gql_test_suite_aggregate_data(test_suites):
     data = [test_suite.output_for_html() for test_suite in test_suites]
-    data_flat = []
-    for suite in data:
-        data_flat += suite
+    data_flat = [project for suite in data for project in suite]
     output_data = {}
 
     for project in data_flat:
         for result in project['data']:
-            if result['status'] != 'N/A':
-                if result['name'] not in output_data:
-                    output_data[result['name']] = {
-                        'error': _is_error(result['status']),
-                        'total': 1
-                    }
-                else:
-                    output_data[result['name']]['error'] += _is_error(result['status'])
-                    output_data[result['name']]['total'] += 1
+            _update_data(output_data, result)
     for metric in output_data:
         output_data[metric]['uptime'] = _calculate_uptime(output_data[metric])
         output_data[metric]['stability'] = _stability_category(output_data[metric]['uptime'])
         output_data[metric]['color'] = _color_mapping(output_data[metric]['stability'])
     return dict(sorted(output_data.items(), key=lambda x: x[1]['uptime']))
+
+def _update_data(output_data, result):
+    if result['status'] != 'N/A':
+        if result['name'] not in output_data:
+            output_data[result['name']] = {
+                'error': _is_error(result['status']),
+                'total': 1
+            }
+        else:
+            output_data[result['name']]['error'] += _is_error(result['status'])
+            output_data[result['name']]['total'] += 1
 
 def _calculate_uptime(metric_data):
     if metric_data['total'] == 0:
