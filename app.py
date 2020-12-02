@@ -120,8 +120,8 @@ def test_suite_json(test_suite_id):
 
     return jsonify(suite.to_json())
 
-@APP.route('/aggregate')
-def aggregate():
+@APP.route('/uptime')
+def uptime_report():
     start_date_str = request.args.get('start_date')
     end_date_str = request.args.get('end_date')
     if not (start_date_str and end_date_str):
@@ -130,10 +130,10 @@ def aggregate():
         start_date = dt.strptime(start_date_str, '%Y-%m-%d')
         end_date = dt.strptime(end_date_str, '%Y-%m-%d')
         suites = _get_test_suites_in_range(start_date, end_date)
-        data = gql_test_suite_aggregate_data(suites)
+        data = gql_test_suite_uptime_data(suites)
         response = render_template(
-            'aggregated.html',
-            title=f"Aggregared report for period {start_date_str} - {end_date_str}",
+            'uptime_report.html',
+            title=f"Metric uptime report for period {start_date_str} - {end_date_str}",
             data=data
         )
     return response
@@ -190,7 +190,7 @@ def gql_test_suite_performance_data(test_suite):
 
     return data
 
-def gql_test_suite_aggregate_data(test_suites):
+def gql_test_suite_uptime_data(test_suites):
     data = [test_suite.output_for_html() for test_suite in test_suites]
     data_flat = [project for suite in data for project in suite]
     output_data = {}
