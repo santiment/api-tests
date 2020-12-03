@@ -4,11 +4,13 @@ from flask import Flask, request, send_from_directory, jsonify, render_template,
 from flask.logging import create_logger
 from flask_bootstrap import Bootstrap
 import boot
+from datetime import datetime as dt
+from api_tests.uptime_report import UptimeReport
 from api_tests.models.gql_test_suite import GqlTestSuite
 from api_tests.models.gql_slug_test_suite import GqlSlugTestSuite
 from api_tests.models.gql_test_case import GqlTestCase
-from api_tests.constants import COLOR_MAPPING, \
-                                ELAPSED_TIME_FAST_THRESHOLD, \
+from api_tests.utils.helper import color_mapping
+from api_tests.constants import ELAPSED_TIME_FAST_THRESHOLD, \
                                 ELAPSED_TIME_SLOW_THRESHOLD
 
 APP = Flask('api-tests', static_url_path='', static_folder='server/static', template_folder='server/templates')
@@ -119,6 +121,25 @@ def test_suite_json(test_suite_id):
 
     return jsonify(suite.to_json())
 
+@APP.route('/uptime_report')
+def uptime_report():
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    if not (start_date and end_date):
+        response = {
+            'error': 'Please specify start_date and end_date with the following format: "%Y-%m-%d" in the request URL'
+        }, 422
+    else:
+        report = UptimeReport(start_date, end_date)
+        data = report.build()
+        response = render_template(
+            'uptime_report.html',
+            title=f"Metric uptime report for period: {start_date} - {end_date}",
+            data=data
+        )
+    return response
+
 # TODO That can be further cleaned, leftover prior of refactoring
 def gql_test_suite_classic_data(test_suite):
     data = test_suite.output_for_html()
@@ -138,7 +159,7 @@ def gql_test_suite_classic_data(test_suite):
 
         for metric_name in all_query_names:
             status = values[metric_name] if metric_name in values else 'N/A'
-            color = _color_mapping(status)
+            color = color_mapping(status)
             view_data_project['queries'].append({'name': metric_name, 'status': status, 'color': color})
 
         view_data.append(view_data_project)
@@ -153,7 +174,7 @@ def gql_test_suite_debug_data(test_suite):
         project['data'] = sorted([x for x in project['data']], key=lambda k: k['status'])
 
         for item in project['data']:
-            item['color'] = _color_mapping(item['status'])
+            item['color'] = color_mapping(item['status'])
 
     return data
 
@@ -166,7 +187,7 @@ def gql_test_suite_performance_data(test_suite):
 
         for item in project['data']:
             item['status'] = _elapsed_time_category(item['elapsed_time'])
-            item['color'] = _color_mapping(item['status'])
+            item['color'] = color_mapping(item['status'])
             item['elapsed_time'] = round(item['elapsed_time'], 2)
 
     return data
@@ -201,5 +222,3 @@ def _elapsed_time_category(elapsed_time):
     else:
         return "slow"
 
-def _color_mapping(key):
-    return COLOR_MAPPING[key.split(':')[0]]

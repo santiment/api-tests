@@ -150,4 +150,8 @@ COLOR_MAPPING = {
     "fast": "PaleGreen",
     "medium": "LightSalmon",
     "slow": "LightCoral",
+    "stable": "PaleGreen",
+    "less stable": "LemonChiffon",
+    "unstable": "LightSalmon",
+    "very unstable": "LightCoral"
 }

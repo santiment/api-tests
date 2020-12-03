@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ title }}
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <tr>
+              {% for item in data %}
+                <th>{{ item }}</th>
+              {% endfor %}
+            </tr>
+              <tr>
+                {% for item in data %}
+                  <td title="{{item}}" style='background-color:{{data[item]["color"]}};text-align:center;'>{{data[item]['stability']}} - {{data[item]['uptime']}}</td>
+                {% endfor %}
+              </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
