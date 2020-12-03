@@ -192,17 +192,6 @@ def gql_test_suite_performance_data(test_suite):
 
     return data
 
-def _get_test_suites_in_range(start_date, end_date):
-    return (
-        GqlTestSuite.
-        select().
-        where(
-            (GqlTestSuite.started_at >= start_date) &
-            (GqlTestSuite.started_at <= end_date)
-        ).
-        order_by(GqlTestSuite.id.desc())
-    )
-
 def _get_test_suite(id):
     return (
         GqlTestSuite.
