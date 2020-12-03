@@ -5,7 +5,7 @@ from flask.logging import create_logger
 from flask_bootstrap import Bootstrap
 import boot
 from datetime import datetime as dt
-from api_tests.uptime_report import gql_test_suite_uptime_data
+from api_tests.uptime_report import UptimeReport
 from api_tests.models.gql_test_suite import GqlTestSuite
 from api_tests.models.gql_slug_test_suite import GqlSlugTestSuite
 from api_tests.models.gql_test_case import GqlTestCase
@@ -121,20 +121,21 @@ def test_suite_json(test_suite_id):
 
     return jsonify(suite.to_json())
 
-@APP.route('/uptime')
+@APP.route('/uptime_report')
 def uptime_report():
-    start_date_str = request.args.get('start_date')
-    end_date_str = request.args.get('end_date')
-    if not (start_date_str and end_date_str):
-        response = {'error': 'Please specify start_date and end_date with the following format: "%Y-%m-%d" in the request URL'}, 422
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    if not (start_date and end_date):
+        response = {
+            'error': 'Please specify start_date and end_date with the following format: "%Y-%m-%d" in the request URL'
+        }, 422
     else:
-        start_date = dt.strptime(start_date_str, '%Y-%m-%d')
-        end_date = dt.strptime(end_date_str, '%Y-%m-%d')
-        suites = _get_test_suites_in_range(start_date, end_date)
-        data = gql_test_suite_uptime_data(suites)
+        report = UptimeReport(start_date, end_date)
+        data = report.build()
         response = render_template(
             'uptime_report.html',
-            title=f"Metric uptime report for period {start_date_str} - {end_date_str}",
+            title=f"Metric uptime report for period: {start_date} - {end_date}",
             data=data
         )
     return response
