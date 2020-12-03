@@ -9,7 +9,7 @@ class UptimeReport:
 
     def build(self):
         test_suites = self.fetch_test_suites()
-        output_data = self.build_output_data(test_suites)
+        output_data = build_output_data(test_suites)
 
         return output_data
 
@@ -25,49 +25,50 @@ class UptimeReport:
             order_by(GqlTestSuite.id.desc())
         )
 
-    def build_output_data(self, test_suites):
-        data = [test_suite.output_for_html() for test_suite in test_suites]
-        data_flat = [project for suite in data for project in suite]
-        output_data = {}
+def build_output_data(test_suites):
+    data = [test_suite.output_for_html() for test_suite in test_suites]
+    data_flat = [project for suite in data for project in suite]
+    output_data = {}
 
-        for project in data_flat:
-            for result in project['data']:
-                self.set_errors(output_data, result)
-        
-        for metric in output_data:
-            output_data[metric]['uptime'] = self.calculate_uptime(output_data[metric])
-            output_data[metric]['stability'] = self._set_stability_category(output_data[metric]['uptime'])
-            output_data[metric]['color'] = color_mapping(output_data[metric]['stability'])
+    for project in data_flat:
+        for result in project['data']:
+            set_errors(output_data, result)
 
-        return dict(sorted(output_data.items(), key=lambda x: x[1]['uptime']))
+    for metric in output_data:
+        output_data[metric]['uptime'] = calculate_uptime(output_data[metric])
+        output_data[metric]['stability'] = _set_stability_category(output_data[metric]['uptime'])
+        output_data[metric]['color'] = color_mapping(output_data[metric]['stability'])
 
-    def set_errors(self, output_data, result):
-        if result['status'] != 'N/A':
-            if result['name'] not in output_data:
-                output_data[result['name']] = {
-                    'error': self._is_error(result['status']),
-                    'total': 1
-                }
-            else:
-                output_data[result['name']]['error'] += self._is_error(result['status'])
-                output_data[result['name']]['total'] += 1
+    return dict(sorted(output_data.items(), key=lambda item: item[1]['uptime']))
 
-    def calculate_uptime(self, metric_data):
-        if metric_data['total'] == 0:
-            result = 0
+def set_errors(output_data, result):
+    if result['status'] != 'N/A':
+        if result['name'] not in output_data:
+            output_data[result['name']] = {
+                'error': _is_error(result['status']),
+                'total': 1
+            }
         else:
-            result = round(100*(1-metric_data['error']/metric_data['total']), 2)
-        return result
+            output_data[result['name']]['error'] += _is_error(result['status'])
+            output_data[result['name']]['total'] += 1
 
-    def _is_error(self, status):
-        return int(status in ['empty', 'corrupted', 'GraphQL error'])
-    
-    def _set_stability_category(self, uptime):
-        if uptime > 98:
-            return "stable"
-        elif uptime > 95:
-            return "less stable"
-        elif uptime > 80:
-            return "unstable"
-        else:
-            return "very unstable"
+
+def calculate_uptime(metric_data):
+    if metric_data['total'] == 0:
+        result = 0
+    else:
+        result = round(100*(1-metric_data['error']/metric_data['total']), 2)
+    return result
+
+def _set_stability_category(uptime):
+    if uptime > 98:
+        return "stable"
+    elif uptime > 95:
+        return "less stable"
+    elif uptime > 80:
+        return "unstable"
+    else:
+        return "very unstable"
+
+def _is_error(status):
+    return int(status in ['empty', 'corrupted', 'GraphQL error'])
