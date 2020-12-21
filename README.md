@@ -91,4 +91,13 @@ If a metric can have longer delay - add it to `METRICS_WITH_LONGER_DELAY`.
 
 ## Uptime report
 
-Visit: http://localhost:5000/uptime_report?start_date=2020-01-01&end_date=2020-12-31
+You can request aggregated statistics of all metrics' uptime using this endpoint:
+
+<host:port>/uptime_report?start_date=yyyy-mm-dd&end_date=yyyy-mm-dd
+
+host:port is where the web app is running
+
+For example, for a local run it would be localhost:5000
+For our production report it would be https://apitestsweb-production.santiment.net
+
+In the report the data is aggregated over all key projects 
