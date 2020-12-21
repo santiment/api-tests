@@ -11,15 +11,15 @@
         <div class="table-responsive">
           <table class="table table-bordered table-hover">
             <tr>
-              {% for item in data %}
-                <th>{{ item }}</th>
-              {% endfor %}
+              <th>Metric</th>
+              <th>Uptime %</th>
             </tr>
+              {% for item in data %}
               <tr>
-                {% for item in data %}
-                  <td title="{{item}}" style='background-color:{{data[item]["color"]}};text-align:center;'>{{data[item]['stability']}} - {{data[item]['uptime']}}</td>
-                {% endfor %}
+                <td>{{item}}</td>
+                <td style='background-color:{{data[item]["color"]}};text-align:center;'>{{data[item]['stability']}} - {{data[item]['uptime']}}</td>
               </tr>
+              {% endfor %}
           </table>
         </div>
       </div>
