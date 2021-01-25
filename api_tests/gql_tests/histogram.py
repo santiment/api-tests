@@ -6,7 +6,7 @@ from ..models.gql_test_case import GqlTestCase
 from san.error import SanError
 from ..constants import HISTOGRAM_METRICS_LIMIT
 
-def test_histogram_metrics(slug_test_suite, histogram_metrics, slug_progress, sanbase_gql_host):
+def test_histogram_metrics(slug_test_suite, histogram_metrics, slug_progress, sanbase_api_endpoint):
     for metric in histogram_metrics:
         metric_progress_string = build_progress_string('histogram metric', metric, histogram_metrics)
         logging.info("%s%s Testing metric: %s", slug_progress, metric_progress_string, metric)
@@ -26,7 +26,7 @@ def test_histogram_metrics(slug_test_suite, histogram_metrics, slug_progress, sa
             query=gql_query,
             query_name=metric,
             query_type='histogram_metric',
-            query_url=sanbase_gql_host,
+            query_url=sanbase_api_endpoint,
             slug_test_suite=slug_test_suite
         )
 

@@ -1,13 +1,12 @@
 import logging
 from datetime import datetime as dt
 import san
-from san.env_vars import SANBASE_GQL_HOST
 from ..api_helper import get_available_metrics_and_queries, \
                          get_marketcap_batch
 from ..queries import queries
 from ..discord_bot import publish_graphql_alert
 from ..config import Config
-from ..constants import BATCH_SIZE, PYTHON_ENV, LEGACY_ASSET_SLUGS, SPECIAL_METRICS_AND_QUERIES
+from ..constants import SANBASE_API_ENDPOINT, BATCH_SIZE, PYTHON_ENV, LEGACY_ASSET_SLUGS, SPECIAL_METRICS_AND_QUERIES
 from ..models.base_model import db
 from ..models.gql_test_case import GqlTestCase
 from ..models.gql_slug_test_suite import GqlSlugTestSuite
@@ -38,7 +37,7 @@ def test_all(slugs, days_back, interval):
         state='running',
         interval=interval,
         days_back=days_back,
-        sanbase_gql_host=SANBASE_GQL_HOST
+        sanbase_api_endpoint=SANBASE_API_ENDPOINT
     )
 
     for slug in slugs:
@@ -66,9 +65,9 @@ def test_all(slugs, days_back, interval):
 
         slug_progress_string = build_progress_string('slug', slug, slugs)
 
-        test_timeseries_metrics(slug_test_suite, timeseries_metrics, slug_progress_string, SANBASE_GQL_HOST)
-        test_histogram_metrics(slug_test_suite, histogram_metrics, slug_progress_string, SANBASE_GQL_HOST)
-        test_queries(slug_test_suite, queries, slug_progress_string, SANBASE_GQL_HOST)
+        test_timeseries_metrics(slug_test_suite, timeseries_metrics, slug_progress_string, SANBASE_API_ENDPOINT)
+        test_histogram_metrics(slug_test_suite, histogram_metrics, slug_progress_string, SANBASE_API_ENDPOINT)
+        test_queries(slug_test_suite, queries, slug_progress_string, SANBASE_API_ENDPOINT)
 
         GqlSlugTestSuite.update(
             {
