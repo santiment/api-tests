@@ -37,7 +37,7 @@ def test_all(slugs, days_back, interval):
         state='running',
         interval=interval,
         days_back=days_back,
-        sanbase_api_host=SANBASE_API_HOST
+        sanbase_gql_host=SANBASE_API_HOST
     )
 
     for slug in slugs:
