@@ -4,8 +4,8 @@ from .connection import db
 migrator = PostgresqlMigrator(db)
 
 def run_migrations():
-    if not _exist_in_table('sanbase_api_endpoint', 'gqltestsuite'):
-        migrate(migrator.add_column('gqltestsuite', 'sanbase_api_endpoint', CharField(default='')))
+    if not _exist_in_table('sanbase_api_host', 'gqltestsuite'):
+        migrate(migrator.add_column('gqltestsuite', 'sanbase_api_host', CharField(default='')))
 
     if not _exist_in_table('_query_url', 'gqltestcase'):
         migrate(migrator.add_column('gqltestcase', '_query_url', TextField(default='')))

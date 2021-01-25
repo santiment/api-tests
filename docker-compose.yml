@@ -21,7 +21,7 @@ services:
       DATABASE_USER: postgres
       DATABASE_PASSWORD: postgres
       DATABASE_DB: api-tests
-      # SANBASE_API_ENDPOINT: https://api-stage.santiment.net/graphql
+      # SANBASE_API_HOST: https://api-stage.santiment.net/graphql
       # API_KEY:
       FLASK_ENV: development
       FLASK_DEBUG: 1

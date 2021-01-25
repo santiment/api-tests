@@ -15,7 +15,7 @@ from ..constants import LEGACY_ASSET_SLUGS, \
                        LONGER_ALLOWED_DELAY, \
                        ALLOWED_NEGATIVES_KEYWORDS
 
-def test_timeseries_metrics(slug_test_suite, timeseries_metrics, slug_progress, sanbase_api_endpoint):
+def test_timeseries_metrics(slug_test_suite, timeseries_metrics, slug_progress, sanbase_api_host):
     for metric in timeseries_metrics:
         metric_progress_string = build_progress_string('timeseries metric', metric, timeseries_metrics)
         logging.info("%s%s Testing metric: %s", slug_progress, metric_progress_string, metric)
@@ -34,7 +34,7 @@ def test_timeseries_metrics(slug_test_suite, timeseries_metrics, slug_progress, 
             query=gql_query,
             query_name=metric,
             query_type='timeseries_metric',
-            query_url=sanbase_api_endpoint,
+            query_url=sanbase_api_host,
             slug_test_suite=slug_test_suite
         )
 

@@ -6,7 +6,7 @@ class GqlTestSuite(BaseModel):
     state = CharField()
     interval = CharField()
     days_back = IntegerField()
-    sanbase_api_endpoint = CharField()
+    sanbase_api_host = CharField()
 
     def from_dt(self):
         return self.started_at - timedelta(days=self.days_back)
