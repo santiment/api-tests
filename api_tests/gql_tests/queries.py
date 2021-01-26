@@ -5,7 +5,7 @@ from ..utils.helper import build_progress_string, is_metric_ignored
 from ..models.gql_test_case import GqlTestCase
 from san.error import SanError
 
-def test_queries(slug_test_suite, queries, slug_progress, sanbase_gql_host):
+def test_queries(slug_test_suite, queries, slug_progress, sanbase_api_host):
     for query in queries:
         query_progress_string = build_progress_string('query', query, queries)
         logging.info("%s%s Testing query: %s", slug_progress, query_progress_string, query)
@@ -24,7 +24,7 @@ def test_queries(slug_test_suite, queries, slug_progress, sanbase_gql_host):
             query=gql_query,
             query_name=query,
             query_type='query',
-            query_url=sanbase_gql_host,
+            query_url=sanbase_api_host,
             slug_test_suite=slug_test_suite
         )
 

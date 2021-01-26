@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 API_KEY = os.getenv('API_KEY')
+SANBASE_API_HOST = os.getenv('SANBASE_API_HOST', 'https://api.santiment.net/graphql')
 DT_FORMAT = os.getenv("DT_FORMAT", "%Y-%m-%d")
 DATETIME_PATTERN_METRIC = os.getenv("DATETIME_PATTERN_METRIC", "%Y-%m-%dT%H:00:00Z")
 DATETIME_PATTERN_QUERY = os.getenv("DATETIME_PATTERN_QUERY", "%Y-%m-%dT%H:00:00.000000+00:00")
